@@ -80,7 +80,6 @@ namespace IdentityServer.STS.Admin
 
     internal static class Extensions
     {
-        //[DebuggerStepThrough]
         public static NameValueCollection ReadQueryStringAsNameValueCollection(this string url)
         {
             if (url != null)
@@ -90,18 +89,22 @@ namespace IdentityServer.STS.Admin
                 {
                     url = url.Substring(idx + 1);
                 }
-
+        
                 var query = QueryHelpers.ParseNullableQuery(url);
                 if (query != null)
                 {
                     return query.AsNameValueCollection();
                 }
             }
-
+        
             return new NameValueCollection();
         }
 
-        [DebuggerStepThrough]
+        /// <summary>
+        /// 是否为本地地址， 例如： "/" 和"～/"  
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public static bool IsLocalUrl(this string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -148,7 +151,7 @@ namespace IdentityServer.STS.Admin
             return false;
         }
 
-        [DebuggerStepThrough]
+
         internal static AuthorizationRequest ToAuthorizationRequest(this ValidatedAuthorizeRequest request)
         {
             var authRequest = new AuthorizationRequest
@@ -164,23 +167,10 @@ namespace IdentityServer.STS.Admin
                 AcrValues = request.GetAcrValues(),
                 ValidatedResources = request.ValidatedResources
             };
-
+        
             authRequest.Parameters.Add(request.Raw);
-
+        
             return authRequest;
-        }
-
-        [DebuggerStepThrough]
-        public static NameValueCollection AsNameValueCollection(this IDictionary<string, StringValues> collection)
-        {
-            var nv = new NameValueCollection();
-
-            foreach (var field in collection)
-            {
-                nv.Add(field.Key, field.Value.First());
-            }
-
-            return nv;
         }
     }
 }

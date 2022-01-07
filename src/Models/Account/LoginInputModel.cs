@@ -25,5 +25,10 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// 跳转链接
         /// </summary>
         public string ReturnUrl { get; set; }
+
+        /// <summary>
+        /// 请求类型
+        /// </summary>
+        public string RequestType { get; set; }
     }
 }

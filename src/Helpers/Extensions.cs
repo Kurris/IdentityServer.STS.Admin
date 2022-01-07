@@ -74,7 +74,7 @@ namespace IdentityServer.STS.Admin.Helpers
             where TUser : class
             where TRole : class
         {
-            services.AddSingleton<IdentityOptions>()  //默认配置
+            services.AddSingleton<IdentityOptions>() //默认配置
                 .AddScoped<ApplicationSignInManager<TUser>>() //用户登录管理器
                 .AddScoped<UserResolver<TUser>>() //用户处理器
                 .AddIdentity<TUser, TRole>() //用户 角色
@@ -108,6 +108,7 @@ namespace IdentityServer.STS.Admin.Helpers
             //         options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
             //     });
         }
+
 
         public static IIdentityServerBuilder AddIdentityServer<TConfigurationDbContext, TPersistedGrantDbContext, TUserIdentity>(this IServiceCollection services,
             IConfiguration configuration)

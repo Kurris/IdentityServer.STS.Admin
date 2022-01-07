@@ -42,7 +42,7 @@ namespace IdentityServer.STS.Admin
                 {
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
-                    policy.WithOrigins("http://localhost:5500", "http://localhost:5501");
+                    policy.WithOrigins("http://localhost:5500", "http://localhost:5501","http://127.0.0.1:5500","http://127.0.0.1:5501");
                     policy.AllowCredentials();
                 });
             });
@@ -55,8 +55,6 @@ namespace IdentityServer.STS.Admin
 
             services.AddAspNetIdentityAuthenticationServices<IdentityDbContext, User, Role>(Configuration);
             services.AddIdentityServer<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
-            services.AddAuthentication("ligy");
-
 
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
             services.AddControllers();
