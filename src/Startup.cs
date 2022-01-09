@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.Services;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Entities;
@@ -10,15 +5,9 @@ using IdentityServer.STS.Admin.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.OpenApi.Models;
 
 namespace IdentityServer.STS.Admin
 {
@@ -40,10 +29,7 @@ namespace IdentityServer.STS.Admin
             {
                 setup.AddDefaultPolicy(policy =>
                 {
-                    policy.AllowAnyHeader();
-                    policy.AllowAnyMethod();
-                    policy.WithOrigins("http://localhost:5500", "http://localhost:5501","http://127.0.0.1:5500","http://127.0.0.1:5501");
-                    policy.AllowCredentials();
+                    policy.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 });
             });
 
@@ -68,17 +54,19 @@ namespace IdentityServer.STS.Admin
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
+            //chrome 内核 80版本 cookie策略问题
+            app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
 
             app.UseCors();
-            // app.UseHttpsRedirection();
+
             app.UseRouting();
 
             app.UseAuthorization();
-
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseAuthentication();
 
             app.UseIdentityServer();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

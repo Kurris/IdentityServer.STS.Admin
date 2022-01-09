@@ -54,10 +54,7 @@ namespace IdentityServer.STS.Admin
 
         public bool IsValidReturnUrl(string returnUrl)
         {
-            // had to add returnUrl.StartsWith("http://localhost:5000")
-            // because when UI and API are not on the same host, the URL is not local
-            // the condition here should be changed to either use configuration or just match domain
-            if (returnUrl.IsLocalUrl() || returnUrl.StartsWith("http://localhost:5000"))
+            if (returnUrl.IsLocalUrl() )
             {
                 var index = returnUrl.IndexOf('?');
                 if (index >= 0)
