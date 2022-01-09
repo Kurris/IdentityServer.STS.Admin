@@ -12,12 +12,7 @@
                         <label for="remember">Remember Me</label>
                     </div>
                     <div class="button">
-                        <button @click="signIn">Login</button>
-                        <br>
-                        <button style="margin-top:10px" @click="getDocument()">Discovery Document</button>
-                        <br>
-                        <button style="margin-top:10px">OAuth2.0</button>
-
+                        <button @click="login()">login</button>
                     </div>
                 </div>
             </div>
@@ -26,6 +21,10 @@
 </template>
 
 <script>
+
+import { signIn } from '../net/api.js'
+
+
 export default {
     name: 'signIn',
     data() {
@@ -38,11 +37,35 @@ export default {
         }
     },
     methods: {
-        signIn() {
-            console.log(this.form.userName);
+        async login() {
+            const returnUrl = this.getQueryVariable('ReturnUrl');
+            const username = this.form.userName
+            const password = this.form.password
+
+            let response = await signIn({
+                username,
+                password,
+                returnUrl,
+                requestType: 'login'
+            })
+
+            console.log(response);
+            if (response.data.route == 2) {
+                this.$router.push('/home')
+            } else if (response.data.route == 1) {
+                window.location = response.data.data
+            }
         },
-        getDocument() {
-            window.location = 'https://' + location.host + '/.well-known/openid-configuration'
+
+        getQueryVariable(variable) {
+            const query = window.location.search.substring(1);
+            const vars = query.split('&');
+            for (let i = 0; i < vars.length; i++) {
+                let pair = vars[i].split('=');
+                if (decodeURIComponent(pair[0]) == variable) {
+                    return decodeURIComponent(pair[1]);
+                }
+            }
         }
     },
 }
@@ -50,7 +73,6 @@ export default {
 
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 body {
     background: #cbc0d3;

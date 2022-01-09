@@ -18,12 +18,14 @@ using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using IdentityServer4.Extensions;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
+
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
     public class AuthenticateController : Controller
     {
         private readonly IIdentityServerInteractionService _interaction;
@@ -51,7 +53,48 @@ namespace IdentityServer.STS.Admin.Controllers
             _schemeProvider = schemeProvider;
         }
 
+        [AllowAnonymous]
+        [HttpGet("status")]
+        public async Task<ApiResult<object>> GetIsAuthenticated()
+        {
+            var result = User.IsAuthenticated();
 
+            var apiResult = new ApiResult<object>()
+            {
+                Code = result ? 200 : 401,
+                Data = result,
+            };
+
+            return await Task.FromResult(apiResult);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        [HttpGet("checkLogin")]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> GetLogin(string returnUrl)
+        {
+            var output = await BuildLoginResultAsync(returnUrl);
+            if (!output.EnableLocalLogin && output.ExternalProviders.Count() == 1)
+            {
+                return await ExternalLogin(output.ExternalProviders.First().AuthenticationScheme, returnUrl);
+            }
+        }
+
+        [HttpPost]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> ExternalLogin(string scheme, string returnUrl)
+        {
+
+        }
+
+
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ApiResult<object>> Login([FromBody] LoginInputModel request)
         {

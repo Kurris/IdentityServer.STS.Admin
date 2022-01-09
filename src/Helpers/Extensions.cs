@@ -82,18 +82,18 @@ namespace IdentityServer.STS.Admin.Helpers
                 .AddDefaultTokenProviders();
 
             //配置cookie
-            // services.Configure<CookiePolicyOptions>(options =>
-            // {
-            //     options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
-            //     options.Secure = CookieSecurePolicy.SameAsRequest;
-            //     options.OnAppendCookie = cookieContext =>
-            //         AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
-            //     options.OnDeleteCookie = cookieContext =>
-            //         AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
-            // });
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+                options.Secure = CookieSecurePolicy.SameAsRequest;
+                options.OnAppendCookie = cookieContext =>
+                    AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
+                options.OnDeleteCookie = cookieContext =>
+                    AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
+            });
 
-            //services.AddAuthentication("ligy");
 
+            services.AddAuthentication();
             // services.AddAuthentication().AddGitHub(options =>
             //     {
             //         options.ClientId = "6aced974f4ac1536ff1d";
@@ -123,15 +123,16 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseSuccessEvents = true;
 
-                    options.UserInteraction.LoginUrl = "http://localhost:5500/index.html";
-                    options.UserInteraction.ErrorUrl = "http://localhost:5500/error.html";
-                    options.UserInteraction.LogoutUrl = "http://localhost:5500/logout.html";
+                    options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
+                    options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
+                    options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
                 })
                 .AddConfigurationStore<TConfigurationDbContext>()
                 .AddOperationalStore<TPersistedGrantDbContext>()
                 .AddAspNetIdentity<TUserIdentity>() //添加aspnetcore user
                 .AddCustomSigningCredential(configuration) //证书
-                .AddCustomValidationKey(configuration); //密钥
+                .AddCustomValidationKey(configuration) //密钥
+                .AddProfileService<UserProfile>();
             //.AddExtensionGrantValidator<DelegationGrantValidator>(); //自定义授权模式
 
             return builder;
@@ -207,12 +208,12 @@ namespace IdentityServer.STS.Admin.Helpers
                 var certStoreLocationLower = certificateConfiguration.CertificateStoreLocation.ToLower();
 
                 if (certStoreLocationLower == StoreLocation.CurrentUser.ToString().ToLower()
-                    || certificateConfiguration.CertificateStoreLocation == ((int) StoreLocation.CurrentUser).ToString())
+                    || certificateConfiguration.CertificateStoreLocation == ((int)StoreLocation.CurrentUser).ToString())
                 {
                     storeLocation = StoreLocation.CurrentUser;
                 }
                 else if (certStoreLocationLower == StoreLocation.LocalMachine.ToString().ToLower()
-                         || certStoreLocationLower == ((int) StoreLocation.LocalMachine).ToString())
+                         || certStoreLocationLower == ((int)StoreLocation.LocalMachine).ToString())
                 {
                     storeLocation = StoreLocation.LocalMachine;
                 }
