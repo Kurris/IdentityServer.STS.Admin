@@ -25,10 +25,27 @@ export const getDocument = () => {
 	})
 }
 
-export const getLogin = data => {
+//检查登录
+export const checkLogin = data => {
 	return http({
 		url: 'api/authenticate/checkLogin',
 		method: 'get',
 		params: data,
+	})
+}
+
+export const logout = data => {
+	return http({
+		url: 'api/authenticate/logout',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const loggedOut = data => {
+	return http({
+		url: 'api/authenticate/loggedOut',
+		method: 'post',
+		data: data,
 	})
 }

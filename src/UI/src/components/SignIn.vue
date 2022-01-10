@@ -31,7 +31,7 @@
 
 <script>
 
-import { signIn, getLogin } from '../net/api.js'
+import { signIn, checkLogin } from '../net/api.js'
 
 
 export default {
@@ -67,13 +67,13 @@ export default {
             }
         },
     },
-    mounted() {
+    beforeMount() {
         let returnUrl = this.$url.getValueFromQuery("ReturnUrl")
-        getLogin({ returnUrl: returnUrl })
+        checkLogin({ returnUrl: returnUrl })
             .then(res => {
                 this.externalProviders = res.data.externalProviders
             })
-    },
+    }
 }
 
 

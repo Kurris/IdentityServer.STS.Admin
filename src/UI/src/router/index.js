@@ -4,6 +4,8 @@ import vueRouter from 'vue-router'
 const signIn = () => import('../components/SignIn.vue')
 const home = () => import('../components/Home.vue')
 const discoveryDocument = () => import('../components/DiscoveryDocument.vue')
+const logout = () => import('../components/Logout.vue')
+const loggedOut = () => import('../components/LoggedOut.vue')
 
 vue.use(vueRouter)
 
@@ -24,6 +26,14 @@ const routes = [
 	{
 		path: '/discoveryDocument',
 		component: discoveryDocument,
+	},
+	{
+		path: '/logout',
+		component: logout,
+	},
+	{
+		path: '/loggedOut',
+		component: loggedOut,
 	},
 ]
 

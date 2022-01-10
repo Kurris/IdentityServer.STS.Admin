@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
+using IdentityModel;
 using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Entities;
@@ -366,6 +367,138 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// Show logout page
+        /// </summary>
+        [HttpGet("logout")]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> Logout(string logoutId)
+        {
+            // build a model so the logout page knows what to display
+            var output = await BuildLogoutViewModelAsync(logoutId);
+
+            if (output.ShowLogoutPrompt == false)
+            {
+                //如果注销请求已从身份服务器正确进行身份验证，则
+                //我们不需要显示提示，只需直接将用户注销即可。
+                return await Logout(output);
+            }
+
+            return new ApiResult<object>
+            {
+                Route = DefineRoute.LoginOut,
+                Data = output
+            };
+        }
+
+
+        private async Task<LogoutOutputModel> BuildLogoutViewModelAsync(string logoutId)
+        {
+            var output = new LogoutOutputModel
+            {
+                LogoutId = logoutId,
+                ShowLogoutPrompt = AccountOptions.ShowLogoutPrompt
+            };
+
+            //如果用户没有登录，那么直接显示注销页面
+            if (User?.Identity.IsAuthenticated != true)
+            {
+                output.ShowLogoutPrompt = false;
+                return output;
+            }
+
+            var context = await _interaction.GetLogoutContextAsync(logoutId);
+            if (context?.ShowSignoutPrompt == false)
+            {
+                //安全并且自动退出
+                output.ShowLogoutPrompt = false;
+                return output;
+            }
+
+            //显示注销提醒，防止其他恶意的页面自动退出用户登录的攻击
+            return output;
+        }
+
+
+        /// <summary>
+        /// Handle logout page postback
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("loggedOut")]
+        public async Task<ApiResult<object>> Logout(LogoutInputModel model)
+        {
+            // build a model so the logged out page knows what to display
+            var output = await BuildLoggedOutViewModelAsync(model.LogoutId);
+
+            if (User?.Identity.IsAuthenticated == true)
+            {
+                // delete local authentication cookie
+                await _signInManager.SignOutAsync();
+
+                // raise the logout event
+                await _eventService.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
+            }
+
+            //检查是否需要在上游的认证中心触发注销
+            if (output.TriggerExternalSignout)
+            {
+                //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
+                //让我们完成完整的单点登出处理
+                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
+
+                //触发到第三方登录来退出
+                SignOut(new AuthenticationProperties
+                {
+                    RedirectUri = url
+                }, output.ExternalAuthenticationScheme);
+            }
+
+            return new ApiResult<object>
+            {
+                Route = DefineRoute.LoggedOut,
+                Data = output,
+            };
+        }
+
+
+        private async Task<LoggedOutOutputModel> BuildLoggedOutViewModelAsync(string logoutId)
+        {
+            // get context information (client name, post logout redirect URI and iframe for federated signout)
+            var logout = await _interaction.GetLogoutContextAsync(logoutId);
+
+            var output = new LoggedOutOutputModel
+            {
+                AutomaticRedirectAfterSignOut = AccountOptions.AutomaticRedirectAfterSignOut,
+                PostLogoutRedirectUri = logout?.PostLogoutRedirectUri,
+                ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout.ClientName,
+                SignOutIframeUrl = logout?.SignOutIFrameUrl,
+                LogoutId = logoutId
+            };
+
+            if (User?.Identity.IsAuthenticated == true)
+            {
+                var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
+                if (idp != null && idp != IdentityServerConstants.LocalIdentityProvider)
+                {
+                    var providerSupportsSignout = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
+                    if (providerSupportsSignout)
+                    {
+                        if (output.LogoutId == null)
+                        {
+                            //如果没有当前注销上下文，我们需要创建一个从当前登录用户捕获必要信息的上下文
+                            //在我们注销之前，请重定向到外部 IdP 进行注销
+                            output.LogoutId = await _interaction.CreateLogoutContextAsync();
+                        }
+
+                        output.ExternalAuthenticationScheme = idp;
+                    }
+                }
+            }
+
+            return output;
+        }
+
+
         private async Task<ApiResult<object>> BuildLoginResultAsync(LoginInputModel model)
         {
             var output = await BuildLoginResultAsync(model.ReturnUrl);
@@ -512,36 +645,6 @@ namespace IdentityServer.STS.Admin.Controllers
                 Route = DefineRoute.LoginWith2Fa,
                 Data = request,
             };
-        }
-
-        [HttpGet]
-        [Route("Logout")]
-        public async Task<IActionResult> Logout(string logoutId)
-        {
-            var context = await _interaction.GetLogoutContextAsync(logoutId);
-            var showSignoutPrompt = true;
-
-            if (context?.ShowSignoutPrompt == false)
-            {
-                // it's safe to automatically sign-out
-                showSignoutPrompt = false;
-            }
-
-            if (User?.Identity.IsAuthenticated == true)
-            {
-                // delete local authentication cookie
-                await HttpContext.SignOutAsync();
-            }
-
-            // no external signout supported for now (see \Quickstart\Account\AccountController.cs TriggerExternalSignout)
-            return Ok(new
-            {
-                showSignoutPrompt,
-                ClientName = string.IsNullOrEmpty(context?.ClientName) ? context?.ClientId : context?.ClientName,
-                context?.PostLogoutRedirectUri,
-                context?.SignOutIFrameUrl,
-                logoutId
-            });
         }
 
         [HttpGet]

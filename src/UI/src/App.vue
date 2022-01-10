@@ -2,7 +2,7 @@
     <div id="app">
         <div id="header">
             <el-button type="text" @click="goHome()">{{title}}</el-button>
-            <el-button type="primary" v-show="status">注销</el-button>
+            <el-button type="primary" v-show="status" @click="logout">注销</el-button>
         </div>
         <router-view />
         <div id="footer">
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { isAuthenticated } from './net/api.js'
+import { isAuthenticated, logout } from './net/api.js'
 
 export default {
     name: 'App',
@@ -34,14 +34,24 @@ export default {
                     this.$router.push('home')
                 })
             }
+        },
+        async logout() {
+            var res = await logout()
+            console.log(res);
+            if (res.route == 9) {
+                this.$router.push({
+                    path: "/logout",
+                    query: res.data
+                })
+            }
         }
     },
     async beforeMount() {
         let res = await isAuthenticated()
         if (res.data.code == 401) {
             // this.$router.replace('/signIn')
-        } else if (res.data.code == 200) {
-            this.status = res.data.data
+        } else if (res.code == 200) {
+            this.status = res.data
         }
 
     }
