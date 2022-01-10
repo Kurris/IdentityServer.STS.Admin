@@ -94,19 +94,19 @@ namespace IdentityServer.STS.Admin.Helpers
 
 
             services.AddAuthentication();
-            // services.AddAuthentication().AddGitHub(options =>
-            //     {
-            //         options.ClientId = "6aced974f4ac1536ff1d";
-            //         options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
-            //
-            //         options.Scope.Add("user:email");
-            //         options.Scope.Add("user");
-            //     })
-            //     .AddWeibo(options =>
-            //     {
-            //         options.ClientId = "3217031503";
-            //         options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
-            //     });
+            services.AddAuthentication().AddGitHub(options =>
+                {
+                    options.ClientId = "6aced974f4ac1536ff1d";
+                    options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
+            
+                    options.Scope.Add("user:email");
+                    options.Scope.Add("user");
+                })
+                .AddWeibo(options =>
+                {
+                    options.ClientId = "3217031503";
+                    options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
+                });
         }
 
 

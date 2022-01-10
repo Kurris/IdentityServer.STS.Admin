@@ -26,5 +26,8 @@ namespace IdentityServer.STS.Admin.Models
         LoadingPage = 3,
         LoginWith2Fa = 4,
         Lockout = 5,
+        Login = 6,
+        ExternalLoginFailure = 7,
+        ExternalLoginConfirmation = 8,
     }
 }

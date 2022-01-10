@@ -14,6 +14,15 @@
                     <div class="button">
                         <button @click="login()">login</button>
                     </div>
+
+                    <div>
+                        <span>OAuth2.0</span>
+                        <template v-for="(item,i) in externalProviders">
+                            <div :key="i">
+                                <el-button>{{item.displayName}}</el-button>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -22,7 +31,7 @@
 
 <script>
 
-import { signIn } from '../net/api.js'
+import { signIn, getLogin } from '../net/api.js'
 
 
 export default {
@@ -33,12 +42,13 @@ export default {
                 userName: '',
                 password: '',
                 remember: false,
-            }
+            },
+            externalProviders: []
         }
     },
     methods: {
         async login() {
-            const returnUrl = this.getQueryVariable('ReturnUrl');
+            const returnUrl = this.$url.getValueFromQuery('ReturnUrl');
             const username = this.form.userName
             const password = this.form.password
 
@@ -50,23 +60,19 @@ export default {
             })
 
             console.log(response);
-            if (response.data.route == 2) {
+            if (response.route == 2) {
                 this.$router.push('/home')
-            } else if (response.data.route == 1) {
-                window.location = response.data.data
+            } else if (response.route == 1) {
+                window.location = response.data
             }
         },
-
-        getQueryVariable(variable) {
-            const query = window.location.search.substring(1);
-            const vars = query.split('&');
-            for (let i = 0; i < vars.length; i++) {
-                let pair = vars[i].split('=');
-                if (decodeURIComponent(pair[0]) == variable) {
-                    return decodeURIComponent(pair[1]);
-                }
-            }
-        }
+    },
+    mounted() {
+        let returnUrl = this.$url.getValueFromQuery("ReturnUrl")
+        getLogin({ returnUrl: returnUrl })
+            .then(res => {
+                this.externalProviders = res.data.externalProviders
+            })
     },
 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,6 @@ using IdentityServer4.Extensions;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
-
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -32,6 +32,7 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly UserResolver<User> _userResolver;
         private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
         private readonly IEventService _eventService;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -40,6 +41,7 @@ namespace IdentityServer.STS.Admin.Controllers
             IWebHostEnvironment environment
             , UserResolver<User> userResolver
             , SignInManager<User> signInManager
+            , UserManager<User> userManager
             , IEventService eventService
             , IClientStore clientStore
             , IAuthenticationSchemeProvider schemeProvider)
@@ -48,11 +50,17 @@ namespace IdentityServer.STS.Admin.Controllers
             _environment = environment;
             _userResolver = userResolver;
             _signInManager = signInManager;
+            _userManager = userManager;
             _eventService = eventService;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
         }
 
+
+        /// <summary>
+        /// 获取登录状态
+        /// </summary>
+        /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("status")]
         public async Task<ApiResult<object>> GetIsAuthenticated()
@@ -70,7 +78,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
         /// <summary>
-        /// 
+        /// 检查并获取登录页面状态
         /// </summary>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
@@ -81,16 +89,155 @@ namespace IdentityServer.STS.Admin.Controllers
             var output = await BuildLoginResultAsync(returnUrl);
             if (!output.EnableLocalLogin && output.ExternalProviders.Count() == 1)
             {
+                //只有一个外部登录可用
                 return await ExternalLogin(output.ExternalProviders.First().AuthenticationScheme, returnUrl);
             }
+
+            return new ApiResult<object>
+            {
+                Route = DefineRoute.Login,
+                Data = output,
+            };
         }
 
         [HttpPost]
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ApiResult<object>> ExternalLogin(string scheme, string returnUrl)
+        public async Task<ApiResult<object>> ExternalLogin(string provider, string returnUrl)
         {
+            // Request a redirect to the external login provider.
+            var redirectUrl = await ExternalLoginCallback(returnUrl);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "redirectUrl");
 
+            return new ApiResult<object>
+            {
+                Code = 200,
+                Data = Challenge(properties, provider)
+            };
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        {
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteError}");
+
+                return new ApiResult<object> {Route = DefineRoute.Login};
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return await GetLogin(null);
+            }
+
+            // Sign in the user with this external login provider if the user already has a login.
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+            if (result.Succeeded)
+            {
+                if (Url.IsLocalUrl(returnUrl))
+                {
+                    return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
+                }
+
+                return new ApiResult<object> {Route = DefineRoute.HomePage};
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.LoginWith2Fa,
+                    Data = returnUrl
+                };
+            }
+
+            if (result.IsLockedOut)
+            {
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.Lockout
+                };
+            }
+
+            // 如果用户没有账号，请求用户创建
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var userName = info.Principal.Identity.Name;
+
+            return await ExternalLoginConfirmation(new ExternalLoginConfirmationOutputModel
+            {
+                Email = email,
+                UserName = userName,
+                ReturnUrl = returnUrl,
+                LoginProvider = info.LoginProvider,
+            });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ApiResult<object>> ExternalLoginConfirmation(ExternalLoginConfirmationOutputModel model)
+        {
+            model.ReturnUrl ??= "/home";
+
+            //从外部登录提供器中获取用户的信息
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return new ApiResult<object>()
+                {
+                    Route = DefineRoute.ExternalLoginFailure
+                };
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = new User
+                {
+                    UserName = model.UserName,
+                    Email = model.Email
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (result.Succeeded)
+                {
+                    result = await _userManager.AddLoginAsync(user, info);
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+
+                        if (Url.IsLocalUrl(model.ReturnUrl))
+                        {
+                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
+                        }
+
+                        return new ApiResult<object>()
+                        {
+                            Route = DefineRoute.HomePage
+                        };
+                    }
+                }
+
+                AddErrors(result);
+            }
+
+            model.LoginProvider = info.LoginProvider;
+
+            return new ApiResult<object>()
+            {
+                Route = DefineRoute.ExternalLoginConfirmation,
+                Data = model
+            };
+        }
+
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
 
 
@@ -239,7 +386,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 var isLocal = context.IdP == IdentityServerConstants.LocalIdentityProvider;
 
                 // this is meant to short circuit the UI and only trigger the one external IdP
-                var vm = new LoginOutputModel
+                var output = new LoginOutputModel
                 {
                     EnableLocalLogin = isLocal,
                     ReturnUrl = returnUrl,
@@ -248,7 +395,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 if (!isLocal)
                 {
-                    vm.ExternalProviders = new[]
+                    output.ExternalProviders = new[]
                     {
                         new ExternalProvider
                         {
@@ -257,7 +404,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     };
                 }
 
-                return vm;
+                return output;
             }
 
             var schemes = await _schemeProvider.GetAllSchemesAsync();

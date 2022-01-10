@@ -24,3 +24,11 @@ export const getDocument = () => {
 		method: 'get',
 	})
 }
+
+export const getLogin = data => {
+	return http({
+		url: 'api/authenticate/checkLogin',
+		method: 'get',
+		params: data,
+	})
+}

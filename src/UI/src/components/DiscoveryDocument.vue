@@ -19,7 +19,7 @@ export default {
     },
     async beforeMount() {
         let res = await getDocument()
-        this.discoveryDocument = res.data
+        this.discoveryDocument = res
     }, //生命周期 - 挂载之前
 }
 </script>

@@ -10,7 +10,7 @@ export default function axiosRequest(config) {
 
 	instance.interceptors.response.use(
 		result => {
-			return result
+			return result.data
 		},
 		error => {
 			if (error.status == 500) {
