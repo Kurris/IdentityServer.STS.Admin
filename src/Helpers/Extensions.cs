@@ -7,9 +7,7 @@ using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer4.Configuration;
 using IdentityServer4.EntityFramework.Storage;
 using IdentityServer4.Models;
-using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Interfaces;
-using IdentityServer.STS.Admin.Resolvers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +21,10 @@ namespace IdentityServer.STS.Admin.Helpers
 {
     public static class Extensions
     {
+        private const string _authorize = "connect/authorize";
+        private const string _authorizeCallback = _authorize + "/callback";
+
+
         /// <summary>
         /// 检查重定向地址是否为本地客户端
         /// </summary>
@@ -32,6 +34,13 @@ namespace IdentityServer.STS.Admin.Helpers
         {
             return !context.RedirectUri.StartsWith("https", StringComparison.Ordinal)
                    && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
+        }
+
+        public static bool IsLocal(this string returnUrl)
+        {
+            return string.IsNullOrEmpty(returnUrl)
+                || returnUrl.Contains(_authorize, StringComparison.OrdinalIgnoreCase)
+                || returnUrl.Contains(_authorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
 
 
@@ -208,12 +217,12 @@ namespace IdentityServer.STS.Admin.Helpers
                 var certStoreLocationLower = certificateConfiguration.CertificateStoreLocation.ToLower();
 
                 if (certStoreLocationLower == StoreLocation.CurrentUser.ToString().ToLower()
-                    || certificateConfiguration.CertificateStoreLocation == ((int) StoreLocation.CurrentUser).ToString())
+                    || certificateConfiguration.CertificateStoreLocation == ((int)StoreLocation.CurrentUser).ToString())
                 {
                     storeLocation = StoreLocation.CurrentUser;
                 }
                 else if (certStoreLocationLower == StoreLocation.LocalMachine.ToString().ToLower()
-                         || certStoreLocationLower == ((int) StoreLocation.LocalMachine).ToString())
+                         || certStoreLocationLower == ((int)StoreLocation.LocalMachine).ToString())
                 {
                     storeLocation = StoreLocation.LocalMachine;
                 }

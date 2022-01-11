@@ -65,3 +65,11 @@ export const externalRegister = data => {
 		data: data,
 	})
 }
+
+export const getError = data => {
+	return http({
+		url: 'api/authenticate/error',
+		method: 'get',
+		params: data,
+	})
+}

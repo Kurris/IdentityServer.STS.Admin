@@ -13,7 +13,6 @@ export default function axiosRequest(config) {
 			return result.data
 		},
 		error => {
-			console.log(error)
 			if (error.status == 500) {
 				ElementUI.Notification.error(error)
 			} else {

@@ -62,8 +62,9 @@ namespace IdentityServer.STS.Admin
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseIdentityServer();
 

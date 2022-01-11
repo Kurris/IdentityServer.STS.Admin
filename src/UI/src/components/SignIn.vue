@@ -69,7 +69,12 @@ export default {
         async externalLogin(provider) {
             let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
 
-            window.location.href = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=" + returnUrl;
+            if (returnUrl.length > 10)
+                window.location = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=";
+            else
+                window.location = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=";
+
+
 
             // let res = await externalLogin({
             //     provider,

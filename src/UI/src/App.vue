@@ -48,10 +48,12 @@ export default {
     },
     async beforeMount() {
         let res = await isAuthenticated()
-        if (res.data.code == 401) {
-            // this.$router.replace('/signIn')
-        } else if (res.code == 200) {
-            this.status = res.data
+        if (res != null) {
+            if (res.data.code == 401) {
+                // this.$router.replace('/signIn')
+            } else if (res.code == 200) {
+                this.status = res.data
+            }
         }
 
     }

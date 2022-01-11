@@ -7,6 +7,7 @@ const discoveryDocument = () => import('../components/DiscoveryDocument.vue')
 const logout = () => import('../components/Logout.vue')
 const loggedOut = () => import('../components/LoggedOut.vue')
 const externalLoginConfirmation = () => import('../components/ExternalLoginConfirmation.vue')
+const error = () => import('../components/Error.vue')
 
 vue.use(vueRouter)
 
@@ -39,6 +40,10 @@ const routes = [
 	{
 		path: '/externalLoginConfirmation',
 		component: externalLoginConfirmation,
+	},
+	{
+		path: '/error',
+		component: error,
 	},
 ]
 
