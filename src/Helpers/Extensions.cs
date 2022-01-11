@@ -92,15 +92,15 @@ namespace IdentityServer.STS.Admin.Helpers
                     AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
             });
 
-
-            services.AddAuthentication();
-            services.AddAuthentication().AddGitHub(options =>
+            services.AddAuthentication()
+                .AddGitHub(options =>
                 {
                     options.ClientId = "6aced974f4ac1536ff1d";
                     options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
-            
+
                     options.Scope.Add("user:email");
                     options.Scope.Add("user");
+                    options.SaveTokens = true;
                 })
                 .AddWeibo(options =>
                 {
@@ -132,8 +132,8 @@ namespace IdentityServer.STS.Admin.Helpers
                 .AddAspNetIdentity<TUserIdentity>() //添加aspnetcore user
                 .AddCustomSigningCredential(configuration) //证书
                 .AddCustomValidationKey(configuration) //密钥
-                .AddProfileService<UserProfile>();
-            //.AddExtensionGrantValidator<DelegationGrantValidator>(); //自定义授权模式
+                .AddProfileService<UserProfile>()
+                .AddExtensionGrantValidator<DelegationGrantValidator>(); //自定义授权模式
 
             return builder;
         }
@@ -208,12 +208,12 @@ namespace IdentityServer.STS.Admin.Helpers
                 var certStoreLocationLower = certificateConfiguration.CertificateStoreLocation.ToLower();
 
                 if (certStoreLocationLower == StoreLocation.CurrentUser.ToString().ToLower()
-                    || certificateConfiguration.CertificateStoreLocation == ((int)StoreLocation.CurrentUser).ToString())
+                    || certificateConfiguration.CertificateStoreLocation == ((int) StoreLocation.CurrentUser).ToString())
                 {
                     storeLocation = StoreLocation.CurrentUser;
                 }
                 else if (certStoreLocationLower == StoreLocation.LocalMachine.ToString().ToLower()
-                         || certStoreLocationLower == ((int)StoreLocation.LocalMachine).ToString())
+                         || certStoreLocationLower == ((int) StoreLocation.LocalMachine).ToString())
                 {
                     storeLocation = StoreLocation.LocalMachine;
                 }

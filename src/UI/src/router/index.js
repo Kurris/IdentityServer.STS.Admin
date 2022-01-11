@@ -6,6 +6,7 @@ const home = () => import('../components/Home.vue')
 const discoveryDocument = () => import('../components/DiscoveryDocument.vue')
 const logout = () => import('../components/Logout.vue')
 const loggedOut = () => import('../components/LoggedOut.vue')
+const externalLoginConfirmation = () => import('../components/ExternalLoginConfirmation.vue')
 
 vue.use(vueRouter)
 
@@ -34,6 +35,10 @@ const routes = [
 	{
 		path: '/loggedOut',
 		component: loggedOut,
+	},
+	{
+		path: '/externalLoginConfirmation',
+		component: externalLoginConfirmation,
 	},
 ]
 

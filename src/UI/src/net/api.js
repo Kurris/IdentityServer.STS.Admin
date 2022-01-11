@@ -49,3 +49,19 @@ export const loggedOut = data => {
 		data: data,
 	})
 }
+
+export const externalLogin = data => {
+	return http({
+		url: 'api/authenticate/externalLogin',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const externalRegister = data => {
+	return http({
+		url: 'api/authenticate/externalRegister',
+		method: 'post',
+		data: data,
+	})
+}

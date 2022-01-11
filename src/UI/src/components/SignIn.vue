@@ -19,7 +19,7 @@
                         <span>OAuth2.0</span>
                         <template v-for="(item,i) in externalProviders">
                             <div :key="i">
-                                <el-button>{{item.displayName}}</el-button>
+                                <el-button @click="externalLogin(item.authenticationScheme)">{{item.displayName}}</el-button>
                             </div>
                         </template>
                     </div>
@@ -66,12 +66,25 @@ export default {
                 window.location = response.data
             }
         },
+        async externalLogin(provider) {
+            let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
+
+            window.location.href = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=" + returnUrl;
+
+            // let res = await externalLogin({
+            //     provider,
+            //     returnUrl
+            // });
+            // console.log(res);
+        }
     },
     beforeMount() {
         let returnUrl = this.$url.getValueFromQuery("ReturnUrl")
         checkLogin({ returnUrl: returnUrl })
             .then(res => {
                 this.externalProviders = res.data.externalProviders
+
+                console.log(this.externalProviders);
             })
     }
 }

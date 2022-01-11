@@ -31,5 +31,6 @@ namespace IdentityServer.STS.Admin.Models
         ExternalLoginConfirmation = 8,
         LoginOut = 9,
         LoggedOut = 10,
+        ExternalLoginCallback = 11,
     }
 }

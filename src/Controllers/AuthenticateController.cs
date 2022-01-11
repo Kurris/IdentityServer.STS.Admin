@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -21,6 +23,7 @@ using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -91,7 +94,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (!output.EnableLocalLogin && output.ExternalProviders.Count() == 1)
             {
                 //只有一个外部登录可用
-                return await ExternalLogin(output.ExternalProviders.First().AuthenticationScheme, returnUrl);
+                // return  ExternalLogin(output.ExternalProviders.First().AuthenticationScheme, returnUrl);
             }
 
             return new ApiResult<object>
@@ -102,83 +105,84 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
+        [HttpGet("externalLogin")]
         [AllowAnonymous]
-        public async Task<ApiResult<object>> ExternalLogin(string provider, string returnUrl)
+        public IActionResult ExternalLogin(string provider, string returnUrl)
         {
-            // Request a redirect to the external login provider.
-            var redirectUrl = await ExternalLoginCallback(returnUrl);
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, "redirectUrl");
+            returnUrl = "http://localhost:8080";
+            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={returnUrl}"; //DefineRoute.ExternalLoginCallback;
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
-            return new ApiResult<object>
-            {
-                Code = 200,
-                Data = Challenge(properties, provider)
-            };
+            return Challenge(properties, provider);
         }
 
-        [HttpGet]
+        [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
-        public async Task<ApiResult<object>> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             if (remoteError != null)
             {
                 ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteError}");
 
-                return new ApiResult<object> {Route = DefineRoute.Login};
+                //return new ApiResult<object> {Route = DefineRoute.Login};
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return await GetLogin(null);
+                // return new ApiResult<object> {Route = DefineRoute.Login};
             }
 
-            // Sign in the user with this external login provider if the user already has a login.
+            // 如果用户已登录，请使用此外部登录提供程序登录用户。
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
             if (result.Succeeded)
             {
                 if (Url.IsLocalUrl(returnUrl))
                 {
-                    return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
+                    // return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
                 }
 
-                return new ApiResult<object> {Route = DefineRoute.HomePage};
+                //  return new ApiResult<object> {Route = DefineRoute.HomePage};
             }
 
             if (result.RequiresTwoFactor)
             {
-                return new ApiResult<object>
-                {
-                    Route = DefineRoute.LoginWith2Fa,
-                    Data = returnUrl
-                };
+                // return new ApiResult<object>
+                // {
+                //     Route = DefineRoute.LoginWith2Fa,
+                //     Data = returnUrl
+                // };
             }
 
             if (result.IsLockedOut)
             {
-                return new ApiResult<object>
-                {
-                    Route = DefineRoute.Lockout
-                };
+                // return new ApiResult<object>
+                // {
+                //     Route = DefineRoute.Lockout
+                // };
             }
 
             // 如果用户没有账号，请求用户创建
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
             var userName = info.Principal.Identity.Name;
 
-            return await ExternalLoginConfirmation(new ExternalLoginConfirmationOutputModel
+            var urlParams = new Dictionary<string, string>()
             {
-                Email = email,
-                UserName = userName,
-                ReturnUrl = returnUrl,
-                LoginProvider = info.LoginProvider,
-            });
+                ["email"] = email,
+                ["userName"] = userName,
+                ["returnUrl"] = returnUrl,
+                ["loginProvider"] = info.LoginProvider
+            };
+
+            using (var urlEncodedContent = new FormUrlEncodedContent(urlParams))
+            {
+                var urlParamsString = await urlEncodedContent.ReadAsStringAsync();
+                return Redirect(returnUrl + "/externalLoginConfirmation" + "?" + urlParamsString);
+            }
         }
 
-        [HttpPost]
+        [HttpPost("externalRegister")]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public async Task<ApiResult<object>> ExternalLoginConfirmation(ExternalLoginConfirmationOutputModel model)
         {
             model.ReturnUrl ??= "/home";
@@ -432,10 +436,10 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (User?.Identity.IsAuthenticated == true)
             {
-                // delete local authentication cookie
+                //删除本地cookie
                 await _signInManager.SignOutAsync();
 
-                // raise the logout event
+                //唤起用户注销成功事件
                 await _eventService.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
