@@ -141,6 +141,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     // return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
                     return Redirect(returnUrl);
                 }
+
                 //   return RedirectToAction(nameof(HomeController.Index), "Home");
                 return Redirect(returnUrl + "/home");
             }
@@ -215,7 +216,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                         if (Url.IsLocalUrl(model.ReturnUrl))
                         {
-                            return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
+                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
                         }
 
                         return new ApiResult<object>()
@@ -362,7 +363,8 @@ namespace IdentityServer.STS.Admin.Controllers
                 await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "invalid credentials",
                     clientId: context?.Client.ClientId));
 
-                ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
+                // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
+                throw new Exception("invalid credentials");
             }
 
             // something went wrong, show form with error
@@ -448,7 +450,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
+                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -666,6 +668,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     message.ErrorDescription = null;
                 }
             }
+
             return new ApiResult<object>
             {
                 Code = 200,

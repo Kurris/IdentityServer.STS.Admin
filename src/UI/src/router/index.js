@@ -1,6 +1,8 @@
 import vue from 'vue'
 import vueRouter from 'vue-router'
 
+import NProgress from 'nprogress'
+
 const signIn = () => import('../components/SignIn.vue')
 const home = () => import('../components/Home.vue')
 const discoveryDocument = () => import('../components/DiscoveryDocument.vue')
@@ -51,4 +53,14 @@ const router = new vueRouter({
 	routes,
 	mode: 'history',
 })
+
+router.beforeEach((to, from, next) => {
+	NProgress.start()
+	next()
+})
+
+router.afterEach(() => {
+	NProgress.done()
+})
+
 export default router
