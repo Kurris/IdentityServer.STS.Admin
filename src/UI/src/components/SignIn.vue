@@ -33,6 +33,7 @@
 
 import { signIn, checkLogin } from '../net/api.js'
 
+import NProgress from 'nprogress'
 
 export default {
     name: 'signIn',
@@ -56,6 +57,7 @@ export default {
                 username,
                 password,
                 returnUrl,
+                rememberLogin: this.form.remember,
                 requestType: 'login'
             })
 
@@ -69,18 +71,18 @@ export default {
         async externalLogin(provider) {
             let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
 
-            if (returnUrl.length > 10)
-                window.location = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=";
-            else
-                window.location = "http://localhost:5000/api/authenticate/externalLogin?provider=" + provider + "&" + "returnUrl=";
+            if (returnUrl === undefined) {
+                returnUrl = location.protocol + "//" + location.host + "/home"
+            }
+            NProgress.start()
+            let url = "http://localhost:5000/api/authenticate/externalLogin"
+            // window.location = url
 
-
-
-            // let res = await externalLogin({
-            //     provider,
-            //     returnUrl
-            // });
-            // console.log(res);
+            document.write("<form action=" + url + " method=post name=form1 style='display:none'>");
+            document.write("<input type=hidden name=provider value='" + provider + "'/>");
+            document.write("<input type=hidden name=returnUrl value='" + returnUrl + "'/>");
+            document.write("</form>");
+            document.form1.submit();
         }
     },
     beforeMount() {
@@ -88,8 +90,6 @@ export default {
         checkLogin({ returnUrl: returnUrl })
             .then(res => {
                 this.externalProviders = res.data.externalProviders
-
-                console.log(this.externalProviders);
             })
     }
 }

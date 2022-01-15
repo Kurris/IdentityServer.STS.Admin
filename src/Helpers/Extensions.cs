@@ -36,9 +36,16 @@ namespace IdentityServer.STS.Admin.Helpers
                    && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
         }
 
-        public static bool IsLocal(this string returnUrl)
+        public static bool IsLocal(this string returnUrl, string currentIp = "")
         {
-            return string.IsNullOrEmpty(returnUrl)
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return false;
+            }
+
+
+            return returnUrl.Contains(currentIp,StringComparison.OrdinalIgnoreCase)
+                || returnUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
                 || returnUrl.Contains(_authorize, StringComparison.OrdinalIgnoreCase)
                 || returnUrl.Contains(_authorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
@@ -106,7 +113,8 @@ namespace IdentityServer.STS.Admin.Helpers
                 {
                     options.ClientId = "6aced974f4ac1536ff1d";
                     options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
-
+                    options.AccessDeniedPath = "/api/authenticate/externalLoginCallback";
+ 
                     options.Scope.Add("user:email");
                     options.Scope.Add("user");
                     options.SaveTokens = true;
@@ -281,6 +289,17 @@ namespace IdentityServer.STS.Admin.Helpers
             }
 
             return builder;
+        }
+
+
+        public static string ValidatieReturnUrl(this string returnUrl)
+        {
+            if (returnUrl.Contains("undefined", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.Empty;
+            }
+
+            return returnUrl;
         }
     }
 }

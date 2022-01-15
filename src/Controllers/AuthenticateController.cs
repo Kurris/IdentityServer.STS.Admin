@@ -104,39 +104,56 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        [HttpPost]
-        [HttpGet("externalLogin")]
-        [AllowAnonymous]
-        public IActionResult ExternalLogin(string provider, string returnUrl)
-        {
-            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={returnUrl}"; //DefineRoute.ExternalLoginCallback;
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
-            return Challenge(properties, provider);
+        public class ExternalLoginInput
+        {
+            public string ReturnUrl { get; set; }
+            public string Provider { get; set; }
+        }
+
+        [HttpPost("externalLogin")]
+        //[HttpGet("externalLogin")]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
+        {
+            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={input.ReturnUrl}";
+            redirectUrl = redirectUrl.Replace('&', '*');
+
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
+
+
+
+            return Challenge(properties, input.Provider);
         }
 
         [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteRrror = null)
         {
-            if (remoteError != null)
+
+            if (!string.IsNullOrEmpty(remoteRrror))
             {
-                ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteError}");
+                ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteRrror}");
 
                 //return new ApiResult<object> {Route = DefineRoute.Login};
+            }
+
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                returnUrl = returnUrl.Replace('*', '&');
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                // return new ApiResult<object> {Route = DefineRoute.Login};
+                return Redirect("http://localhost:8080/signIn");
             }
 
             // 如果用户已登录，请使用此外部登录提供程序登录用户。
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
             if (result.Succeeded)
             {
-                if (Url.IsLocalUrl(returnUrl) || returnUrl.IsLocal())
+                if (Url.IsLocalUrl(returnUrl) || returnUrl.IsLocal(HttpContext.Connection.LocalIpAddress.MapToIPv4().ToString()))
                 {
                     // return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
                     return Redirect(returnUrl);
@@ -216,7 +233,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                         if (Url.IsLocalUrl(model.ReturnUrl))
                         {
-                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
+                            return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
                         }
 
                         return new ApiResult<object>()
@@ -322,7 +339,7 @@ namespace IdentityServer.STS.Admin.Controllers
                             };
                         }
 
-                        if (Url.IsLocalUrl(request.ReturnUrl))
+                        if (request.ReturnUrl.IsLocal())
                         {
                             return new ApiResult<object>
                             {
@@ -450,7 +467,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
+                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties

@@ -1,6 +1,19 @@
 <template>
     <div id='loggedOut'>
-        你现在可以安全退出.
+        你现在可以安全退出
+        <template v-if="$route.query.postLogoutRedirectUri != null">
+            <div>
+                <el-link type="primary" :href="$route.query.postLogoutRedirectUri">返回</el-link>
+                <span>{{$route.query.clientName}}</span>
+            </div>
+        </template>
+
+        <template v-if="$route.query.signOutIframeUrl!=null">
+            <div>
+                <iframe width="0" height="0" :src="$route.query.signOutIframeUrl"></iframe>
+            </div>
+        </template>
+
     </div>
 </template>
 
@@ -13,26 +26,11 @@ export default {
 
         };
     },
-    computed: {},
-    watch: {},
-    methods: {
-
+    beforeCreate() {
+        if (this.$route.query.automaticRedirectAfterSignOut === true) {
+            window.location = this.$route.query.postLogoutRedirectUri
+        }
     },
-    //生命周期 - 创建完成（可以访问当前this实例）
-    created() {
-
-    },
-    //生命周期 - 挂载完成（可以访问DOM元素）
-    mounted() {
-
-    },
-    beforeCreate() { }, //生命周期 - 创建之前
-    beforeMount() { }, //生命周期 - 挂载之前
-    beforeUpdate() { }, //生命周期 - 更新之前
-    updated() { }, //生命周期 - 更新之后
-    beforeDestroy() { }, //生命周期 - 销毁之前
-    destroyed() { }, //生命周期 - 销毁完成
-    activated() { }, //如果页面有keep-alive缓存功能，这个函数会触发
 }
 </script>
 <style scoped>
