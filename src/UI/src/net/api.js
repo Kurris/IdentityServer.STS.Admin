@@ -73,3 +73,19 @@ export const getError = data => {
 		params: data,
 	})
 }
+
+export const getConsentSetting = data => {
+	return http({
+		url: 'api/consent/setting',
+		method: 'get',
+		params: data,
+	})
+}
+
+// export const processConsent = data => {
+// 	return http({
+// 		url: 'api/consent/setting/process',
+// 		method: 'post',
+// 		data: data,
+// 	})
+// }

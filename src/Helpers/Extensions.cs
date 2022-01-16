@@ -143,6 +143,7 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
                     options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
                     options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
+                    options.UserInteraction.ConsentUrl= "http://localhost:8080/consent";
                 })
                 .AddConfigurationStore<TConfigurationDbContext>()
                 .AddOperationalStore<TPersistedGrantDbContext>()

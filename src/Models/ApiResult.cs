@@ -32,5 +32,6 @@ namespace IdentityServer.STS.Admin.Models
         LoginOut = 9,
         LoggedOut = 10,
         ExternalLoginCallback = 11,
+        Error=12,
     }
 }

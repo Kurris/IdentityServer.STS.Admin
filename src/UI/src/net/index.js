@@ -17,7 +17,7 @@ export default function axiosRequest(config) {
 		},
 		error => {
 			NProgress.done()
-			if (error.response.status == 500) {
+			if (error.response.status != 200) {
 				ElementUI.Notification.error(error.response.data)
 			}
 			return error

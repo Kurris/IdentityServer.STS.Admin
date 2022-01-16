@@ -23,14 +23,13 @@ using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticateController : Controller
+    public class AuthenticateController : ControllerBase
     {
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
@@ -110,6 +109,9 @@ namespace IdentityServer.STS.Admin.Controllers
             public string ReturnUrl { get; set; }
             public string Provider { get; set; }
         }
+
+        #region external
+
 
         [HttpPost("externalLogin")]
         //[HttpGet("externalLogin")]
@@ -254,6 +256,10 @@ namespace IdentityServer.STS.Admin.Controllers
                 Data = model
             };
         }
+
+
+        #endregion
+
 
         private void AddErrors(IdentityResult result)
         {
@@ -601,13 +607,12 @@ namespace IdentityServer.STS.Admin.Controllers
 
         public async Task<ApiResult<object>> LoginWith2fa(bool rememberMe, string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            //确保用户账号和密码正确
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
 
             if (user == null)
-            {
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
-            }
+
 
             var model = new LoginWith2faOutputModel()
             {
@@ -617,38 +622,37 @@ namespace IdentityServer.STS.Admin.Controllers
 
             return new ApiResult<object>()
             {
-                Route = DefineRoute.None,
+                Route = DefineRoute.LoginWith2Fa,
                 Data = model
             };
         }
 
-        public async Task<ApiResult<object>> LoginWith2fa(LoginWith2faInputModel request)
+        public async Task<ApiResult<object>> LoginWith2fa(LoginWith2faInputModel input)
         {
             if (!ModelState.IsValid)
             {
                 return new ApiResult<object>()
                 {
                     Route = DefineRoute.LoginWith2Fa,
-                    Data = request,
+                    Data = input,
                 };
             }
 
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
-            {
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
-            }
 
-            var authenticatorCode = request.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, request.RememberMe, request.RememberMachine);
+            var authenticatorCode = input.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, input.RememberMe, input.RememberMachine);
 
             if (result.Succeeded)
             {
                 return new ApiResult<object>()
                 {
-                    Route = string.IsNullOrEmpty(request.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
-                    Data = request,
+                    Route = string.IsNullOrEmpty(input.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
+                    Data = input,
                 };
             }
 
@@ -657,7 +661,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 return new ApiResult<object>
                 {
                     Route = DefineRoute.LoginWith2Fa,
-                    Data = request,
+                    Data = input,
                 };
             }
 
@@ -666,7 +670,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return new ApiResult<object>()
             {
                 Route = DefineRoute.LoginWith2Fa,
-                Data = request,
+                Data = input,
             };
         }
 

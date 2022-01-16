@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.Helpers;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
@@ -54,7 +55,7 @@ namespace IdentityServer.STS.Admin
 
         public bool IsValidReturnUrl(string returnUrl)
         {
-            if (returnUrl.IsLocalUrl() )
+            if (returnUrl.IsLocalUrl() || returnUrl.IsLocal())
             {
                 var index = returnUrl.IndexOf('?');
                 if (index >= 0)
