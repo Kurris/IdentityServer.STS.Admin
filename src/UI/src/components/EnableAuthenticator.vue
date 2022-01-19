@@ -59,7 +59,9 @@ export default {
 
     async beforeMount() {
         let res = await getAuthenticatorSetting()
-        this.setting = res.data
+        if (res != null) {
+            this.setting = res.data
+        }
     },
 
 }

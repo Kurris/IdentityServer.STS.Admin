@@ -104,11 +104,6 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        public class ExternalLoginInput
-        {
-            public string ReturnUrl { get; set; }
-            public string Provider { get; set; }
-        }
 
         #region external
 
