@@ -48,7 +48,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>双因素身份验证</b></span>
                     </div>
-                    <el-button type="">双因素身份验证</el-button>
+                    <el-button type="" @click="go2fa">双因素身份验证</el-button>
                 </el-card>
             </el-col>
 
@@ -81,10 +81,12 @@ export default {
         getDocument() {
             this.$router.push("/discoveryDocument")
         },
+        go2fa() {
+            this.$router.push('/twoFactorAuthentication')
+        }
     },
     async beforeMount() {
         let res = await isAuthenticated();
-        console.log(res);
         if (res.code == 401) {
             // this.$router.replace('/signIn')
         } else if (res.code == 200) {

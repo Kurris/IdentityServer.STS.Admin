@@ -164,7 +164,6 @@ export default {
         let returnUrl = this.$url.getValueFromQuery('returnUrl')
         let response = await getConsentSetting({ returnUrl })
         this.setting = response.data
-        console.log(this.setting);
     },
 }
 </script>

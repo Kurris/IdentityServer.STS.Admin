@@ -89,3 +89,25 @@ export const getConsentSetting = data => {
 // 		data: data,
 // 	})
 // }
+
+export const getTwofactorSetting = () => {
+	return http({
+		url: 'api/manager/setting/2fa',
+		method: 'get',
+	})
+}
+
+export const getAuthenticatorSetting = () => {
+	return http({
+		url: 'api/manager/setting/2fa/authenticator',
+		method: 'get',
+	})
+}
+
+export const verifyAuthode = data => {
+	return http({
+		url: 'api/manager/setting/2fa/authenticator/verify',
+		method: 'post',
+		data: data,
+	})
+}

@@ -61,7 +61,6 @@ export default {
                 requestType: 'login'
             })
 
-            console.log(response);
             if (response.route == 2) {
                 this.$router.push('/home')
             } else if (response.route == 1) {

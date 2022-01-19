@@ -31,7 +31,7 @@ namespace IdentityServer.STS.Admin.Controllers
         public ManagerController(UserManager<User> userManager
             , SignInManager<User> signInManager
             , ILogger<ManagerController> logger
-            , UrlEncoder urlEncoder )
+            , UrlEncoder urlEncoder)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -73,7 +73,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
 
-        [HttpGet]
+        [HttpGet("setting/2fa/authenticator")]
         public async Task<ApiResult<EnableAuthenticatorModel>> EnableAuthenticator()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -91,6 +91,65 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
+
+        [HttpPost("setting/2fa/authenticator/verify")]
+        public async Task<ApiResult<object>> EnableAuthenticator(EnableAuthenticatorModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+               // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadSharedKeyAndQrCodeUriAsync(user, model);
+                //return View(model);
+                return new ApiResult<object> { Data = model };
+            }
+
+            var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+            var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
+                user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
+
+            if (!is2faTokenValid)
+            {
+                ModelState.AddModelError("代码", "验证码无效");
+                await LoadSharedKeyAndQrCodeUriAsync(user, model);
+                return new ApiResult<object> { Data = model };
+            }
+
+            await _userManager.SetTwoFactorEnabledAsync(user, true);
+            var userId = await _userManager.GetUserIdAsync(user);
+
+            _logger.LogInformation($"ID 为 {userId} 的用户已使用身份验证器应用启用了 2FA。");
+
+         //   StatusMessage = _localizer["AuthenticatorVerified"];
+
+            if (await _userManager.CountRecoveryCodesAsync(user) == 0)
+            {
+                var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+
+
+                //return RedirectToAction(nameof(ShowRecoveryCodes));
+                return new ApiResult<object>
+                {
+                    Route=DefineRoute.RecoveryCodes,
+                    Data = recoveryCodes
+                };
+            }
+
+            //return RedirectToAction(nameof(TwoFactorAuthentication));
+
+            return new ApiResult<object>
+            {
+                Route = DefineRoute.TwoFactorAuthentication
+            };
+        }
+
+
+
         private async Task LoadSharedKeyAndQrCodeUriAsync(User user, EnableAuthenticatorModel model)
         {
             var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
@@ -101,7 +160,11 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             model.SharedKey = FormatKey(unformattedKey);
-            model.AuthenticatorUri = GenerateQrCodeUri(user.Email, unformattedKey);
+            model.AuthenticatorUri = string.Format(
+                _authenticatorUriFormat,
+                _urlEncoder.Encode("Ligy.IdentityServer4.STS.Admin"),
+                _urlEncoder.Encode(user.Email),
+                unformattedKey);
         }
 
         private string FormatKey(string unformattedKey)
@@ -123,13 +186,28 @@ namespace IdentityServer.STS.Admin.Controllers
             return result.ToString().ToLowerInvariant();
         }
 
-        private string GenerateQrCodeUri(string email, string unformattedKey)
+
+        [HttpGet("setting/2fa")]
+        public async Task<ApiResult<TwoFactorAuthenticationOuputModel>> GetTwoFactorAuthentication()
         {
-            return string.Format(
-                _authenticatorUriFormat,
-                _urlEncoder.Encode("Skoruba.IdentityServer4.STS.Identity"),
-                _urlEncoder.Encode(email),
-                unformattedKey);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            var model = new TwoFactorAuthenticationOuputModel
+            {
+                HasAuthenticator = await _userManager.GetAuthenticatorKeyAsync(user) != null,
+                Is2faEnabled = user.TwoFactorEnabled,
+                RecoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user),
+                IsMachineRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user)
+            };
+
+            return new ApiResult<TwoFactorAuthenticationOuputModel>
+            {
+                Data = model
+            };
         }
     }
 }

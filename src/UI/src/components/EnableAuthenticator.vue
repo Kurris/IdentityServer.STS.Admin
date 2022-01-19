@@ -17,16 +17,21 @@
 
             </li>
             <li>
-                在您的双因素验证器应用程序中扫描二维码或输入此密钥<kbd>123213131dsczcxzc</kbd>空格和大小写无关紧要。
-                <qriously :value="qrcode" :size="300" style="padding:6px" />
+                在您的双因素验证器应用程序中扫描二维码或输入此密钥<kbd>{{setting.sharedKey}}</kbd>空格和大小写无关紧要。
+                <template v-if="setting.authenticatorUri!=null">
+                    <div>
+                        <qriously :value="setting.authenticatorUri" :size="300" style="padding:6px" />
+                        <div id="qrCodeData" v-html="setting.authenticatorUri"></div>
+                    </div>
+                </template>
 
             </li>
 
             <li>
                 扫描完二维码或输入上述密钥后，您的双因素身份验证应用程序将为您提供唯一的代码。 在下面的确认框中输入代码
                 <p>验证码:</p>
-                <el-input />
-                <el-button type="primary">验证</el-button>
+                <el-input v-model="setting.code" />
+                <el-button type="primary" @click="verify()">验证</el-button>
             </li>
         </ol>
     </div>
@@ -34,33 +39,29 @@
 
 <script>
 
+import { getAuthenticatorSetting, verifyAuthode } from '../net/api.js'
+
 export default {
     components: {},
     data() {
         return {
-            qrcode: '231'
+            setting: {}
         };
     },
     computed: {},
     watch: {},
     methods: {
-
+        async verify() {
+            let res = await verifyAuthode(this.setting)
+            console.log(res);
+        }
     },
-    //生命周期 - 创建完成（可以访问当前this实例）
-    created() {
 
+    async beforeMount() {
+        let res = await getAuthenticatorSetting()
+        this.setting = res.data
     },
-    //生命周期 - 挂载完成（可以访问DOM元素）
-    mounted() {
 
-    },
-    beforeCreate() { }, //生命周期 - 创建之前
-    beforeMount() { }, //生命周期 - 挂载之前
-    beforeUpdate() { }, //生命周期 - 更新之前
-    updated() { }, //生命周期 - 更新之后
-    beforeDestroy() { }, //生命周期 - 销毁之前
-    destroyed() { }, //生命周期 - 销毁完成
-    activated() { }, //如果页面有keep-alive缓存功能，这个函数会触发
 }
 </script>
 <style scoped>

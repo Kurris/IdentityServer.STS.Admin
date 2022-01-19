@@ -33,5 +33,7 @@ namespace IdentityServer.STS.Admin.Models
         LoggedOut = 10,
         ExternalLoginCallback = 11,
         Error=12,
+        RecoveryCodes=13,
+        TwoFactorAuthentication=14,
     }
 }

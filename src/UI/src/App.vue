@@ -37,7 +37,6 @@ export default {
         },
         async logout() {
             var res = await logout()
-            console.log(res);
             if (res.route == 9) {
                 this.$router.push({
                     path: "/logout",

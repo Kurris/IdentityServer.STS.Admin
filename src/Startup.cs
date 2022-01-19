@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace IdentityServer.STS.Admin
 {
@@ -42,6 +43,22 @@ namespace IdentityServer.STS.Admin
 
             services.AddAspNetIdentityAuthenticationServices<IdentityDbContext, User, Role>(Configuration);
             services.AddIdentityServer<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
+
+
+            //options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
+            //options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
+            //options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
+            //options.UserInteraction.ConsentUrl = "http://localhost:8080/consent";
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Events.OnRedirectToLogin= async op =>{
+                    op.RedirectUri = " http://localhost:8080/signIn";
+                     await Task.CompletedTask;
+                };
+                //options.LoginPath = "http://localhost:8080/signIn";
+                //options.LogoutPath = "http://localhost:8080/logout";
+                //options.AccessDeniedPath = "http://localhost:8080/error";
+            });
 
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
             services.AddControllers();
