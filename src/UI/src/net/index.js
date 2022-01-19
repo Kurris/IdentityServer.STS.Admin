@@ -16,6 +16,8 @@ export default function axiosRequest(config) {
 			if (result.data.code == 302) {
 				NProgress.start()
 				window.location.href = result.data.data + '?ReturnUrl=' + window.location
+			} else if (result.data.code == 500) {
+				ElementUI.Notification.error(result.data.msg)
 			} else {
 				return result.data
 			}

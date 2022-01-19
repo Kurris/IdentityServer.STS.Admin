@@ -621,6 +621,9 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
+
+        [AllowAnonymous]
+        [HttpPost("twoFactorAuthenticationUser/sigIn")]
         public async Task<ApiResult<object>> LoginWith2fa(LoginWith2faInputModel input)
         {
             if (!ModelState.IsValid)
@@ -645,7 +648,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 return new ApiResult<object>()
                 {
                     Route = string.IsNullOrEmpty(input.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
-                    Data = input,
+                    Data = input.ReturnUrl,
                 };
             }
 

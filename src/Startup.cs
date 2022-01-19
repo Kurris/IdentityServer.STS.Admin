@@ -16,6 +16,7 @@ using IdentityServer.STS.Admin.Models;
 using IdentityServer4.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using IdentityServer.STS.Admin.Filters;
 
 namespace IdentityServer.STS.Admin
 {
@@ -88,6 +89,10 @@ namespace IdentityServer.STS.Admin
             });
 
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add<ExceptionFilter>();
+            });
             services.AddControllers();
         }
 
@@ -99,6 +104,7 @@ namespace IdentityServer.STS.Admin
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseMiddleware<GlobalExceptionMiddleware>();
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
 

@@ -66,7 +66,13 @@ export default {
             } else if (response.route == 1) {
                 window.location = response.data
             } else if (response.route == 4) {
-                this.$router.push('/signinWith2fa')
+                this.$router.push({
+                    path: '/signinWith2fa',
+                    query: {
+                        rememberMe: response.data.rememberLogin,
+                        returnUrl: response.data.returnUrl,
+                    }
+                })
             }
         },
         async externalLogin(provider) {

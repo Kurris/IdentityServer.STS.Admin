@@ -6,8 +6,8 @@
                 <template v-if="setting.recoveryCodesLeft">
                     <div class="col-12">
                         <div class="alert alert-danger">
-                            <strong>@Localizer["NoCodes"]</strong>
-                            <p>@Localizer["YouMust"] <a asp-action="GenerateRecoveryCodes">@Localizer["GenerateNewCodes"]</a> @Localizer["BeforeLogin"]</p>
+                            <strong>您还没有恢复码</strong>
+                            <p>你必须 <el-link type="primary">生成一组新的恢复码</el-link> 在您使用恢复码登录之前</p>
                         </div>
                     </div>
                 </template>
@@ -22,8 +22,9 @@
                 <template v-else-if="setting.recoveryCodesLeft <= 3">
 
                     <div class="alert alert-warning">
-                        <strong>@Localizer["YouHave"] @Model.RecoveryCodesLeft.ToString() @Localizer["RecoveryCodeLeft"]</strong>
-                        <p>@Localizer["YouShould"] <a asp-action="GenerateRecoveryCodes">@Localizer["GenerateNewCodes"]</a></p>
+                        <strong>你有 @Model.RecoveryCodesLeft.ToString() @Localizer["RecoveryCodeLeft"]</strong>
+                        <p>你应该<el-link type="primary">生成一组新的恢复码</el-link>
+                        </p>
                     </div>
                 </template>
 
@@ -38,8 +39,8 @@
                 </template>
 
                 <div class="col-12">
-                    <a asp-action="Disable2faWarning" class="btn btn-dark">禁用 2FA</a>
-                    <a asp-action="GenerateRecoveryCodesWarning" class="btn btn-danger">重置恢复码</a>
+                    <el-button type="warning">禁用2FA</el-button>
+                    <el-button type="danger">重置恢复码</el-button>
                 </div>
 
             </template>

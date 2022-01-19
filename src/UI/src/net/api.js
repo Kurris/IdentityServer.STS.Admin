@@ -9,6 +9,14 @@ export const signIn = data => {
 	})
 }
 //
+//
+export const siginTwoFactorAuthenticationUser = data => {
+	return http({
+		url: 'api/authenticate/twoFactorAuthenticationUser/sigIn',
+		data: data,
+		method: 'post',
+	})
+}
 
 export const checkTwoFactorAuthenticationUser = data => {
 	return http({

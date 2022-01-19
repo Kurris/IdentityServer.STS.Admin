@@ -37,7 +37,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _signInManager = signInManager;
             _logger = logger;
             _urlEncoder = urlEncoder;
-        }
+        }   
 
 
         [HttpGet]
