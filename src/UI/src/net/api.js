@@ -8,6 +8,15 @@ export const signIn = data => {
 		method: 'post',
 	})
 }
+//
+
+export const checkTwoFactorAuthenticationUser = data => {
+	return http({
+		url: 'api/authenticate/twoFactorAuthenticationUser',
+		params: data,
+		method: 'get',
+	})
+}
 
 //是否已经登录
 export const isAuthenticated = () => {

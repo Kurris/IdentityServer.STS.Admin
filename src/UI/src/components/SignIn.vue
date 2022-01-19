@@ -65,6 +65,8 @@ export default {
                 this.$router.push('/home')
             } else if (response.route == 1) {
                 window.location = response.data
+            } else if (response.route == 4) {
+                this.$router.push('/signinWith2fa')
             }
         },
         async externalLogin(provider) {

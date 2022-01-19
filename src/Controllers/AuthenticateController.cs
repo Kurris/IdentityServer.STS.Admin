@@ -104,9 +104,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-
         #region external
-
 
         [HttpPost("externalLogin")]
         //[HttpGet("externalLogin")]
@@ -118,8 +116,6 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
 
-
-
             return Challenge(properties, input.Provider);
         }
 
@@ -127,7 +123,6 @@ namespace IdentityServer.STS.Admin.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteRrror = null)
         {
-
             if (!string.IsNullOrEmpty(remoteRrror))
             {
                 ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteRrror}");
@@ -230,7 +225,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                         if (Url.IsLocalUrl(model.ReturnUrl))
                         {
-                            return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
+                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
                         }
 
                         return new ApiResult<object>()
@@ -251,7 +246,6 @@ namespace IdentityServer.STS.Admin.Controllers
                 Data = model
             };
         }
-
 
         #endregion
 
@@ -362,11 +356,16 @@ namespace IdentityServer.STS.Admin.Controllers
 
                     if (result.RequiresTwoFactor)
                     {
-                        return await LoginWith2fa(new LoginWith2faInputModel
+                        return new ApiResult<object>()
                         {
-                            ReturnUrl = request.ReturnUrl,
-                            RememberMe = request.RememberLogin,
-                        });
+                            Route = DefineRoute.LoginWith2Fa,
+                            Data = new
+                            {
+                                rememberLogin = request.RememberLogin,
+                                returnUrl = request.ReturnUrl,
+                            }
+                        };
+                        // return await LoginWith2fa(request.RememberLogin, request.ReturnUrl);
                     }
 
                     if (result.IsLockedOut)
@@ -468,7 +467,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
+                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -599,7 +598,8 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-
+        [AllowAnonymous]
+        [HttpGet("twoFactorAuthenticationUser")]
         public async Task<ApiResult<object>> LoginWith2fa(bool rememberMe, string returnUrl = null)
         {
             //确保用户账号和密码正确
@@ -607,7 +607,6 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
-
 
             var model = new LoginWith2faOutputModel()
             {
@@ -636,7 +635,6 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
-
 
             var authenticatorCode = input.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
