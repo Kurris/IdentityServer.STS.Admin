@@ -114,6 +114,20 @@ export const getTwofactorSetting = () => {
 	})
 }
 
+export const forget2faClient = () => {
+	return http({
+		url: 'api/manager/setting/2fa/client',
+		method: 'delete',
+	})
+}
+
+export const diable2fa = () => {
+	return http({
+		url: 'api/manager/setting/2fa',
+		method: 'delete',
+	})
+}
+
 export const getAuthenticatorSetting = () => {
 	return http({
 		url: 'api/manager/setting/2fa/authenticator',

@@ -15,14 +15,14 @@
                     <div class="col-12">
                         <div class="alert alert-danger">
                             <strong>@Localizer["OneCode"]</strong>
-                            <p>@Localizer["YouCanGenerateCodes"] <a asp-action="GenerateRecoveryCodes">@Localizer["GenerateNewCodes"]</a></p>
+                            <p>@Localizer["YouCanGenerateCodes"] <a asp-action="GenerateRecoveryCodes">生成新的恢复码</a></p>
                         </div>
                     </div>
                 </template>
                 <template v-else-if="setting.recoveryCodesLeft <= 3">
 
                     <div class="alert alert-warning">
-                        <strong>你有 @Model.RecoveryCodesLeft.ToString() @Localizer["RecoveryCodeLeft"]</strong>
+                        <strong>你有 {{setting.recoveryCodesLeft}}个恢复码剩下</strong>
                         <p>你应该<el-link type="primary">生成一组新的恢复码</el-link>
                         </p>
                     </div>
@@ -30,16 +30,16 @@
 
                 <template v-if="setting.isMachineRemembered">
                     <div>
-                        <div class="col-12 mb-3">
+                        <div style="padding:3px">
                             <form method="post" asp-controller="Manage" asp-action="ForgetTwoFactorClient">
-                                <button type="submit" class="btn btn-info">@Localizer["ForgetBrowser"]</button>
+                                <el-button type="success" @click="forget2faBrowser">忘记这个浏览器</el-button>
                             </form>
                         </div>
                     </div>
                 </template>
 
                 <div class="col-12">
-                    <el-button type="warning">禁用2FA</el-button>
+                    <el-button type="warning" @click="disable2fa()">禁用2FA</el-button>
                     <el-button type="danger">重置恢复码</el-button>
                 </div>
 
@@ -48,7 +48,7 @@
         <div>
             <h3>身份验证器应用</h3>
             <div class="col-12">
-                <template v-if="setting.hasAuthenticator">
+                <template v-if="!setting.hasAuthenticator">
                     <div>
                         <el-button type="primary" @click="setup()">添加身份验证器应用</el-button>
                     </div>
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { getTwofactorSetting } from '../net/api.js'
+import { getTwofactorSetting, forget2faClient, diable2fa } from '../net/api.js'
 
 export default {
     components: {},
@@ -80,6 +80,16 @@ export default {
     methods: {
         setup() {
             this.$router.push('/enableAuthenticator')
+        },
+        async forget2faBrowser() {
+            await forget2faClient()
+            let res = await getTwofactorSetting()
+            this.setting = res.data
+        },
+        async disable2fa() {
+            await diable2fa();
+            let res = await getTwofactorSetting()
+            this.setting = res.data
         }
     },
 

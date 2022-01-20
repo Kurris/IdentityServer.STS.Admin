@@ -5,7 +5,7 @@
         <p>
             验证码
             <el-input v-model="model.twoFactorCode" />
-            记住我 <el-switch v-model="model.rememberMe" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
+            记住浏览器 <el-switch v-model="model.rememberMachine" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
 
             <el-button type="primary" @click="login">登录</el-button>
         </p>

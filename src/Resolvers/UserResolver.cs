@@ -14,6 +14,7 @@ namespace IdentityServer.STS.Admin.Resolvers
         public UserResolver(UserManager<TUser> userManager)
         {
             _userManager = userManager;
+            
         }
 
         public async Task<TUser> GetUserAsync(string userNameOrEmail)

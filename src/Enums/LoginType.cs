@@ -4,5 +4,6 @@ namespace IdentityServer.STS.Admin.Enums
     {
         Login = 0,
         Cancel = 1,
+        Register,
     }
 }

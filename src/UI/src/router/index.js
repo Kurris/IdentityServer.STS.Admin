@@ -15,6 +15,7 @@ const signinWithRecoveryCode = () => import('../components/SigninWithRecoveryCod
 const signinWith2fa = () => import('../components/SigninWith2fa.vue')
 const enableAuthenticator = () => import('../components/EnableAuthenticator.vue')
 const twoFactorAuthentication = () => import('../components/TwoFactorAuthentication.vue')
+const recoveryCodes = () => import('../components/RecoveryCodes.vue')
 
 vue.use(vueRouter)
 
@@ -71,6 +72,10 @@ const routes = [
 	{
 		path: '/twoFactorAuthentication',
 		component: twoFactorAuthentication,
+	},
+	{
+		path: '/recoveryCodes',
+		component: recoveryCodes,
 	},
 ]
 

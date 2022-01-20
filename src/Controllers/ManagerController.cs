@@ -19,8 +19,6 @@ namespace IdentityServer.STS.Admin.Controllers
     [ApiController]
     public class ManagerController : ControllerBase
     {
-
-
         private readonly string _recoveryCodesKey = nameof(_recoveryCodesKey).Replace("_", "");
         private readonly string _authenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
         private readonly UserManager<User> _userManager;
@@ -37,7 +35,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _signInManager = signInManager;
             _logger = logger;
             _urlEncoder = urlEncoder;
-        }   
+        }
 
 
         [HttpGet]
@@ -71,8 +69,6 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-
-
         [HttpGet("setting/2fa/authenticator")]
         public async Task<ApiResult<EnableAuthenticatorModel>> EnableAuthenticator()
         {
@@ -98,14 +94,14 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-               // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
             }
 
             if (!ModelState.IsValid)
             {
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
                 //return View(model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
@@ -117,7 +113,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 ModelState.AddModelError("代码", "验证码无效");
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -125,17 +121,16 @@ namespace IdentityServer.STS.Admin.Controllers
 
             _logger.LogInformation($"ID 为 {userId} 的用户已使用身份验证器应用启用了 2FA。");
 
-         //   StatusMessage = _localizer["AuthenticatorVerified"];
+            //   StatusMessage = _localizer["AuthenticatorVerified"];
 
             if (await _userManager.CountRecoveryCodesAsync(user) == 0)
             {
                 var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
 
-
                 //return RedirectToAction(nameof(ShowRecoveryCodes));
                 return new ApiResult<object>
                 {
-                    Route=DefineRoute.RecoveryCodes,
+                    Route = DefineRoute.RecoveryCodes,
                     Data = recoveryCodes
                 };
             }
@@ -147,7 +142,6 @@ namespace IdentityServer.STS.Admin.Controllers
                 Route = DefineRoute.TwoFactorAuthentication
             };
         }
-
 
 
         private async Task LoadSharedKeyAndQrCodeUriAsync(User user, EnableAuthenticatorModel model)
@@ -208,6 +202,57 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 Data = model
             };
+        }
+
+        // [HttpPost]
+        // public async Task<IActionResult> GenerateRecoveryCodes()
+        // {
+        //     var user = await _userManager.GetUserAsync(User);
+        //     if (user == null)
+        //     {
+        //        // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+        //     }
+        //
+        //     if (!user.TwoFactorEnabled)
+        //     {
+        //         AddError(_localizer["ErrorGenerateCodesWithout2FA"]);
+        //         return View();
+        //     }
+        //
+        //     var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+        //
+        //     _logger.LogInformation(_localizer["UserGenerated2FACodes", user.Id]);
+        //
+        //     var model = new ShowRecoveryCodesViewModel {RecoveryCodes = recoveryCodes.ToArray()};
+        //
+        //     return View(nameof(ShowRecoveryCodes), model);
+        // }
+
+
+        [HttpDelete("setting/2fa/client")]
+        public async Task ForgetTwoFactorClient()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            await _signInManager.ForgetTwoFactorClientAsync();
+        }
+
+        [HttpDelete("setting/2fa")]
+        public async Task Disable2fa()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                //return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            await _userManager.SetTwoFactorEnabledAsync(user, false);
+
+            //  _logger.LogInformation(_localizer["SuccessDisabled2FA", user.Id]);
         }
     }
 }
