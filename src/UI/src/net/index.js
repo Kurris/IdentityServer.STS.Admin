@@ -27,7 +27,11 @@ export default function axiosRequest(config) {
 			if (error.message == 'Network Error') {
 				ElementUI.Notification.error('网络请求错误')
 			} else if (error.response.status != 200) {
-				ElementUI.Notification.error(error.response.data)
+				if (error.response.status == 404) {
+					ElementUI.Notification.error('找不到请求的接口')
+				} else {
+					ElementUI.Notification.error(error.response.data)
+				}
 			} else {
 				return error
 			}

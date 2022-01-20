@@ -9,11 +9,14 @@
 
             <el-button type="primary" @click="login">登录</el-button>
         </p>
+        <p>
+            无权访问您的身份验证设备？ 您可以 <el-link type="primary" @click="loginWithCode()">使用恢复码登录</el-link>
+        </p>
     </div>
 </template>
 
 <script>
-import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser } from '../net/api.js'
+import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, goSignInWithCode } from '../net/api.js'
 
 import NProgress from 'nprogress'
 
@@ -38,6 +41,15 @@ export default {
             } else if (resp.route == 2) {
                 this.$router.push('/home')
             }
+        },
+        async loginWithCode() {
+            let res = await goSignInWithCode()
+            this.$router.push({
+                path: '/loginWithRecoveryCode',
+                query: {
+                    returnUrl: res.data
+                }
+            })
         }
     },
     async beforeMount() {

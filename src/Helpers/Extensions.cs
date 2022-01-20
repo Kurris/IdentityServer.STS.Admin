@@ -144,6 +144,25 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
                     options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
                     options.UserInteraction.ConsentUrl= "http://localhost:8080/consent";
+
+
+                    //options.UserInteraction = new UserInteractionOptions
+                    //{
+                    //    LoginUrl = "login", //登录地址
+                    //    LoginReturnUrlParameter = "returnUrl", //设置登录后的"返回地址"的参数名称默认：returnUrl 
+                    //    //LogoutUrl = null, //注销地址            z
+                    //    LogoutIdParameter = "logoutId", //注销页面id，默认：logoutId
+                    //   // ConsentUrl = null, //授权同意页面
+                    //    ConsentReturnUrlParameter = "returnUrl ", //设置"返回地址"的参数名称，默认：returnUrl 
+                    //   // ErrorUrl = null, //"错误页面地址"
+                    //    ErrorIdParameter = "errorId", //错误id，默认：errorId
+                    //    CustomRedirectReturnUrlParameter = "returnUrl", //设置从授权端点传递给自定义重定向的返回URL参数的名称。默认：returnUrl
+                    //    CookieMessageThreshold = 5,
+                    //    DeviceVerificationUrl = "/device",
+                    //    DeviceVerificationUserCodeParameter = "userCode"
+                    //};
+
+
                 })
                 .AddConfigurationStore<TConfigurationDbContext>()
                 .AddOperationalStore<TPersistedGrantDbContext>()

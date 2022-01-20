@@ -101,7 +101,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
                 //return View(model);
-                return new ApiResult<object> {Data = model};
+                return new ApiResult<object> { Data = model };
             }
 
             var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
@@ -113,7 +113,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 ModelState.AddModelError("代码", "验证码无效");
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
-                return new ApiResult<object> {Data = model};
+                return new ApiResult<object> { Data = model };
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -204,29 +204,7 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        // [HttpPost]
-        // public async Task<IActionResult> GenerateRecoveryCodes()
-        // {
-        //     var user = await _userManager.GetUserAsync(User);
-        //     if (user == null)
-        //     {
-        //        // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
-        //     }
-        //
-        //     if (!user.TwoFactorEnabled)
-        //     {
-        //         AddError(_localizer["ErrorGenerateCodesWithout2FA"]);
-        //         return View();
-        //     }
-        //
-        //     var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-        //
-        //     _logger.LogInformation(_localizer["UserGenerated2FACodes", user.Id]);
-        //
-        //     var model = new ShowRecoveryCodesViewModel {RecoveryCodes = recoveryCodes.ToArray()};
-        //
-        //     return View(nameof(ShowRecoveryCodes), model);
-        // }
+
 
 
         [HttpDelete("setting/2fa/client")]
@@ -247,12 +225,29 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                //return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, false);
+        }
 
-            //  _logger.LogInformation(_localizer["SuccessDisabled2FA", user.Id]);
+
+        [HttpGet("setting/2fa/recoveryCodes")]
+        public async Task<ApiResult<object>> GenerateRecoveryCodes()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            if (!user.TwoFactorEnabled)
+            {
+
+            }
+
+            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            return new ApiResult<object>() { Data = recoveryCodes };
         }
     }
 }

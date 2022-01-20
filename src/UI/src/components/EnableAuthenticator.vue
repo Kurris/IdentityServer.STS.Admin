@@ -53,7 +53,12 @@ export default {
     methods: {
         async verify() {
             let res = await verifyAuthode(this.setting)
-            console.log(res);
+            if (res.route == 13) {
+                this.$router.push('/showRecoveryCodes')
+            }
+            else if (res.route == 14) {
+                this.$router.push('/twoFactorAuthentication')
+            }
         }
     },
 

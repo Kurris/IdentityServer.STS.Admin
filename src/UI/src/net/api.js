@@ -12,7 +12,7 @@ export const signIn = data => {
 //
 export const siginTwoFactorAuthenticationUser = data => {
 	return http({
-		url: 'api/authenticate/twoFactorAuthenticationUser/sigIn',
+		url: 'api/authenticate/twoFactorAuthenticationUser/signIn',
 		data: data,
 		method: 'post',
 	})
@@ -39,6 +39,22 @@ export const getDocument = () => {
 	return http({
 		url: '.well-known/openid-configuration',
 		method: 'get',
+	})
+}
+//
+export const goSignInWithCode = data => {
+	return http({
+		url: 'api/authenticate/2fa/signInWithCode',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const signInWithCode = data => {
+	return http({
+		url: 'api/authenticate/2fa/signInWithCode',
+		method: 'post',
+		data: data,
 	})
 }
 
@@ -99,13 +115,13 @@ export const getConsentSetting = data => {
 	})
 }
 
-// export const processConsent = data => {
-// 	return http({
-// 		url: 'api/consent/setting/process',
-// 		method: 'post',
-// 		data: data,
-// 	})
-// }
+export const getRecoveryCodes = data => {
+	return http({
+		url: 'api/manager/setting/2fa/recoveryCodes',
+		method: 'get',
+		data: data,
+	})
+}
 
 export const getTwofactorSetting = () => {
 	return http({

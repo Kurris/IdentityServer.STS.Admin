@@ -225,7 +225,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                         if (Url.IsLocalUrl(model.ReturnUrl))
                         {
-                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
+                            return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
                         }
 
                         return new ApiResult<object>()
@@ -365,7 +365,6 @@ namespace IdentityServer.STS.Admin.Controllers
                                 returnUrl = request.ReturnUrl,
                             }
                         };
-                        // return await LoginWith2fa(request.RememberLogin, request.ReturnUrl);
                     }
 
                     if (result.IsLockedOut)
@@ -467,7 +466,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
+                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -623,7 +622,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
         [AllowAnonymous]
-        [HttpPost("twoFactorAuthenticationUser/sigIn")]
+        [HttpPost("twoFactorAuthenticationUser/signIn")]
         public async Task<ApiResult<object>> LoginWith2fa(LoginWith2faInputModel input)
         {
             if (!ModelState.IsValid)
@@ -691,6 +690,68 @@ namespace IdentityServer.STS.Admin.Controllers
                 Code = 200,
                 Data = message,
             };
+        }
+
+        [HttpGet("2fa/signInWithCode")]
+        [AllowAnonymous]
+        public async Task<ApiResult<string>> LoginWithRecoveryCode(string returnUrl = null)
+        {
+            // Ensure the user has gone through the username & password screen first
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                // throw new InvalidOperationException(_localizer["Unable2FA"]);
+            }
+
+            //var model = new LoginWithRecoveryCodeViewModel()
+            //{
+            //    ReturnUrl = returnUrl
+            //};
+
+            return new ApiResult<string>()
+            {
+                Data = returnUrl,
+            };
+        }
+
+
+        [HttpPost("2fa/signInWithCode")]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> LoginWithRecoveryCode(LoginWithRecoveryCodeInputModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // return View(model);
+            }
+
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                //throw new InvalidOperationException(_localizer["Unable2FA"]);
+            }
+
+            var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
+
+            var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+
+            if (result.Succeeded)
+            {
+                return new ApiResult<object>()
+                {
+                    Route = string.IsNullOrEmpty(model.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
+                    Data = model.ReturnUrl,
+                };
+            }
+
+            if (result.IsLockedOut)
+            {
+                //return View("Lockout");
+            }
+
+            throw new Exception();
+            //ModelState.AddModelError(string.Empty, _localizer["InvalidRecoveryCode"]);
+
+            //return View(model);
         }
     }
 }

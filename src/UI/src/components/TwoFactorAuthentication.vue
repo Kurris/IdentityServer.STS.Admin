@@ -3,19 +3,18 @@
         <div>
             <h1>双因素身份验证 (2FA)</h1>
             <template v-if="setting.is2faEnabled">
-                <template v-if="setting.recoveryCodesLeft">
+                <template v-if="setting.recoveryCodesLeft==0">
                     <div class="col-12">
-                        <div class="alert alert-danger">
-                            <strong>您还没有恢复码</strong>
-                            <p>你必须 <el-link type="primary">生成一组新的恢复码</el-link> 在您使用恢复码登录之前</p>
-                        </div>
+                        <strong>您还没有恢复码</strong>
+                        <p>你必须 <el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link> 在您使用恢复码登录之前</p>
                     </div>
                 </template>
                 <template v-else-if="setting.recoveryCodesLeft==1">
                     <div class="col-12">
                         <div class="alert alert-danger">
-                            <strong>@Localizer["OneCode"]</strong>
-                            <p>@Localizer["YouCanGenerateCodes"] <a asp-action="GenerateRecoveryCodes">生成新的恢复码</a></p>
+                            <strong>您还剩 1 个恢复码</strong>
+                            <p>您可以生成一组新的恢复码 </p>
+                            <el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link>
                         </div>
                     </div>
                 </template>
@@ -31,9 +30,8 @@
                 <template v-if="setting.isMachineRemembered">
                     <div>
                         <div style="padding:3px">
-                            <form method="post" asp-controller="Manage" asp-action="ForgetTwoFactorClient">
-                                <el-button type="success" @click="forget2faBrowser">忘记这个浏览器</el-button>
-                            </form>
+                            <el-button type="success" @click="forget2faBrowser">忘记这个浏览器</el-button>
+
                         </div>
                     </div>
                 </template>
