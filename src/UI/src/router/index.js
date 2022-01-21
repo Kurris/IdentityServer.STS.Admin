@@ -17,6 +17,7 @@ const enableAuthenticator = () => import('../components/EnableAuthenticator.vue'
 const twoFactorAuthentication = () => import('../components/TwoFactorAuthentication.vue')
 const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
+const grants = () => import('../components/Grants.vue')
 
 vue.use(vueRouter)
 
@@ -81,6 +82,10 @@ const routes = [
 	{
 		path: '/loginWithRecoveryCode',
 		component: loginWithRecoveryCode,
+	},
+	{
+		path: '/grants',
+		component: grants,
 	},
 ]
 

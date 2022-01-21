@@ -164,3 +164,19 @@ export const verifyAuthode = data => {
 		data: data,
 	})
 }
+
+export const getGrants = data => {
+	return http({
+		url: 'api/grants/grants',
+		method: 'get',
+		params: data,
+	})
+}
+//
+
+export const deleteGrant = data => {
+	return http({
+		url: `api/grants/client/${data.clientId}`,
+		method: 'delete',
+	})
+}

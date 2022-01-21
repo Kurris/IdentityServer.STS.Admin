@@ -6,7 +6,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>持久授权</b></span>
                     </div>
-                    <el-button type="">持久授权</el-button>
+                    <el-button type="primary" @click="$router.push('/grants')">持久授权</el-button>
                 </el-card>
             </el-col>
             <el-col :span="colSpan" v-show="!isAuthenticated">

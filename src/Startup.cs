@@ -17,6 +17,7 @@ using IdentityServer4.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using IdentityServer.STS.Admin.Filters;
+using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin
 {
@@ -34,7 +35,16 @@ namespace IdentityServer.STS.Admin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(setup => { setup.AddDefaultPolicy(policy => { policy.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); }); });
+            services.AddCors(setup =>
+            {
+                setup.AddDefaultPolicy(policy =>
+                {
+                    policy.SetIsOriginAllowed(x => true)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
 
             //数据访问层,非ids4操作
             services.RegisterDbContexts<IdentityDbContext
@@ -88,12 +98,18 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
-            services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
-            services.AddMvc(options =>
+            services.AddSingleton<ICorsPolicyService>(provider =>
             {
-                options.Filters.Add<ExceptionFilter>();
+                var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
+                return new DefaultCorsPolicyService(logger)
+                {
+                    AllowedOrigins = new[] {"http://localhost:8080 "},
+                    AllowAll = false
+                };
             });
-            services.AddControllers();
+            services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
+            services.AddMvc(options => { options.Filters.Add<ExceptionFilter>(); });
+            services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss"; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
