@@ -38,7 +38,7 @@
 
                 <div class="col-12">
                     <el-button type="warning" @click="disable2fa()">禁用2FA</el-button>
-                    <el-button type="danger">重置恢复码</el-button>
+                    <el-button type="danger" @click="resetRecoveryCode()">重置恢复码</el-button>
                 </div>
 
             </template>
@@ -54,7 +54,7 @@
                 <template v-else>
                     <div>
                         <el-button type="primary" @click="setup()">设置身份验证器应用</el-button>
-                        <el-button type="danger">重置身份验证器应用</el-button>
+                        <el-button type="danger" @click="reset()">重置身份验证器应用</el-button>
                     </div>
                 </template>
             </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { getTwofactorSetting, forget2faClient, diable2fa } from '../net/api.js'
+import { getTwofactorSetting, forget2faClient, diable2fa, resetAuthenticator } from '../net/api.js'
 
 export default {
     components: {},
@@ -88,6 +88,24 @@ export default {
             await diable2fa();
             let res = await getTwofactorSetting()
             this.setting = res.data
+        },
+        resetRecoveryCode() {
+            this.$confirm('如果您丢失了设备并且没有恢复码，您将无法访问自己的帐户。生成新的恢复码不会更改身份验证器应用程序中使用的密钥。 如果您希望更改身份验证器应用程序中使用的密钥，则应重置身份验证器密钥。', '警告', {
+                confirmButtonText: '生成恢复码',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$router.push('/showRecoveryCodes')
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消充值恢复码'
+                });
+            });
+        },
+        reset() {
+            resetAuthenticator().then(() =>
+                this.$router.push('/enableAuthenticator'))
         }
     },
 

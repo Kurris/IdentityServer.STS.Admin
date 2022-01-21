@@ -136,7 +136,13 @@ export const forget2faClient = () => {
 		method: 'delete',
 	})
 }
-
+//
+export const resetAuthenticator = () => {
+	return http({
+		url: 'api/manager/setting/2fa/authenticator/new',
+		method: 'delete',
+	})
+}
 export const diable2fa = () => {
 	return http({
 		url: 'api/manager/setting/2fa',

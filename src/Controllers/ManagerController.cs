@@ -101,7 +101,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
                 //return View(model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
@@ -113,7 +113,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 ModelState.AddModelError("代码", "验证码无效");
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -205,8 +205,6 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-
-
         [HttpDelete("setting/2fa/client")]
         public async Task ForgetTwoFactorClient()
         {
@@ -225,7 +223,6 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, false);
@@ -243,11 +240,27 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (!user.TwoFactorEnabled)
             {
-
             }
 
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-            return new ApiResult<object>() { Data = recoveryCodes };
+            return new ApiResult<object>() {Data = recoveryCodes};
+        }
+
+
+        [HttpDelete("setting/2fa/authenticator/new")]
+        public async Task<ApiResult<object>> ResetAuthenticator()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                //return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            await _userManager.SetTwoFactorEnabledAsync(user, false);
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+            //_logger.LogInformation(_localizer["SuccessResetAuthenticationKey", user.Id]);
+
+            return new ApiResult<object>();
         }
     }
 }
