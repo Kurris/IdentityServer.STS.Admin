@@ -18,6 +18,7 @@ const twoFactorAuthentication = () => import('../components/TwoFactorAuthenticat
 const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/Grants.vue')
+const password = () => import('../components/Password.vue')
 
 vue.use(vueRouter)
 
@@ -86,6 +87,10 @@ const routes = [
 	{
 		path: '/grants',
 		component: grants,
+	},
+	{
+		path: '/password',
+		component: password,
 	},
 ]
 

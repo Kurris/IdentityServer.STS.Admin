@@ -369,10 +369,11 @@ namespace IdentityServer.STS.Admin.Controllers
 
                     if (result.IsLockedOut)
                     {
-                        return new ApiResult<object>()
-                        {
-                            Route = DefineRoute.Lockout,
-                        };
+                        //return new ApiResult<object>()
+                        //{
+                        //    Route = DefineRoute.Lockout,
+                        //};
+                        throw new Exception("账号已被锁定");
                     }
                 }
 
@@ -380,7 +381,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     clientId: context?.Client.ClientId));
 
                 // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
-                throw new Exception("invalid credentials");
+                throw new Exception("账号或者密码错误");
             }
 
             // something went wrong, show form with error

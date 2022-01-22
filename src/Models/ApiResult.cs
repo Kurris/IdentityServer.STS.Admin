@@ -5,6 +5,8 @@ namespace IdentityServer.STS.Admin.Models
         public ApiResult()
         {
             this.Code = 200;
+            this.Route = DefineRoute.None;
+            this.Msg = "²Ù×÷³É¹¦";
         }
 
 
@@ -32,8 +34,8 @@ namespace IdentityServer.STS.Admin.Models
         LoginOut = 9,
         LoggedOut = 10,
         ExternalLoginCallback = 11,
-        Error=12,
-        RecoveryCodes=13,
-        TwoFactorAuthentication=14,
+        Error = 12,
+        RecoveryCodes = 13,
+        TwoFactorAuthentication = 14,
     }
 }

@@ -11,10 +11,16 @@
                         <input type="checkbox" v-model="form.remember" id="remember" />
                         <label for="remember">Remember Me</label>
                     </div>
-                    <div class="button">
-                        <button @click="login()">login</button>
+                    <div>
+                        <button @click="login()">登录</button>
                     </div>
-
+                    <div>
+                        <button @click="cancel()">取消</button>
+                    </div>
+                    <div>
+                        <el-link type="primary">注册</el-link>
+                        <el-link type="primary">忘记密码</el-link>
+                    </div>
                     <div>
                         <span>OAuth2.0</span>
                         <template v-for="(item,i) in externalProviders">
@@ -73,6 +79,14 @@ export default {
                         returnUrl: response.data.returnUrl,
                     }
                 })
+            }
+        },
+        cancel() {
+            let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
+            if (returnUrl === undefined) {
+                this.$router.push('/home')
+            } else {
+                window.location.href = returnUrl
             }
         },
         async externalLogin(provider) {

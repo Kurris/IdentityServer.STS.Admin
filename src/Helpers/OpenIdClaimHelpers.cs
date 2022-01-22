@@ -65,6 +65,8 @@ namespace IdentityServer.STS.Admin.Helpers
             try
             {
                 var addressJson = JObject.Parse(address);
+
+                //街道
                 if (addressJson.ContainsKey(AddressClaimConstants.StreetAddress))
                 {
                     profile.StreetAddress = addressJson[AddressClaimConstants.StreetAddress].ToString();
@@ -80,17 +82,19 @@ namespace IdentityServer.STS.Admin.Helpers
                     profile.Region = addressJson[AddressClaimConstants.Region].ToString();
                 }
 
+                //
                 if (addressJson.ContainsKey(AddressClaimConstants.PostalCode))
                 {
                     profile.PostalCode = addressJson[AddressClaimConstants.PostalCode].ToString();
                 }
 
+                //国家
                 if (addressJson.ContainsKey(AddressClaimConstants.Country))
                 {
                     profile.Country = addressJson[AddressClaimConstants.Country].ToString();
                 }
             }
-            catch (JsonReaderException)
+            catch 
             {
 
             }

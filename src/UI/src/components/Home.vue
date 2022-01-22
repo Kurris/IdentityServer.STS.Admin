@@ -57,7 +57,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>更改密码</b></span>
                     </div>
-                    <el-button type="">更改密码</el-button>
+                    <el-button type="primary" @click="$router.push('/password')">更改密码</el-button>
                 </el-card>
             </el-col>
         </el-row>

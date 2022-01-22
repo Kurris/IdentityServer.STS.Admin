@@ -15,20 +15,20 @@
         <template v-else>
             <template v-for="grant in grants">
                 <div :key="grant.clientId">
-                    <div class="row grant">
-                        <div class="col-sm-2">
+                    <div>
+                        <div>
                             <template v-if="grant.ClientLogoUrl != null">
                                 <img :src="grant.clientLogoUrl">
                             </template>
                         </div>
-                        <div class="col-sm-8">
-                            <div class="clientname">{{grant.clientName}}</div>
+                        <div>
+                            <div>{{grant.clientName}}</div>
                             <div>
-                                <span class="created">创建:</span> {{grant.created}}
+                                <span>创建:</span> {{grant.created}}
                             </div>
                             <template v-if="grant.expires!=null">
                                 <div>
-                                    <span class="expires">过期:</span>{{grant.expires}}
+                                    <span>过期:</span>{{grant.expires}}
                                 </div>
                             </template>
                             <template v-if="grant.identityGrantNames.length!=0">
@@ -57,8 +57,8 @@
                             </template>
 
                         </div>
-                        <div class="col-sm-2">
-                            <el-button @click="deleteById(grant.clientId)">撤销访问授权</el-button>
+                        <div>
+                            <el-button type="danger" @click="deleteById(grant.clientId)">撤销访问授权</el-button>
                         </div>
                     </div>
                 </div>

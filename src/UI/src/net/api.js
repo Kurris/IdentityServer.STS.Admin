@@ -180,3 +180,19 @@ export const deleteGrant = data => {
 		method: 'delete',
 	})
 }
+
+//
+export const checkPassword = () => {
+	return http({
+		url: 'api/manager/password/status',
+		method: 'get',
+	})
+}
+
+export const savePassword = data => {
+	return http({
+		url: 'api/manager/password',
+		method: 'post',
+		data: data,
+	})
+}

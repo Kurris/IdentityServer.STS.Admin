@@ -96,6 +96,12 @@ namespace IdentityServer.STS.Admin
                     await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(apiResult));
                     await Task.CompletedTask;
                 };
+
+                options.Events.OnRedirectToAccessDenied = async context =>
+                {
+
+                    await Task.CompletedTask;
+                };
             });
 
             services.AddSingleton<ICorsPolicyService>(provider =>

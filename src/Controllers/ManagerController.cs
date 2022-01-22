@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Entities;
@@ -38,7 +41,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("profile")]
         public async Task<ApiResult<PersonalProfileAndClaims>> GetPersonalProfileAndClaims()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -101,7 +104,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
                 //return View(model);
-                return new ApiResult<object> {Data = model};
+                return new ApiResult<object> { Data = model };
             }
 
             var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
@@ -113,7 +116,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 ModelState.AddModelError("代码", "验证码无效");
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
-                return new ApiResult<object> {Data = model};
+                return new ApiResult<object> { Data = model };
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -243,7 +246,7 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-            return new ApiResult<object>() {Data = recoveryCodes};
+            return new ApiResult<object>() { Data = recoveryCodes };
         }
 
 
@@ -261,6 +264,59 @@ namespace IdentityServer.STS.Admin.Controllers
             //_logger.LogInformation(_localizer["SuccessResetAuthenticationKey", user.Id]);
 
             return new ApiResult<object>();
+        }
+
+
+
+
+
+
+        /// <summary>
+        /// 检查是否存在密码
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [HttpGet("password/status")]
+        public async Task<ApiResult<bool>> CheckPassword()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                throw new Exception();
+            }
+
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+
+            
+            return new ApiResult<bool>() { Data = hasPassword };
+        }
+
+        /// <summary>
+        /// 保存密码
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPost("password")]
+        public async Task SavePassword(SavePasswordInputModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                throw new Exception();
+
+
+            IdentityResult result;
+            if (string.IsNullOrEmpty(model.OldPassword))
+                result = await _userManager.AddPasswordAsync(user, model.NewPassword);
+            else
+                result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
+
+
+            await _signInManager.RefreshSignInAsync(user);
         }
     }
 }

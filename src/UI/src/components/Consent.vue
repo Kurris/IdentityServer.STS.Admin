@@ -87,7 +87,7 @@
                                 <div class="row m-4">
                                     <div class="col-sm-12">
                                         <div class="toggle-button__input">
-                                            <el-switch v-model="setting.RememberConsent" active-color="#13ce66" inactive-color="#ff4949">
+                                            <el-switch v-model="setting.rememberConsent" active-color="#13ce66" inactive-color="#ff4949">
                                             </el-switch>
                                         </div>
                                         <div class="toggle-button__text">

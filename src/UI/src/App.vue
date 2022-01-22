@@ -3,6 +3,7 @@
         <div id="header">
             <el-button type="text" @click="goHome()">{{title}}</el-button>
             <el-button type="primary" v-show="status" @click="logout">注销</el-button>
+            <el-avatar icon="el-icon-user-solid"></el-avatar>
         </div>
         <router-view />
         <div id="footer">

@@ -22,7 +22,7 @@
 
                     <div class="alert alert-warning">
                         <strong>你有 {{setting.recoveryCodesLeft}}个恢复码剩下</strong>
-                        <p>你应该<el-link type="primary">生成一组新的恢复码</el-link>
+                        <p>你应该<el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link>
                         </p>
                     </div>
                 </template>
@@ -36,7 +36,7 @@
                     </div>
                 </template>
 
-                <div class="col-12">
+                <div>
                     <el-button type="warning" @click="disable2fa()">禁用2FA</el-button>
                     <el-button type="danger" @click="resetRecoveryCode()">重置恢复码</el-button>
                 </div>
@@ -45,7 +45,7 @@
         </div>
         <div>
             <h3>身份验证器应用</h3>
-            <div class="col-12">
+            <div>
                 <template v-if="!setting.hasAuthenticator">
                     <div>
                         <el-button type="primary" @click="setup()">添加身份验证器应用</el-button>

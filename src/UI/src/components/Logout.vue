@@ -1,7 +1,9 @@
 <template>
     <div id='logout'>
-        是否要注销登录?
-        <el-button type="primary" @click="yes">是</el-button>
+        <template v-if="$route.query.logoutId==null">
+            是否要注销登录?
+            <el-button type="primary" @click="yes">是</el-button>
+        </template>
     </div>
 </template>
 
@@ -31,6 +33,10 @@ export default {
             }
         }
     },
+    async beforeMount() {
+        if (this.$route.query.logoutId)
+            await this.yes()
+    }
 }
 </script>
 <style scoped>
