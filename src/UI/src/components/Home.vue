@@ -14,7 +14,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>登录</b></span>
                     </div>
-                    <el-button @click="$router.push('signIn')">登录</el-button>
+                    <el-button type="primary" @click="$router.push('signIn')">登录</el-button>
                 </el-card>
             </el-col>
             <el-col :span="colSpan">
@@ -22,7 +22,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>发现文档</b></span>
                     </div>
-                    <el-button type="" @click="getDocument()">发现文档</el-button>
+                    <el-button type="primary" @click="getDocument()">发现文档</el-button>
                 </el-card>
             </el-col>
             <el-col :span="colSpan" v-show="isAuthenticated">
@@ -30,7 +30,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>我的个人资料</b></span>
                     </div>
-                    <el-button type="">我的个人资料</el-button>
+                    <el-button type="primary" @click="$router.push('/profile')">我的个人资料</el-button>
                 </el-card>
             </el-col>
 
@@ -39,7 +39,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>我的个人数据</b></span>
                     </div>
-                    <el-button type="">我的个人数据</el-button>
+                    <el-button type="primary" @click="$router.push('/personalData')">我的个人数据</el-button>
                 </el-card>
             </el-col>
 
@@ -48,7 +48,7 @@
                     <div slot="header" class="clearfix">
                         <span><b>双因素身份验证</b></span>
                     </div>
-                    <el-button type="" @click="go2fa">双因素身份验证</el-button>
+                    <el-button type="primary" @click="go2fa">双因素身份验证</el-button>
                 </el-card>
             </el-col>
 

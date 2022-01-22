@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -70,6 +71,123 @@ namespace IdentityServer.STS.Admin.Controllers
                 Data = model,
             };
         }
+
+
+        [HttpPost("profile")]
+        public async Task SavePersonalProfile(PersonalProfileAndClaims model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                throw new Exception();
+            }
+
+            var email = user.Email;
+            if (model.Email != email)
+            {
+                var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);
+                if (!setEmailResult.Succeeded)
+                {
+                    throw new ApplicationException("错误的邮件设置");
+                }
+            }
+
+            var phoneNumber = user.PhoneNumber;
+            if (model.PhoneNumber != phoneNumber)
+            {
+                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, model.PhoneNumber);
+                if (!setPhoneResult.Succeeded)
+                {
+                    throw new ApplicationException("错误的电话号码设置");
+                }
+            }
+
+            await UpdateUserClaimsAsync(model, user);           
+        }
+
+
+        [HttpPost]
+        public async Task DeletePersonalData(DeletePersonalDataInputModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            model.RequirePassword = await _userManager.HasPasswordAsync(user);
+            if (model.RequirePassword)
+            {
+                if (!await _userManager.CheckPasswordAsync(user, model.Password))
+                {//
+                   // ModelState.AddModelError(string.Empty, _localizer["PasswordNotCorrect"]);
+                   // return View(deletePersonalDataViewModel);
+                }
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            //var userId = await _userManager.GetUserIdAsync(user);
+            if (!result.Succeeded)
+            {
+              //  throw new InvalidOperationException(_localizer["ErrorDeletingUser", user.Id]);
+            }
+
+            await _signInManager.SignOutAsync();
+
+           // _logger.LogInformation(_localizer["DeletePersonalData"], userId);
+
+            //return Redirect("~/");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DownloadPersonalData()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            //_logger.LogInformation(_localizer["AskForPersonalDataLog"], _userManager.GetUserId(User));
+
+            var personalDataProps = typeof(User).GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
+            var personalData = personalDataProps.ToDictionary(p => p.Name, p => p.GetValue(user)?.ToString() ?? "null");
+
+            Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
+            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "text/json");
+        }
+
+        private async Task UpdateUserClaimsAsync(PersonalProfileAndClaims model, User user)
+        {
+            var claims = await _userManager.GetClaimsAsync(user);
+            var oldProfile = OpenIdClaimHelpers.ExtractProfileInfo(claims);
+            var newProfile = new OpenIdProfile
+            {
+                Website = model.Website,
+                StreetAddress = model.StreetAddress,
+                Locality = model.Locality,
+                PostalCode = model.PostalCode,
+                Region = model.Region,
+                Country = model.Country,
+                FullName = model.Name,
+                Profile = model.Profile
+            };
+
+            var claimsToRemove = OpenIdClaimHelpers.ExtractClaimsToRemove(oldProfile, newProfile);
+            var claimsToAdd = OpenIdClaimHelpers.ExtractClaimsToAdd(oldProfile, newProfile);
+            var claimsToReplace = OpenIdClaimHelpers.ExtractClaimsToReplace(claims, newProfile);
+
+            await _userManager.RemoveClaimsAsync(user, claimsToRemove);
+            await _userManager.AddClaimsAsync(user, claimsToAdd);
+
+            foreach (var pair in claimsToReplace)
+            {
+                await _userManager.ReplaceClaimAsync(user, pair.Item1, pair.Item2);
+            }
+        }
+
+
+
 
 
         [HttpGet("setting/2fa/authenticator")]

@@ -196,3 +196,18 @@ export const savePassword = data => {
 		data: data,
 	})
 }
+
+export const getProfile = () => {
+	return http({
+		url: 'api/manager/profile',
+		method: 'get',
+	})
+}
+
+export const saveProfile = data => {
+	return http({
+		url: 'api/manager/profile',
+		method: 'post',
+		data: data,
+	})
+}

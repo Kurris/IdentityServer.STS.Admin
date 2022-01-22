@@ -19,6 +19,8 @@ const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/Grants.vue')
 const password = () => import('../components/Password.vue')
+const profile = () => import('../components/Profile.vue')
+const personalData = () => import('../components/PersonalData.vue')
 
 vue.use(vueRouter)
 
@@ -91,6 +93,14 @@ const routes = [
 	{
 		path: '/password',
 		component: password,
+	},
+	{
+		path: '/profile',
+		component: profile,
+	},
+	{
+		path: '/personalData',
+		component: personalData,
 	},
 ]
 
