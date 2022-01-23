@@ -21,6 +21,8 @@ const grants = () => import('../components/Grants.vue')
 const password = () => import('../components/Password.vue')
 const profile = () => import('../components/Profile.vue')
 const personalData = () => import('../components/PersonalData.vue')
+const externalLogins = () => import('../components/ExternalLogins.vue')
+const forgotPassword= () => import('../components/ForgotPassword.vue')
 
 vue.use(vueRouter)
 
@@ -101,6 +103,14 @@ const routes = [
 	{
 		path: '/personalData',
 		component: personalData,
+	},
+	{
+		path: '/externalLogins',
+		component: externalLogins,
+	},
+	{
+		path: '/forgotPassword',
+		component: forgotPassword,
 	},
 ]
 

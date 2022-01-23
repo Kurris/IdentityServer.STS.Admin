@@ -60,6 +60,15 @@
                     <el-button type="primary" @click="$router.push('/password')">更改密码</el-button>
                 </el-card>
             </el-col>
+
+            <el-col :span="colSpan" v-show="isAuthenticated">
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span><b>外部登录</b></span>
+                    </div>
+                    <el-button type="primary" @click="$router.push('/externalLogins')">外部登录</el-button>
+                </el-card>
+            </el-col>
         </el-row>
     </div>
 </template>

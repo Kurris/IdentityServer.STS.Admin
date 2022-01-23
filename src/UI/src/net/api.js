@@ -211,3 +211,34 @@ export const saveProfile = data => {
 		data: data,
 	})
 }
+
+export const downloadProfile = () => {
+	return http({
+		url: 'api/manager/profile/download',
+		method: 'get',
+		responseType: 'arraybuffer',
+	})
+}
+
+export const deleteProfile = data => {
+	return http({
+		url: 'api/manager/profile',
+		method: 'delete',
+		data: data,
+	})
+}
+
+export const getExternalLogins = () => {
+	return http({
+		url: 'api/manager/externalLogins',
+		method: 'get',
+	})
+}
+
+export const deleteExternalLogin = data => {
+	return http({
+		url: 'api/manager/externalLogin',
+		method: 'delete',
+		data: data,
+	})
+}

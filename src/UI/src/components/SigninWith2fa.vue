@@ -32,8 +32,6 @@ export default {
     methods: {
         async login() {
             let resp = await siginTwoFactorAuthenticationUser(this.model)
-            console.log(resp);
-
 
             if (resp.route == 1) {
                 NProgress.start()

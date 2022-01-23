@@ -19,7 +19,7 @@
                     </div>
                     <div>
                         <el-link type="primary">注册</el-link>
-                        <el-link type="primary">忘记密码</el-link>
+                        <el-link type="primary" @click="$router.push('/forgotPassword')">忘记密码</el-link>
                     </div>
                     <div>
                         <span>OAuth2.0</span>

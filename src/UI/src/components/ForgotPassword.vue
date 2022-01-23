@@ -1,39 +1,33 @@
 <template>
-    <div id='personalData'>
+    <div id='forgotPassword'>
         <div class="row">
-            <div class="col-md-6">
-                您的帐户包含您提供给我们的个人数据。 此页面允许您下载或删除该数据
-                <el-button @click="downloadData">下载个人数据</el-button>
-                <div>
-                    删除此数据会永久删除您的帐户，并无法恢复。
-                    <a asp-action="" class="btn btn-primary"></a>
-                    <el-button @click="deleteData">删除个人数据</el-button>
-                </div>
+            <h4>选择密码找回策略</h4>
+            <div class="form-group">
+                <el-radio v-model="useType" :label='0' @change="changeType">邮件</el-radio>
+                <el-radio v-model="useType" :label='1' @change="changeType">用户名</el-radio>
             </div>
+            <el-input v-model="uniqueMessage" />
         </div>
+
+        <el-button type="primary">提交</el-button>
     </div>
 </template>
 
 <script>
-import { downloadProfile, deleteProfile } from '../net/api.js'
 
 export default {
     components: {},
     data() {
         return {
-
+            useType: 0,
+            uniqueMessage: ''
         };
     },
     computed: {},
     watch: {},
     methods: {
-        async deleteData() {
-            await deleteProfile({
-                password: ''
-            });
-        },
-        async downloadData() {
-            await downloadProfile();
+        changeType() {
+            this.uniqueMessage = ''
         }
     },
     //生命周期 - 创建完成（可以访问当前this实例）

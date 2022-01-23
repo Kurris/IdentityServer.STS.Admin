@@ -8,6 +8,7 @@ using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Manager;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -106,55 +107,51 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        [HttpPost]
+        [HttpDelete("profile")]
         public async Task DeletePersonalData(DeletePersonalDataInputModel model)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+
             }
 
-            model.RequirePassword = await _userManager.HasPasswordAsync(user);
-            if (model.RequirePassword)
+            var requirePassword = await _userManager.HasPasswordAsync(user);
+            if (requirePassword)
             {
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
-                {//
-                   // ModelState.AddModelError(string.Empty, _localizer["PasswordNotCorrect"]);
-                   // return View(deletePersonalDataViewModel);
+                {
+                    throw new Exception("密码错误");
                 }
             }
 
             var result = await _userManager.DeleteAsync(user);
-            //var userId = await _userManager.GetUserIdAsync(user);
             if (!result.Succeeded)
             {
-              //  throw new InvalidOperationException(_localizer["ErrorDeletingUser", user.Id]);
+                throw new Exception();
             }
 
             await _signInManager.SignOutAsync();
-
-           // _logger.LogInformation(_localizer["DeletePersonalData"], userId);
-
-            //return Redirect("~/");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DownloadPersonalData()
+        [HttpGet("profile/download")]
+        public async Task<FileContentResult> DownloadPersonalData()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+               
             }
-
-            //_logger.LogInformation(_localizer["AskForPersonalDataLog"], _userManager.GetUserId(User));
 
             var personalDataProps = typeof(User).GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
             var personalData = personalDataProps.ToDictionary(p => p.Name, p => p.GetValue(user)?.ToString() ?? "null");
 
+            Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
             Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
-            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "text/json");
+            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)),"application/octet-stream")
+            {
+                 FileDownloadName = "PersonalData.json",
+            };
         }
 
         private async Task UpdateUserClaimsAsync(PersonalProfileAndClaims model, User user)
@@ -433,6 +430,91 @@ namespace IdentityServer.STS.Admin.Controllers
             if (!result.Succeeded)
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
 
+
+            await _signInManager.RefreshSignInAsync(user);
+        }
+
+
+
+        [HttpGet("externalLogins")]
+        public async Task<ApiResult<object>> ExternalLogins()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+               // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            var model = new ExternalLoginsOutputModel
+            {
+                CurrentLogins = await _userManager.GetLoginsAsync(user)
+            };
+
+            model.OtherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync())
+                .Where(auth => model.CurrentLogins.All(ul => auth.Name != ul.LoginProvider))
+                .ToList();
+
+            model.ShowRemoveButton = await _userManager.HasPasswordAsync(user) || model.CurrentLogins.Count > 1;
+
+            return new ApiResult<object>() { Data = model };
+        }
+
+        [HttpPost("linkLogin")]
+        public async Task<IActionResult> LinkLogin([FromForm] LinkLoginsInputModel model)
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            // Request a redirect to the external login provider to link a login for the current user
+            var redirectUrl ="http://localhost:5000" + Url.Action(nameof(LinkLoginCallback));
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(model.Provider, redirectUrl, _userManager.GetUserId(User));
+
+            return new ChallengeResult(model.Provider, properties);
+        }
+
+        [HttpGet("linkLoginCallback")]
+        public async Task<IActionResult> LinkLoginCallback()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync(user.Id.ToString());
+            if (info == null)
+            {
+              //  throw new ApplicationException(_localizer["ErrorLoadingExternalLogin", user.Id]);
+            }
+
+            var result = await _userManager.AddLoginAsync(user, info);
+            if (!result.Succeeded)
+            {
+               // return new Exception(string.Join(",", result.Errors.Select(x=>x.Description)));
+            }
+
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+
+            var url = "http://localhost:8080/externalLogins";
+            return Redirect(url);
+        }
+
+        [HttpDelete("externalLogin")]
+        public async Task RemoveLogin(RemoveLoginInputModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+            }
+
+            var result = await _userManager.RemoveLoginAsync(user, model.LoginProvider, model.ProviderKey);
+            if (!result.Succeeded)
+            {
+                // throw new ApplicationException(_localizer["ErrorRemovingExternalLogin", user.Id]);
+            }
 
             await _signInManager.RefreshSignInAsync(user);
         }

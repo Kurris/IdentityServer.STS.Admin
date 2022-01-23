@@ -23,6 +23,8 @@ using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -754,5 +756,38 @@ namespace IdentityServer.STS.Admin.Controllers
 
             //return View(model);
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordInputModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                User user = model.Policy switch
+                {
+                    LoginResolutionPolicy.Email => await _userManager.FindByEmailAsync(model.Email),
+                    LoginResolutionPolicy.Username=> await _userManager.FindByNameAsync(model.Username),
+                    _ =>throw new InvalidOperationException()
+                };
+
+
+                if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    // Don't reveal that the user does not exist
+                    //  return View("ForgotPasswordConfirmation");
+                }
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, HttpContext.Request.Scheme);
+                //TODO send email
+                //return View("ForgotPasswordConfirmation");
+            }
+
+            //return View(model);
+            return null;
+        }
     }
+
+
 }

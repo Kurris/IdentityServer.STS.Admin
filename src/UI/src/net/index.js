@@ -13,13 +13,27 @@ export default function axiosRequest(config) {
 	instance.interceptors.response.use(
 		result => {
 			NProgress.done()
-			if (result.data.code == 302) {
-				NProgress.start()
-				window.location.href = result.data.data + '?ReturnUrl=' + window.location
-			} else if (result.data.code == 500) {
-				ElementUI.Notification.error(result.data.msg)
+			if (result.headers['content-type'] && result.headers['content-type'].indexOf('application/json') < 0) {
+				var a = document.createElement('a')
+				document.body.append(a)
+
+				let tempName = result.headers['content-disposition'].split(';')[1].split('filename=')[1]
+				a.download = encodeURI(tempName)
+
+				var blob = new Blob([result.data], { type: result.headers['content-type'] })
+				a.href = URL.createObjectURL(blob)
+				a.click()
+				window.URL.revokeObjectURL(blob)
+				document.body.removeChild(a)
 			} else {
-				return result.data
+				if (result.data.code == 302) {
+					NProgress.start()
+					window.location.href = result.data.data + '?ReturnUrl=' + window.location
+				} else if (result.data.code == 500) {
+					ElementUI.Notification.error(result.data.data.msg)
+				} else {
+					return result.data
+				}
 			}
 		},
 		error => {
