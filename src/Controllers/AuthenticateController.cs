@@ -789,7 +789,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var queries = await content.ReadAsStringAsync();
                     //前端地址
-                    var callbackUrl = "http://localhost:8080/password/found/callback?" + queries;
+                    var callbackUrl = "http://localhost:8080/resetPassword?" + queries;
 
                     await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
                 }

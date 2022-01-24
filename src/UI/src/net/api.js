@@ -255,7 +255,7 @@ export const forgetPasswordAndSendEmail = data => {
 export const resetPassword = data => {
 	return http({
 		url: 'api/authenticate/password/email/found',
-		method: 'post',
+		method: 'put',
 		data: data,
 	})
 }

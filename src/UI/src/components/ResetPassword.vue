@@ -1,5 +1,5 @@
 <template>
-    <div class='ResetPassword'>
+    <div id='resetPassword'>
         <h4></h4>
         <hr />
         邮件地址
@@ -8,7 +8,7 @@
         <el-input v-model="password"></el-input>
         确定密码:
         <el-input v-model="confirmPassword"></el-input>
-        <el-button type="primary" @click="2">重置密码</el-button>
+        <el-button type="primary" @click="resetPassword">重置密码</el-button>
     </div>
 </template>
 
@@ -22,17 +22,17 @@ export default {
             confirmPassword: '',
             password: '',
             email: '',
-            code: $route.query.code
+            code: this.$route.query.code
         };
     },
 
     methods: {
         async resetPassword() {
             await resetPassword({
-                code,
-                email,
-                password,
-                confirmPassword
+                code: this.code,
+                email: this.email,
+                password: this.password,
+                confirmPassword: this.confirmPassword
             });
         }
     }

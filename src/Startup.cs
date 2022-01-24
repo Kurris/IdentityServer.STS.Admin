@@ -105,7 +105,7 @@ namespace IdentityServer.STS.Admin
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
-                    AllowedOrigins = new[] {"http://localhost:8080 "},
+                    AllowedOrigins = new[] { "http://localhost:8080 " },
                     AllowAll = false
                 };
             });
@@ -113,21 +113,26 @@ namespace IdentityServer.STS.Admin
             services.AddSingleton<EmailService>();
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
 
-            services.AddMvc(options => { options.Filters.Add<ExceptionFilter>(); });
+            services.AddMvc(options =>
+            {
+                options.Filters.Add<ExceptionFilter>();
+                options.Filters.Add<ModelValidateFilter>();
+            });
             services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss"; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseMiddleware<GlobalExceptionMiddleware>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMiddleware<GlobalExceptionMiddleware>();
             //chrome 内核 80版本 cookie策略问题
-            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
+            app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
 
             app.UseCors();
 

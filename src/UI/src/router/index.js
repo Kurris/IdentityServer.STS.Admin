@@ -22,7 +22,8 @@ const password = () => import('../components/Password.vue')
 const profile = () => import('../components/Profile.vue')
 const personalData = () => import('../components/PersonalData.vue')
 const externalLogins = () => import('../components/ExternalLogins.vue')
-const forgotPassword= () => import('../components/ForgotPassword.vue')
+const forgotPassword = () => import('../components/ForgotPassword.vue')
+const resetPassword = () => import('../components/ResetPassword.vue')
 
 vue.use(vueRouter)
 
@@ -111,6 +112,10 @@ const routes = [
 	{
 		path: '/forgotPassword',
 		component: forgotPassword,
+	},
+	{
+		path: '/resetPassword',
+		component: resetPassword,
 	},
 ]
 

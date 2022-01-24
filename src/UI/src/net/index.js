@@ -30,11 +30,15 @@ export default function axiosRequest(config) {
 					NProgress.start()
 					window.location.href = result.data.data + '?ReturnUrl=' + window.location
 				} else if (result.data.code == 500) {
-					ElementUI.Notification.error(result.data.data.msg)
+					ElementUI.Notification.error(result.data.msg)
+				} else if (result.data.code == 400) {
+					let errors = result.data.data.map(x => `${x.field}:,${x.message}`)
+					ElementUI.Notification.error(errors.join(','))
 				} else {
 					return result.data
 				}
 			}
+			return null
 		},
 		error => {
 			NProgress.done()
@@ -49,6 +53,7 @@ export default function axiosRequest(config) {
 			} else {
 				return error
 			}
+			return error
 		}
 	)
 

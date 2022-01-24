@@ -32,12 +32,16 @@ export default {
     computed: {},
     watch: {},
     methods: {
-        async confirm() {
+        confirm() {
             if (!this.status)
                 this.form.oldPassword = null
 
-            await savePassword(this.form)
-            this.$router.push('/home')
+            savePassword(this.form).then(res => {
+                if (res) {
+                    this.$router.push('/home')
+                }
+            })
+
         }
     },
     async beforeMount() {

@@ -7,7 +7,13 @@ export default async function http(config) {
 
 	return new Promise((resolve, reject) =>
 		axiosRequest(config)
-			.then(res => resolve(res))
-			.catch(err => reject(err))
+			.then(res => {
+				console.log('result')
+				resolve(res)
+			})
+			.catch(err => {
+				console.log('cathc')
+				reject(err)
+			})
 	)
 }

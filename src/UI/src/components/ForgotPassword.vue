@@ -33,8 +33,8 @@ export default {
         },
         async commit() {
             await forgetPasswordAndSendEmail({
-                policy: useType,
-                content: uniqueMessage
+                policy: this.useType,
+                content: this.uniqueMessage
             })
         }
     }

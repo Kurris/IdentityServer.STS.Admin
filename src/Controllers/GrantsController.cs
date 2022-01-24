@@ -54,8 +54,8 @@ namespace IdentityServer.STS.Admin.Controllers
                         ClientLogoUrl = client.LogoUri,
                         ClientUrl = client.ClientUri,
                         Description = grant.Description,
-                        Created = grant.CreationTime,
-                        Expires = grant.Expiration,
+                        Created = grant.CreationTime.ToLocalTime(),
+                        Expires = grant.Expiration.HasValue ? grant.Expiration.Value.ToLocalTime() : default,
                         IdentityGrantNames = resources.IdentityResources.Select(x => x.DisplayName ?? x.Name).ToArray(),
                         ApiGrantNames = resources.ApiScopes.Select(x => x.DisplayName ?? x.Name).ToArray()
                     };
