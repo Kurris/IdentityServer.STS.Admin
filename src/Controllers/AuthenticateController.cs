@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using MimeKit;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -41,6 +42,7 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IEventService _eventService;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
+        private readonly EmailService _emailService;
 
         public AuthenticateController(IIdentityServerInteractionService interaction,
             IWebHostEnvironment environment
@@ -49,7 +51,8 @@ namespace IdentityServer.STS.Admin.Controllers
             , UserManager<User> userManager
             , IEventService eventService
             , IClientStore clientStore
-            , IAuthenticationSchemeProvider schemeProvider)
+            , IAuthenticationSchemeProvider schemeProvider
+            , EmailService emailService)
         {
             _interaction = interaction;
             _environment = environment;
@@ -59,6 +62,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _eventService = eventService;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
+            _emailService = emailService;
         }
 
 
@@ -227,7 +231,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                         if (Url.IsLocalUrl(model.ReturnUrl))
                         {
-                            return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
+                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
                         }
 
                         return new ApiResult<object>()
@@ -469,7 +473,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
+                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -722,15 +726,11 @@ namespace IdentityServer.STS.Admin.Controllers
         [AllowAnonymous]
         public async Task<ApiResult<object>> LoginWithRecoveryCode(LoginWithRecoveryCodeInputModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                // return View(model);
-            }
-
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 //throw new InvalidOperationException(_localizer["Unable2FA"]);
+                throw new Exception("用户尚未开启双重验证");
             }
 
             var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
@@ -741,53 +741,80 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 return new ApiResult<object>()
                 {
-                    Route = string.IsNullOrEmpty(model.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
+                    Route = string.IsNullOrEmpty(model.ReturnUrl)
+                        ? DefineRoute.HomePage
+                        : DefineRoute.Redirect,
                     Data = model.ReturnUrl,
                 };
             }
 
             if (result.IsLockedOut)
-            {
-                //return View("Lockout");
-            }
+                throw new Exception("账号已被锁定");
 
-            throw new Exception();
-            //ModelState.AddModelError(string.Empty, _localizer["InvalidRecoveryCode"]);
-
-            //return View(model);
+            throw new Exception("异常错误");
         }
 
-        [HttpPost]
+        [HttpPost("password/email")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordInputModel model)
+        public async Task ForgotPassword(ForgotPasswordInputModel model)
         {
             if (ModelState.IsValid)
             {
-                User user = model.Policy switch
+                var user = model.Policy switch
                 {
-                    LoginResolutionPolicy.Email => await _userManager.FindByEmailAsync(model.Email),
-                    LoginResolutionPolicy.Username=> await _userManager.FindByNameAsync(model.Username),
-                    _ =>throw new InvalidOperationException()
+                    LoginResolutionPolicy.Email => await _userManager.FindByEmailAsync(model.Content),
+                    LoginResolutionPolicy.Username => await _userManager.FindByNameAsync(model.Content),
+                    _ => throw new InvalidOperationException()
                 };
-
 
                 if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
                 {
-                    // Don't reveal that the user does not exist
-                    //  return View("ForgotPasswordConfirmation");
+                    // 不能透露用户不存在，只能提醒已发送邮件
+                    if (user == null)
+                        return;
                 }
 
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, HttpContext.Request.Scheme);
-                //TODO send email
-                //return View("ForgotPasswordConfirmation");
-            }
 
-            //return View(model);
-            return null;
+                //url query
+                var dic = new Dictionary<string, string>()
+                {
+                    ["userId"] = user.Id,
+                    ["code"] = code,
+                    ["email"] = user.Email,
+                };
+
+                using (var content = new FormUrlEncodedContent(dic))
+                {
+                    var queries = await content.ReadAsStringAsync();
+                    //前端地址
+                    var callbackUrl = "http://localhost:8080/password/found/callback?" + queries;
+
+                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <exception cref="Exception"></exception>
+        [HttpPut("password/email/found")]
+        [AllowAnonymous]
+        public async Task ResetPasswordFromEmailSide(ResetPasswordInputModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            //不能透露用户不存在,默认完成
+            if (user == null)
+                return;
+
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Code));
+            var result = await _userManager.ResetPasswordAsync(user, code, model.Password);
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
     }
-
-
 }

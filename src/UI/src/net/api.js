@@ -242,3 +242,20 @@ export const deleteExternalLogin = data => {
 		data: data,
 	})
 }
+
+export const forgetPasswordAndSendEmail = data => {
+	return http({
+		url: 'api/authenticate/password/email',
+		method: 'post',
+		data: data,
+	})
+}
+//
+
+export const resetPassword = data => {
+	return http({
+		url: 'api/authenticate/password/email/found',
+		method: 'post',
+		data: data,
+	})
+}

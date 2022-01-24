@@ -7,9 +7,6 @@ namespace IdentityServer.STS.Admin.Models.Account
         [Required]
         public LoginResolutionPolicy Policy { get; set; }
 
-        [EmailAddress]
-        public string Email { get; set; }
-
-        public string Username { get; set; }
+        public string Content { get; set; }
     }
 }

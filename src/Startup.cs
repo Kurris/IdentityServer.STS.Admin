@@ -97,11 +97,7 @@ namespace IdentityServer.STS.Admin
                     await Task.CompletedTask;
                 };
 
-                options.Events.OnRedirectToAccessDenied = async context =>
-                {
-
-                    await Task.CompletedTask;
-                };
+                options.Events.OnRedirectToAccessDenied = async context => { await Task.CompletedTask; };
             });
 
             services.AddSingleton<ICorsPolicyService>(provider =>
@@ -113,7 +109,10 @@ namespace IdentityServer.STS.Admin
                     AllowAll = false
                 };
             });
+
+            services.AddSingleton<EmailService>();
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
+
             services.AddMvc(options => { options.Filters.Add<ExceptionFilter>(); });
             services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss"; });
         }

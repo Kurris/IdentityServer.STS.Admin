@@ -6,7 +6,7 @@ namespace IdentityServer.STS.Admin.Models
         {
             this.Code = 200;
             this.Route = DefineRoute.None;
-            this.Msg = "²Ù×÷³É¹¦";
+            this.Msg = "æ“ä½œæˆåŠŸ";
         }
 
 
