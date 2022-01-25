@@ -35,6 +35,11 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("confirmation")]
         public async Task<ApiResult<DeviceAuthorizationOutputModel>> GetUserCodeConfirmationModel(string userCode)
         {
+            if (string.IsNullOrEmpty(userCode))
+            {
+                throw new Exception("用户code不能为空");
+            }
+
             var data = await BuildOutputModelAsync(userCode);
             data.ConfirmUserCode = true;
             return new ApiResult<DeviceAuthorizationOutputModel>
@@ -44,7 +49,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task Callback(DeviceAuthorizationInputModel model)
+        public async Task<IActionResult> Callback([FromForm]DeviceAuthorizationInputModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -53,8 +58,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 throw new Exception(result.ValidationError);
             }
-
-            //您已成功授权该设备
+            return Redirect("http://localhost:8080/successed");
         }
 
         private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInputModel model)

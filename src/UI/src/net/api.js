@@ -264,14 +264,6 @@ export const getUserGetUserCodeConfirmationModel = data => {
 	return http({
 		url: 'api/device/confirmation',
 		method: 'get',
-		data: data,
-	})
-}
-
-export const processDevice = data => {
-	return http({
-		url: 'api/device',
-		method: 'post',
-		data: data,
+		params: data,
 	})
 }

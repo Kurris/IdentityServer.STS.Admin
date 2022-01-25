@@ -1,7 +1,7 @@
 <template>
     <div class='userCodeCapture'>
         <el-input v-model="userCode" placeholder="请输入您设备上的代码" />
-        <el-button type="primary">提交</el-button>
+        <el-button type="primary" @click="subbmi">提交</el-button>
     </div>
 </template>
 
@@ -19,7 +19,7 @@ export default {
     methods: {
         subbmi() {
             this.$router.push({
-                paht: '/userCodeConfirmation',
+                path: '/userCodeConfirmation',
                 query: {
                     userCode: this.userCode
                 }

@@ -22,7 +22,12 @@ export default {
         if (this.$route.query.userCode === undefined) {
             this.$router.push('/userCodeCapture')
         } else {
-            this.$router.push('/userCodeConfirmation')
+            this.$router.push({
+                path: '/userCodeConfirmation',
+                query: {
+                    userCode: this.$route.query.userCode
+                }
+            })
         }
     }, //生命周期 - 挂载之前
 }

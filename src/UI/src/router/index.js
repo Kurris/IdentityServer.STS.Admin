@@ -28,6 +28,7 @@ const register = () => import('../components/Register.vue')
 const device = () => import('../components/Device.vue')
 const userCodeCapture = () => import('../components/UserCodeCapture.vue')
 const userCodeConfirmation = () => import('../components/UserCodeConfirmation.vue')
+const successed = () => import('../components/Successed.vue')
 
 vue.use(vueRouter)
 
@@ -136,6 +137,10 @@ const routes = [
 	{
 		path: '/userCodeCapture',
 		component: userCodeCapture,
+	},
+	{
+		path: '/successed',
+		component: successed,
 	},
 ]
 
