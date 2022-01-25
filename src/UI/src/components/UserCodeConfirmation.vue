@@ -1,29 +1,37 @@
 <template>
-    <div id='consent'>
-
+    <div class='userCodeConfirmation'>
         <div class="consent-container">
-            <div>
-                <div>
-                    <template v-if="setting.clientLogoUrl!=null">
-                        <div>
-                            <img :src="setting.ClientLogoUrl">
-                        </div>
+            <div class="row page-header">
+                <div class="col-sm-10">
+                    <template v-if="model.clientLogoUrl!=null">
+                        <div class="client-logo"><img :src="model.clientLogoUrl"></div>
                     </template>
                     <h1>
-                        {{setting.clientName}}
-                        <small>正在请求你的许可</small>
+                        {{model.clientName}}
+                        <small>正在请求您的许可</small>
                     </h1>
                 </div>
             </div>
 
+            <template v-if="model.confirmUserCode">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <p>
+                            请确认授权请求引用代码: {{model.userCode}}.
+                        </p>
+                    </div>
+                </div>
+            </template>
+
             <div class="row">
-                <div>
-                    <form asp-action="Index" class="consent-form">
-                        <input type="hidden" asp-for="ReturnUrl" />
+                <div class="col-sm-12">
+
+                    <form asp-action="Callback" class="consent-form">
+                        <input type="hidden" asp-for="UserCode" />
 
                         <div>取消选中您不希望授予的权限</div>
 
-                        <template v-if="setting.identityScopes!=null && setting.identityScopes.length>0">
+                        <template v-if="model.identityScopes!=null && model.identityScopes.length>0">
                             <div class="col-sm-12">
                                 <div class="card mt-3">
                                     <h5 class="card-header">
@@ -33,7 +41,7 @@
                                     <div class="card-body">
                                         <ul class="list-group">
 
-                                            <template v-for="(item,index) in setting.identityScopes">
+                                            <template v-for="(item,index) in model.identityScopes">
                                                 <div :key="index">
                                                     <ScopeItem :scope="item" />
                                                 </div>
@@ -44,7 +52,7 @@
                                 </div>
                             </div>
                         </template>
-                        <template v-if="setting.ApiScopes!=null && setting.ApiScopes.length > 0">
+                        <template v-if="model.ApiScopes!=null && model.ApiScopes.length > 0">
                             <div class="col-sm-12">
                                 <div class="card mt-3">
                                     <h5 class="card-header">
@@ -54,7 +62,7 @@
                                     <div class="card-body">
 
                                         <ul class="list-group">
-                                            <template v-for="(item,index) in setting.ApiScopes">
+                                            <template v-for="(item,index) in model.ApiScopes">
                                                 <div :key="index">
                                                     <ScopeItem :scope="item" />
                                                 </div>
@@ -66,12 +74,12 @@
                         </template>
 
                         <!-- 允许记住同意屏幕的设置 -->
-                        <template v-if="setting.allowRememberConsent">
+                        <template v-if="model.allowRememberConsent">
                             <div>
                                 <div class="row m-4">
                                     <div class="col-sm-12">
                                         <div class="toggle-button__input">
-                                            <el-switch v-model="setting.rememberConsent" active-color="#13ce66" inactive-color="#ff4949">
+                                            <el-switch v-model="model.rememberConsent" active-color="#13ce66" inactive-color="#ff4949">
                                             </el-switch>
                                         </div>
                                         <div class="toggle-button__text">
@@ -89,10 +97,10 @@
                             </div>
 
                             <div class="col-sm-3 mt-3">
-                                <template v-if="setting.clientUrl!=null">
-                                    <a class="btn btn-outline-primary" target="_blank" :href="setting.clientUrl">
+                                <template v-if="model.clientUrl != null">
+                                    <a class="btn btn-outline-primary" target="_blank" :href="model.clientUrl">
                                         <i class="fa fa-info-circle"></i>
-                                        <strong>{{setting.clientName}}</strong>
+                                        <strong>{{model.ClientName}}</strong>
                                     </a>
                                 </template>
                             </div>
@@ -105,10 +113,8 @@
 </template>
 
 <script>
-
-import { getConsentSetting } from '../net/api.js'
 import ScopeItem from './ScopeItem.vue'
-import NProgress from 'nprogress'
+import { processDevice } from '../net/api.js'
 
 export default {
     components: {
@@ -116,39 +122,35 @@ export default {
     },
     data() {
         return {
-            setting: {}
+            model: {}
         };
     },
+    computed: {},
+    watch: {},
     methods: {
-        process(btn) {
+        async process(btn) {
+            this.model.button = btn
+            let idScopes = this.model.identityScopes.filter(x => x.checked);
+            this.model.scopesConsented = idScopes.map(x => x.value)
 
-
-            let idScopes = this.setting.identityScopes.filter(x => x.checked);
-
-
-            NProgress.start()
-            let url = "http://localhost:5000/api/consent/setting/process"
-
-            document.write("<form action=" + url + " method=post name=form1 style='display:none'>");
-            document.write("<input type=hidden name=button value='" + btn + "'/>");
-            document.write("<input type=hidden name=rememberConsent value='" + this.setting.rememberConsent + "'/>");
-            document.write("<input type=hidden name=returnUrl value='" + this.setting.returnUrl + "'/>");
-
-
-            let scopeNames = idScopes.map(x => x.value)
-            for (let i = 0; i < scopeNames.length; i++) {
-                const element = scopeNames[i];
-                document.write("<input type=hidden name=scopesConsented value='" + element + "'/>");
-            }
-            document.write("</form>");
-            document.form1.submit();
+            await processDevice(this.model);
         }
     },
-    async beforeMount() {
-        let returnUrl = this.$url.getValueFromQuery('returnUrl')
-        let response = await getConsentSetting({ returnUrl })
-        this.setting = response.data
+    //生命周期 - 创建完成（可以访问当前this实例）
+    created() {
+
     },
+    //生命周期 - 挂载完成（可以访问DOM元素）
+    mounted() {
+
+    },
+    beforeCreate() { }, //生命周期 - 创建之前
+    beforeMount() { }, //生命周期 - 挂载之前
+    beforeUpdate() { }, //生命周期 - 更新之前
+    updated() { }, //生命周期 - 更新之后
+    beforeDestroy() { }, //生命周期 - 销毁之前
+    destroyed() { }, //生命周期 - 销毁完成
+    activated() { }, //如果页面有keep-alive缓存功能，这个函数会触发
 }
 </script>
 <style scoped>

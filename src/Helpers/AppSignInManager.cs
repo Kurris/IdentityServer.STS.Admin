@@ -18,7 +18,7 @@ namespace IdentityServer.STS.Admin.Helpers
             , IHttpContextAccessor contextAccessor
             , IUserClaimsPrincipalFactory<TUser> claimsFactory
             , IOptions<IdentityOptions> optionsAccessor
-            , ILogger<SignInManager<TUser>> logger
+            , ILogger<AppSignInManager<TUser>> logger
             , IAuthenticationSchemeProvider schemes
             , IUserConfirmation<TUser> confirmation)
             : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation)

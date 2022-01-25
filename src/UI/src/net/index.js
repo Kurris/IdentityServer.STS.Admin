@@ -32,7 +32,7 @@ export default function axiosRequest(config) {
 				} else if (result.data.code == 500) {
 					ElementUI.Notification.error(result.data.msg)
 				} else if (result.data.code == 400) {
-					let errors = result.data.data.map(x => `${x.field}:,${x.message}`)
+					let errors = result.data.data.map(x => `${x.message}`)
 					ElementUI.Notification.error(errors.join(','))
 				} else {
 					return result.data

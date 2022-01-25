@@ -18,7 +18,7 @@
                         <button @click="cancel()">取消</button>
                     </div>
                     <div>
-                        <el-link type="primary">注册</el-link>
+                        <el-link type="primary" @click="$router.push('/register')">注册</el-link>
                         <el-link type="primary" @click="$router.push('/forgotPassword')">忘记密码</el-link>
                     </div>
                     <div>

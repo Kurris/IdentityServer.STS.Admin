@@ -91,15 +91,22 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
-        [HttpGet("checkLogin")]
+        [HttpGet("loginUiSetting")]
         [AllowAnonymous]
-        public async Task<ApiResult<object>> GetLogin(string returnUrl)
+        public async Task<ApiResult<object>> CheckLoginAndGetUiSetting(string returnUrl)
         {
             var output = await BuildLoginResultAsync(returnUrl);
             if (!output.EnableLocalLogin && output.ExternalProviders.Count() == 1)
             {
                 //只有一个外部登录可用
-                // return  ExternalLogin(output.ExternalProviders.First().AuthenticationScheme, returnUrl);
+                output.ExternalProviders = new[]
+                {
+                    new ExternalProvider
+                    {
+                        DisplayName = output.ExternalProviders.FirstOrDefault()?.DisplayName,
+                        AuthenticationScheme = output.ExternalProviders.FirstOrDefault()?.AuthenticationScheme
+                    }
+                };
             }
 
             return new ApiResult<object>
@@ -113,7 +120,6 @@ namespace IdentityServer.STS.Admin.Controllers
         #region external
 
         [HttpPost("externalLogin")]
-        //[HttpGet("externalLogin")]
         [AllowAnonymous]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
@@ -172,10 +178,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.IsLockedOut)
             {
-                // return new ApiResult<object>
-                // {
-                //     Route = DefineRoute.Lockout
-                // };
+                throw new Exception("账号已被锁定");
             }
 
             // 如果用户没有账号，请求用户创建
@@ -213,54 +216,102 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
-            if (ModelState.IsValid)
+            var user = new User
             {
-                var user = new User
-                {
-                    UserName = model.UserName,
-                    Email = model.Email
-                };
+                UserName = model.UserName,
+                Email = model.Email
+            };
 
-                var result = await _userManager.CreateAsync(user);
+            var result = await _userManager.CreateAsync(user);
+            if (result.Succeeded)
+            {
+                result = await _userManager.AddLoginAsync(user, info);
                 if (result.Succeeded)
                 {
-                    result = await _userManager.AddLoginAsync(user, info);
-                    if (result.Succeeded)
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    if (Url.IsLocalUrl(model.ReturnUrl))
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-
-                        if (Url.IsLocalUrl(model.ReturnUrl))
-                        {
-                            return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
-                        }
-
-                        return new ApiResult<object>()
-                        {
-                            Route = DefineRoute.HomePage
-                        };
+                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
                     }
-                }
 
-                AddErrors(result);
+                    return new ApiResult<object>()
+                    {
+                        Route = DefineRoute.HomePage
+                    };
+                }
             }
 
-            model.LoginProvider = info.LoginProvider;
-
-            return new ApiResult<object>()
-            {
-                Route = DefineRoute.ExternalLoginConfirmation,
-                Data = model
-            };
+            throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
 
         #endregion
 
 
-        private void AddErrors(IdentityResult result)
+        [HttpPost("accout/register")]
+        [AllowAnonymous]
+        public async Task<ApiResult<object>> Register(RegisterInputModel model)
         {
-            foreach (var error in result.Errors)
+            model.ReturnUrl ??= "http://localhost:8080/siginIn";
+
+            var user = new User
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                UserName = model.UserName,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                var dic = new Dictionary<string, string>()
+                {
+                    ["userId"] = user.Id,
+                    ["code"] = code
+                };
+
+                using (var content = new FormUrlEncodedContent(dic))
+                {
+                    var callbackUrl = "http://localhot:8080/confirmEmail?" + await content.ReadAsStringAsync();
+
+                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
+                    return new ApiResult<object>()
+                    {
+                        Route = DefineRoute.ConfirmEmail
+                    };
+                }
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+
+
+        [HttpPost("accout/{userId}/email/{code}/validation")]
+        [AllowAnonymous]
+        public async Task ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                //用户id和code不存在
+                throw new Exception("非法的用户信息");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("非法的用户信息");
+            }
+
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            if (!result.Succeeded)
+            {
+                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
             }
         }
 
@@ -606,7 +657,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
         [AllowAnonymous]
         [HttpGet("twoFactorAuthenticationUser")]
-        public async Task<ApiResult<object>> LoginWith2fa(bool rememberMe, string returnUrl = null)
+        public async Task<ApiResult<object>> LoginWith2Fa(bool rememberMe, string returnUrl = null)
         {
             //确保用户账号和密码正确
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();

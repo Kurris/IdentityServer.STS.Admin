@@ -61,7 +61,7 @@ export const signInWithCode = data => {
 //检查登录
 export const checkLogin = data => {
 	return http({
-		url: 'api/authenticate/checkLogin',
+		url: 'api/authenticate/loginUiSetting',
 		method: 'get',
 		params: data,
 	})
@@ -256,6 +256,22 @@ export const resetPassword = data => {
 	return http({
 		url: 'api/authenticate/password/email/found',
 		method: 'put',
+		data: data,
+	})
+}
+
+export const getUserGetUserCodeConfirmationModel = data => {
+	return http({
+		url: 'api/device/confirmation',
+		method: 'get',
+		data: data,
+	})
+}
+
+export const processDevice = data => {
+	return http({
+		url: 'api/device',
+		method: 'post',
 		data: data,
 	})
 }

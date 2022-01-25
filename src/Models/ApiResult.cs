@@ -37,5 +37,6 @@ namespace IdentityServer.STS.Admin.Models
         Error = 12,
         RecoveryCodes = 13,
         TwoFactorAuthentication = 14,
+        ConfirmEmail = 15,
     }
 }

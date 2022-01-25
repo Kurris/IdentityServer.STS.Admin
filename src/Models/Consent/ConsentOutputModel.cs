@@ -2,7 +2,7 @@
 
 namespace IdentityServer.STS.Admin.Models.Consent
 {
-    public class ConsentOutput : ConsentInputModel
+    public class ConsentOutputModel : ConsentInputModel
     {
         public string ClientName { get; set; }
 
@@ -12,8 +12,8 @@ namespace IdentityServer.STS.Admin.Models.Consent
 
         public bool AllowRememberConsent { get; set; }
 
-        public IEnumerable<ScopeOutput> IdentityScopes { get; set; }
+        public IEnumerable<ScopeOutputModel> IdentityScopes { get; set; }
 
-        public IEnumerable<ScopeOutput> ApiScopes { get; set; }
+        public IEnumerable<ScopeOutputModel> ApiScopes { get; set; }
     }
 }

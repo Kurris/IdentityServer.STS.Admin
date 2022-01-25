@@ -12,7 +12,7 @@ namespace IdentityServer.STS.Admin.Models.Manager
         public string NewPassword { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("NewPassword")]
+        [Compare("NewPassword", ErrorMessage = "二次密码不匹配")]
         public string ConfirmPassword { get; set; }
     }
 }

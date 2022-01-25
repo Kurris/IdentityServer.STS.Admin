@@ -24,6 +24,10 @@ const personalData = () => import('../components/PersonalData.vue')
 const externalLogins = () => import('../components/ExternalLogins.vue')
 const forgotPassword = () => import('../components/ForgotPassword.vue')
 const resetPassword = () => import('../components/ResetPassword.vue')
+const register = () => import('../components/Register.vue')
+const device = () => import('../components/Device.vue')
+const userCodeCapture = () => import('../components/UserCodeCapture.vue')
+const userCodeConfirmation = () => import('../components/UserCodeConfirmation.vue')
 
 vue.use(vueRouter)
 
@@ -116,6 +120,22 @@ const routes = [
 	{
 		path: '/resetPassword',
 		component: resetPassword,
+	},
+	{
+		path: '/register',
+		component: register,
+	},
+	{
+		path: '/device',
+		component: device,
+	},
+	{
+		path: '/userCodeConfirmation',
+		component: userCodeConfirmation,
+	},
+	{
+		path: '/userCodeCapture',
+		component: userCodeCapture,
 	},
 ]
 

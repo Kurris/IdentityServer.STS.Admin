@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Configuration;
@@ -54,7 +55,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
-            return new ApiResult<object>() { Route = DefineRoute.Error };
+            return new ApiResult<object>() {Route = DefineRoute.Error};
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.HasValidationError)
             {
-                ModelState.AddModelError(string.Empty, result.ValidationError);
+                throw new Exception(result.ValidationError);
             }
 
             if (result.ShowView)
@@ -108,7 +109,7 @@ namespace IdentityServer.STS.Admin.Controllers
             // user clicked 'no' - send back the standard 'access_denied' response
             if (model?.Button == "no")
             {
-                grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
+                grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
 
                 // emit event
                 await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues));
@@ -163,7 +164,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return result;
         }
 
-        private async Task<ConsentOutput> BuildViewModelAsync(string returnUrl, ConsentInputModel model = null)
+        private async Task<ConsentOutputModel> BuildViewModelAsync(string returnUrl, ConsentInputModel model = null)
         {
             var request = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (request != null)
@@ -178,11 +179,10 @@ namespace IdentityServer.STS.Admin.Controllers
             return null;
         }
 
-        private ConsentOutput CreateConsentViewModel(
-            ConsentInputModel model, string returnUrl,
+        private ConsentOutputModel CreateConsentViewModel(ConsentInputModel model, string returnUrl,
             AuthorizationRequest request)
         {
-            var vm = new ConsentOutput
+            var vm = new ConsentOutputModel
             {
                 RememberConsent = model?.RememberConsent ?? false,
                 ScopesConsented = model?.ScopesConsented ?? Enumerable.Empty<string>(),
@@ -198,7 +198,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
 
-            var apiScopes = new List<ScopeOutput>();
+            var apiScopes = new List<ScopeOutputModel>();
             foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
             {
                 var apiScope = request.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
@@ -208,18 +208,20 @@ namespace IdentityServer.STS.Admin.Controllers
                     apiScopes.Add(scopeVm);
                 }
             }
+
             if (ConsentOptions.EnableOfflineAccess && request.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(global::IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
             }
+
             vm.ApiScopes = apiScopes;
 
             return vm;
         }
 
-        private ScopeOutput CreateScopeViewModel(IdentityResource identity, bool check)
+        private ScopeOutputModel CreateScopeViewModel(IdentityResource identity, bool check)
         {
-            return new ScopeOutput
+            return new ScopeOutputModel
             {
                 Value = identity.Name,
                 DisplayName = identity.DisplayName ?? identity.Name,
@@ -230,7 +232,7 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutput CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+        private ScopeOutputModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
         {
             var displayName = apiScope.DisplayName ?? apiScope.Name;
             if (!string.IsNullOrWhiteSpace(parsedScopeValue.ParsedParameter))
@@ -238,7 +240,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 displayName += ":" + parsedScopeValue.ParsedParameter;
             }
 
-            return new ScopeOutput
+            return new ScopeOutputModel
             {
                 Value = parsedScopeValue.RawValue,
                 DisplayName = displayName,
@@ -249,9 +251,9 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutput GetOfflineAccessScope(bool check)
+        private ScopeOutputModel GetOfflineAccessScope(bool check)
         {
-            return new ScopeOutput
+            return new ScopeOutputModel
             {
                 Value = IdentityServerConstants.StandardScopes.OfflineAccess,
                 DisplayName = ConsentOptions.OfflineAccessDisplayName,

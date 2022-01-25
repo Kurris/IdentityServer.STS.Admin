@@ -43,11 +43,10 @@ namespace IdentityServer.STS.Admin.Helpers
                 return false;
             }
 
-
-            return returnUrl.Contains(currentIp,StringComparison.OrdinalIgnoreCase)
-                || returnUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
-                || returnUrl.Contains(_authorize, StringComparison.OrdinalIgnoreCase)
-                || returnUrl.Contains(_authorizeCallback, StringComparison.OrdinalIgnoreCase);
+            return returnUrl.Contains(currentIp, StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains(_authorize, StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains(_authorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
 
 
@@ -114,7 +113,7 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.ClientId = "6aced974f4ac1536ff1d";
                     options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
                     options.AccessDeniedPath = "/api/authenticate/externalLoginCallback";
- 
+
                     options.Scope.Add("user:email");
                     options.Scope.Add("user");
                     options.SaveTokens = true;
@@ -143,8 +142,8 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
                     options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
                     options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
-                    options.UserInteraction.ConsentUrl= "http://localhost:8080/consent";
-
+                    options.UserInteraction.ConsentUrl = "http://localhost:8080/consent";
+                    options.UserInteraction.DeviceVerificationUrl = "http://localhost:8080/device";
 
                     //options.UserInteraction = new UserInteractionOptions
                     //{
@@ -161,8 +160,6 @@ namespace IdentityServer.STS.Admin.Helpers
                     //    DeviceVerificationUrl = "/device",
                     //    DeviceVerificationUserCodeParameter = "userCode"
                     //};
-
-
                 })
                 .AddConfigurationStore<TConfigurationDbContext>()
                 .AddOperationalStore<TPersistedGrantDbContext>()
@@ -245,12 +242,12 @@ namespace IdentityServer.STS.Admin.Helpers
                 var certStoreLocationLower = certificateConfiguration.CertificateStoreLocation.ToLower();
 
                 if (certStoreLocationLower == StoreLocation.CurrentUser.ToString().ToLower()
-                    || certificateConfiguration.CertificateStoreLocation == ((int)StoreLocation.CurrentUser).ToString())
+                    || certificateConfiguration.CertificateStoreLocation == ((int) StoreLocation.CurrentUser).ToString())
                 {
                     storeLocation = StoreLocation.CurrentUser;
                 }
                 else if (certStoreLocationLower == StoreLocation.LocalMachine.ToString().ToLower()
-                         || certStoreLocationLower == ((int)StoreLocation.LocalMachine).ToString())
+                         || certStoreLocationLower == ((int) StoreLocation.LocalMachine).ToString())
                 {
                     storeLocation = StoreLocation.LocalMachine;
                 }
@@ -309,17 +306,6 @@ namespace IdentityServer.STS.Admin.Helpers
             }
 
             return builder;
-        }
-
-
-        public static string ValidatieReturnUrl(this string returnUrl)
-        {
-            if (returnUrl.Contains("undefined", StringComparison.OrdinalIgnoreCase))
-            {
-                return string.Empty;
-            }
-
-            return returnUrl;
         }
     }
 }

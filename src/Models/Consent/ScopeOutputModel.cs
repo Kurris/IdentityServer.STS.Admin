@@ -1,6 +1,6 @@
 ﻿namespace IdentityServer.STS.Admin.Models.Consent
 {
-    public class ScopeOutput
+    public class ScopeOutputModel
     {
         public string Value { get; set; }
         public string DisplayName { get; set; }
