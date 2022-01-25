@@ -41,6 +41,10 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             var data = await BuildOutputModelAsync(userCode);
+            if (data == null)
+            {
+                throw new Exception($"无效的用户验证码:{userCode}");
+            }
             data.ConfirmUserCode = true;
             return new ApiResult<DeviceAuthorizationOutputModel>
             {

@@ -1,5 +1,5 @@
 <template>
-    <div class='userCodeConfirmation'>
+    <div v-if="model!=null">
         <div class="consent-container">
             <template v-if="model.clientLogoUrl!=null">
                 <div class="client-logo"><img :src="model.clientLogoUrl"></div>
@@ -110,7 +110,7 @@ export default {
     },
     data() {
         return {
-            model: {}
+            model: null
         };
     },
     computed: {},
