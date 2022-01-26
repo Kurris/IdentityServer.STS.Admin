@@ -17,6 +17,8 @@ using IdentityServer4.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using IdentityServer.STS.Admin.Filters;
+using IdentityServer.STS.Admin.Interfaces.Identity;
+using IdentityServer.STS.Admin.Services.Admin.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin
@@ -80,6 +82,7 @@ namespace IdentityServer.STS.Admin
                     var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
                     {
                         Code = 302,
+                        Msg = "登录失败",
                         Data = "http://localhost:8080/signIn"
                     }, new JsonSerializerSettings
                     {
@@ -97,7 +100,25 @@ namespace IdentityServer.STS.Admin
                     await Task.CompletedTask;
                 };
 
-                options.Events.OnRedirectToAccessDenied = async context => { await Task.CompletedTask; };
+                options.Events.OnRedirectToAccessDenied = async context =>
+                {
+                    var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                    {
+                        Code = 403,
+                        Msg = "无权访问",
+                        Data = "http://localhost:8080/accessDenied"
+                    }, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    }));
+
+                    context.Response.StatusCode = 200;
+                    context.Response.ContentType = "application/json";
+                    context.Response.ContentLength = apiResult.Length;
+
+                    await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(apiResult));
+                    await Task.CompletedTask;
+                };
             });
 
             services.AddSingleton<ICorsPolicyService>(provider =>
@@ -105,13 +126,10 @@ namespace IdentityServer.STS.Admin
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
-                    AllowedOrigins = new[] { "http://localhost:8080 " },
+                    AllowedOrigins = new[] {"http://localhost:8080 "},
                     AllowAll = false
                 };
             });
-
-            services.AddSingleton<EmailService>();
-            services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
 
             services.AddMvc(options =>
             {
@@ -119,6 +137,12 @@ namespace IdentityServer.STS.Admin
                 options.Filters.Add<ModelValidateFilter>();
             });
             services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss"; });
+
+            services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
+            services.AddTransient<IdentityDbContext>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddSingleton<EmailService>();
+            services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -132,7 +156,7 @@ namespace IdentityServer.STS.Admin
             }
 
             //chrome 内核 80版本 cookie策略问题
-            app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
+            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
 
             app.UseCors();
 

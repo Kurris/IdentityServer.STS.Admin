@@ -36,7 +36,6 @@ namespace IdentityServer.STS.Admin.Controllers
     {
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
-        private readonly UserResolver<User> _userResolver;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IEventService _eventService;
@@ -46,7 +45,6 @@ namespace IdentityServer.STS.Admin.Controllers
 
         public AuthenticateController(IIdentityServerInteractionService interaction,
             IWebHostEnvironment environment
-            , UserResolver<User> userResolver
             , SignInManager<User> signInManager
             , UserManager<User> userManager
             , IEventService eventService
@@ -56,7 +54,6 @@ namespace IdentityServer.STS.Admin.Controllers
         {
             _interaction = interaction;
             _environment = environment;
-            _userResolver = userResolver;
             _signInManager = signInManager;
             _userManager = userManager;
             _eventService = eventService;
@@ -359,7 +356,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //实体验证
             if (ModelState.IsValid)
             {
-                var user = await _userResolver.GetUserAsync(request.Username);
+                var user = await _userManager.FindByNameAsync(request.Username);
                 if (user != null)
                 {
                     var result = await _signInManager.PasswordSignInAsync(

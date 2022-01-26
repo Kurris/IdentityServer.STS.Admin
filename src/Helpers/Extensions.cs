@@ -90,8 +90,7 @@ namespace IdentityServer.STS.Admin.Helpers
             where TRole : class
         {
             services.AddSingleton<IdentityOptions>() //默认配置
-                .AddScoped<ApplicationSignInManager<TUser>>() //用户登录管理器
-                .AddScoped<UserResolver<TUser>>() //用户处理器
+                //.AddScoped<ApplicationSignInManager<TUser>>() //用户登录管理器
                 .AddIdentity<TUser, TRole>() //用户 角色
                 .AddEntityFrameworkStores<TIdentityDbContext>() //aspnetcore user 操作
                 .AddDefaultTokenProviders();
@@ -123,6 +122,15 @@ namespace IdentityServer.STS.Admin.Helpers
                     options.ClientId = "3217031503";
                     options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy =>
+                {
+                    policy.RequireRole("Admin")
+                        .RequireAuthenticatedUser();
+                });
+            });
         }
 
 

@@ -1,6 +1,6 @@
 namespace IdentityServer.STS.Admin.Models
 {
-    public class ApiResult<T>
+    public class ApiResult<T> : IApiResult
     {
         public ApiResult()
         {
@@ -17,6 +17,34 @@ namespace IdentityServer.STS.Admin.Models
         public string Msg { get; set; }
 
         public DefineRoute Route { get; set; }
+
+        public IApiResult GetDefaultSuccessApiResult<TResult>(TResult apiResult)
+        {
+            return new ApiResult<TResult>()
+            {
+                Data = apiResult
+            };
+        }
+
+        public IApiResult GetDefaultErrorApiResult<TResult>(TResult apiResult)
+        {
+            return new ApiResult<TResult>()
+            {
+                Code = 500,
+                Msg = "操作有误",
+                Data = apiResult
+            };
+        }
+
+        public IApiResult GetDefaultValidateApiResult<TResult>(TResult apiResult)
+        {
+            return new ApiResult<TResult>()
+            {
+                Code = 400,
+                Msg = "实体验证失败",
+                Data = apiResult
+            };
+        }
     }
 
 

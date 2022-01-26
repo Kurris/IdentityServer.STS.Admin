@@ -17,6 +17,7 @@ namespace IdentityServer.STS.Admin.DbContexts
         {
             base.OnModelCreating(builder);
 
+            //根据TableAttribute重名identity实体
             var entities = Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsDefined(typeof(TableAttribute)));
             foreach (var entity in entities)
             {
