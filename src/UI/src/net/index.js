@@ -28,7 +28,7 @@ export default function axiosRequest(config) {
 			} else {
 				if (result.data.code == 302) {
 					NProgress.start()
-					window.location.href = result.data.data + '?ReturnUrl=' + window.location
+					window.location.href = result.data.data + '?returnUrl=' + window.location
 				} else if (result.data.code == 500) {
 					ElementUI.Notification.error(result.data.msg)
 				} else if (result.data.code == 400) {

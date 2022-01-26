@@ -1,6 +1,6 @@
 <template>
     <div id='register'>
-        <!-- <form asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData[" ReturnUrl"]" method="post" class="form-horizontal"> -->
+
         <h4>注册一个新账户。</h4>
 
         用户名

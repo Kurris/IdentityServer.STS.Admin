@@ -55,7 +55,7 @@ export default {
     },
     methods: {
         async login() {
-            const returnUrl = this.$url.getValueFromQuery('ReturnUrl');
+            const returnUrl = this.$route.query.returnUrl
             const username = this.form.userName
             const password = this.form.password
 
@@ -82,7 +82,7 @@ export default {
             }
         },
         cancel() {
-            let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
+            let returnUrl = this.$route.query.returnUrl
             if (returnUrl === undefined) {
                 this.$router.push('/home')
             } else {
@@ -90,7 +90,7 @@ export default {
             }
         },
         async externalLogin(provider) {
-            let returnUrl = this.$url.getValueFromQuery('ReturnUrl')
+            let returnUrl = this.$route.query.returnUrl
 
             if (returnUrl === undefined) {
                 returnUrl = location.protocol + "//" + location.host + "/home"
@@ -107,8 +107,8 @@ export default {
         }
     },
     beforeMount() {
-        let returnUrl = this.$url.getValueFromQuery("ReturnUrl")
-        checkLogin({ returnUrl: returnUrl })
+
+        checkLogin({ returnUrl: this.$route.query.returnUrl })
             .then(res => {
                 this.externalProviders = res.data.externalProviders
             })

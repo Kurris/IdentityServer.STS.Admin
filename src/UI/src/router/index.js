@@ -1,7 +1,8 @@
 import vue from 'vue'
 import vueRouter from 'vue-router'
-
 import NProgress from 'nprogress'
+
+import adminRouters from './adminRouters'
 
 const signIn = () => import('../components/SignIn.vue')
 const home = () => import('../components/Home.vue')
@@ -33,6 +34,7 @@ const successed = () => import('../components/Successed.vue')
 vue.use(vueRouter)
 
 const routes = [
+	...adminRouters,
 	{
 		path: '/',
 		redirect: '/home',
@@ -143,6 +145,7 @@ const routes = [
 		component: successed,
 	},
 ]
+console.log(routes)
 
 const router = new vueRouter({
 	routes,

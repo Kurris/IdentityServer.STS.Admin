@@ -232,7 +232,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                     if (Url.IsLocalUrl(model.ReturnUrl))
                     {
-                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
+                        return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
                     }
 
                     return new ApiResult<object>()
@@ -276,7 +276,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var callbackUrl = "http://localhot:8080/confirmEmail?" + await content.ReadAsStringAsync();
 
-                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
+                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] { new MailboxAddress(model.UserName, model.Email) });
                     return new ApiResult<object>()
                     {
                         Route = DefineRoute.ConfirmEmail
@@ -356,94 +356,90 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
-            //实体验证
-            if (ModelState.IsValid)
+
+            var user = await _userResolver.GetUserAsync(request.Username);
+            if (user != null)
             {
-                var user = await _userResolver.GetUserAsync(request.Username);
-                if (user != null)
+                var result = await _signInManager.PasswordSignInAsync(
+                    user.UserName
+                    , request.Password
+                    , request.RememberLogin
+                    , true);
+
+                //账号密码验证成功
+                if (result.Succeeded)
                 {
-                    var result = await _signInManager.PasswordSignInAsync(
-                        user.UserName
-                        , request.Password
-                        , request.RememberLogin
-                        , true);
+                    await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
 
-                    //账号密码验证成功
-                    if (result.Succeeded)
+                    if (context != null)
                     {
-                        await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
-
-                        if (context != null)
-                        {
-                            if (context.IsNativeClient())
-                            {
-                                return new ApiResult<object>
-                                {
-                                    Route = DefineRoute.LoadingPage,
-                                    Data = request.ReturnUrl
-                                };
-                            }
-
-                            return new ApiResult<object>
-                            {
-                                Route = DefineRoute.Redirect,
-                                Data = request.ReturnUrl,
-                            };
-                        }
-
-                        if (request.ReturnUrl.IsLocal())
+                        if (context.IsNativeClient())
                         {
                             return new ApiResult<object>
                             {
-                                Route = DefineRoute.Redirect,
-                                Data = request.ReturnUrl,
+                                Route = DefineRoute.LoadingPage,
+                                Data = request.ReturnUrl
                             };
                         }
 
-                        if (string.IsNullOrEmpty(request.ReturnUrl))
+                        return new ApiResult<object>
                         {
-                            return new ApiResult<object>
-                            {
-                                Route = DefineRoute.HomePage,
-                            };
-                        }
-
-                        throw new Exception("invalid return URL");
-                    }
-
-                    if (result.RequiresTwoFactor)
-                    {
-                        return new ApiResult<object>()
-                        {
-                            Route = DefineRoute.LoginWith2Fa,
-                            Data = new
-                            {
-                                rememberLogin = request.RememberLogin,
-                                returnUrl = request.ReturnUrl,
-                            }
+                            Route = DefineRoute.Redirect,
+                            Data = request.ReturnUrl,
                         };
                     }
 
-                    if (result.IsLockedOut)
+                    if (request.ReturnUrl.IsLocal())
                     {
-                        //return new ApiResult<object>()
-                        //{
-                        //    Route = DefineRoute.Lockout,
-                        //};
-                        throw new Exception("账号已被锁定");
+                        return new ApiResult<object>
+                        {
+                            Route = DefineRoute.Redirect,
+                            Data = request.ReturnUrl,
+                        };
                     }
+
+                    if (string.IsNullOrEmpty(request.ReturnUrl))
+                    {
+                        return new ApiResult<object>
+                        {
+                            Route = DefineRoute.HomePage,
+                        };
+                    }
+
+                    throw new Exception("invalid return URL");
                 }
 
-                await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "invalid credentials",
-                    clientId: context?.Client.ClientId));
+                if (result.RequiresTwoFactor)
+                {
+                    return new ApiResult<object>()
+                    {
+                        Route = DefineRoute.LoginWith2Fa,
+                        Data = new
+                        {
+                            rememberLogin = request.RememberLogin,
+                            returnUrl = request.ReturnUrl,
+                        }
+                    };
+                }
 
-                // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
-                throw new Exception("账号或者密码错误");
+                if (result.IsLockedOut)
+                {
+                    //return new ApiResult<object>()
+                    //{
+                    //    Route = DefineRoute.Lockout,
+                    //};
+                    throw new Exception("账号已被锁定");
+                }
             }
 
-            // something went wrong, show form with error
-            var loginResult = await BuildLoginResultAsync(request);
-            return loginResult;
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "invalid credentials",
+                clientId: context?.Client.ClientId));
+
+            throw new Exception("账号或者密码错误");
+
+            //// something went wrong, show form with error
+            //var loginResult = await BuildLoginResultAsync(request);
+            //return loginResult;
         }
 
 
@@ -524,7 +520,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
+                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -842,7 +838,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     //前端地址
                     var callbackUrl = "http://localhost:8080/resetPassword?" + queries;
 
-                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
+                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] { new MailboxAddress(user.UserName, user.Email) });
                 }
             }
         }

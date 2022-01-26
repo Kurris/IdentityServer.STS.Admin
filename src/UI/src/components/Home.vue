@@ -1,6 +1,6 @@
 <template>
     <div id='home'>
-        <el-row justify="space-around" :gutter="20">
+        <el-row justify="space-around" :gutter="30">
             <el-col :span="colSpan" v-show="isAuthenticated">
                 <el-card class="box-card">
                     <div slot="header" class="clearfix">
