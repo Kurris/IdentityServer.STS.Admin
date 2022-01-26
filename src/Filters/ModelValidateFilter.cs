@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IdentityServer.STS.Admin.Filters
 {
     public class ModelValidateFilter : ActionFilterAttribute
     {
-
         public override async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
         {
             if (!context.ModelState.IsValid)
@@ -17,37 +16,28 @@ namespace IdentityServer.STS.Admin.Filters
                 var errorResult = context.ModelState
                     .Keys
                     .SelectMany(key =>
-                                context.ModelState[key].Errors.Where(x => !string.IsNullOrEmpty(key)).Select(x =>
-                                {
-                                    return new
-                                    {
-                                        Field = key,
-                                        Message = x.ErrorMessage
-                                    };
-                                }));
-
-                context.Result = new ObjectResult(new ApiResult<IEnumerable<object>>()
-                {
-                    Code = 400,
-                    Data = errorResult,
-                    Msg = "实体验证失败"
-                });
+                        context.ModelState[key].Errors.Where(x => !string.IsNullOrEmpty(key)).Select(x => new
+                        {
+                            Field = key,
+                            Message = x.ErrorMessage
+                        }));
+                var injectApiResult = context.HttpContext.RequestServices.GetService<IApiResult>();
+                context.Result = new ObjectResult(injectApiResult.GetDefaultValidateApiResult(errorResult));
             }
             else
             {
-                object successResult = (context.Result as ObjectResult)?.Value;
-
-                if (successResult != null)
+                if (context.Result is ObjectResult objectResult)
                 {
-                    if (successResult.GetType().Name.StartsWith("ApiResult"))
-                        context.Result = new ObjectResult(successResult);
+                    var result = objectResult.Value ?? string.Empty;
+                    var type = result.GetType();
+
+                    if (type.IsGenericType && typeof(IApiResult).IsAssignableFrom(type))
+                        context.Result = new ObjectResult(result);
                     else
-                        context.Result = new ObjectResult(new ApiResult<object>
-                        {
-                            Code = 200,
-                            Msg = "操作成功",
-                            Data = successResult
-                        });
+                    {
+                        var injectApiResult = context.HttpContext.RequestServices.GetService<IApiResult>();
+                        context.Result = new ObjectResult(injectApiResult.GetDefaultSuccessApiResult(result));
+                    }
                 }
             }
 

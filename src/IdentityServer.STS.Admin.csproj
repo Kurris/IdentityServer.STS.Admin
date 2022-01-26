@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<Folder Include="Migrations" />
+		<Folder Include="Models\Admin\OAuth2" />
 	</ItemGroup>
 
 	<ItemGroup>

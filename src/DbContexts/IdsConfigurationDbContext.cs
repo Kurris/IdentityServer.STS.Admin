@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IdentityServer.STS.Admin.DbContexts
 {
+    /// <summary>
+    /// identity server 配置项层
+    /// </summary>
     public class IdsConfigurationDbContext : ConfigurationDbContext<IdsConfigurationDbContext>, IIdsConfigurationDbContext
     {
         public IdsConfigurationDbContext(DbContextOptions<IdsConfigurationDbContext> options, ConfigurationStoreOptions storeOptions)
