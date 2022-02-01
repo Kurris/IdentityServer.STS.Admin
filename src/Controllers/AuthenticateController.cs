@@ -71,12 +71,24 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("status")]
         public async Task<ApiResult<object>> GetIsAuthenticated()
         {
-            var result = User.IsAuthenticated();
-
-            var apiResult = new ApiResult<object>()
+            var isLogin = User.IsAuthenticated();
+            var isAdmin = false;
+            if (isLogin)
             {
-                Code = result ? 200 : 401,
-                Data = result,
+                var subId = User.GetSubjectId();
+                var user = await _userManager.FindByIdAsync(subId);
+                // var users = await _userManager.GetUsersInRoleAsync("Administrator");
+                isAdmin = await _userManager.IsInRoleAsync(user, "Administrator");
+            }
+
+            var apiResult = new ApiResult<object>
+            {
+                Code = isLogin ? 200 : 401,
+                Data = new
+                {
+                    isLogin,
+                    isAdmin
+                },
             };
 
             return await Task.FromResult(apiResult);
@@ -229,7 +241,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                     if (Url.IsLocalUrl(model.ReturnUrl))
                     {
-                        return new ApiResult<object> { Route = DefineRoute.Redirect, Data = model.ReturnUrl };
+                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
                     }
 
                     return new ApiResult<object>()
@@ -273,7 +285,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var callbackUrl = "http://localhot:8080/confirmEmail?" + await content.ReadAsStringAsync();
 
-                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] { new MailboxAddress(model.UserName, model.Email) });
+                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
                     return new ApiResult<object>()
                     {
                         Route = DefineRoute.ConfirmEmail
@@ -353,8 +365,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
-
-            var user = await _userResolver.GetUserAsync(request.Username);
+            var user = await _userManager.FindByNameAsync(request.Username);
             if (user != null)
             {
                 var result = await _signInManager.PasswordSignInAsync(
@@ -517,7 +528,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
                 //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new { logoutId = output.LogoutId });
+                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
 
                 //触发到第三方登录来退出
                 SignOut(new AuthenticationProperties
@@ -835,7 +846,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     //前端地址
                     var callbackUrl = "http://localhost:8080/resetPassword?" + queries;
 
-                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] { new MailboxAddress(user.UserName, user.Email) });
+                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
                 }
             }
         }

@@ -1,6 +1,6 @@
 <template>
-    <div id='user'>
-        user
+    <div id='identityResource'>
+        identityResource
     </div>
 </template>
 
@@ -17,7 +17,7 @@ export default {
     watch: {},
     methods: {
 
-    },
+    }
 }
 </script>
 <style scoped>

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using IdentityServer.STS.Admin.Helpers;
 
 namespace IdentityServer.STS.Admin.Models.Admin.Identity
 {
@@ -20,7 +21,8 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
         public bool IsEnableLockout { get; set; }
         public DateTimeOffset? LockoutExpire { get; set; }
 
-        public DateTime? LockoutLocalExpire => LockoutExpire?.LocalDateTime;
+        public DateTime? LockoutLocalExpire => LockoutExpire.ToLocalDateTime();
+
         public bool IsEnableTwoFactor { get; set; }
         public int LoginFailCount { get; set; }
     }

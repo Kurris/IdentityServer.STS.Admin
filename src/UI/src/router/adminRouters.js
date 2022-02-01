@@ -1,5 +1,7 @@
-const user = () => import('../views/admin/User.vue')
 const admin = () => import('../views/admin/Admin.vue')
+
+const user = () => import('../views/admin//User/User.vue')
+const identityResource = () => import('../views/admin/IdentityResource/IdentifyResource.vue')
 export default [
 	{
 		path: '/admin',
@@ -8,6 +10,10 @@ export default [
 			{
 				path: 'user',
 				component: user,
+			},
+			{
+				path: 'identityResource',
+				component: identityResource,
 			},
 		],
 	},

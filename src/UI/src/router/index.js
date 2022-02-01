@@ -34,11 +34,11 @@ const successed = () => import('../components/Successed.vue')
 vue.use(vueRouter)
 
 const routes = [
-	...adminRouters,
 	{
 		path: '/',
 		redirect: '/home',
 	},
+	...adminRouters,
 	{
 		name: 'signin',
 		path: '/signIn',
@@ -145,7 +145,6 @@ const routes = [
 		component: successed,
 	},
 ]
-console.log(routes)
 
 const router = new vueRouter({
 	routes,

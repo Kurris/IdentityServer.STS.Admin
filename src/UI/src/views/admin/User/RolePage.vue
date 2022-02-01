@@ -1,6 +1,6 @@
 <template>
-    <div id='info'>
-        info
+    <div class='rolePage'>
+        rolePage
     </div>
 </template>
 

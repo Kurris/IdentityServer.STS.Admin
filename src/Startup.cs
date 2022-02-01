@@ -141,7 +141,9 @@ namespace IdentityServer.STS.Admin
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
             services.AddTransient<IdentityDbContext>();
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IRoleService, RoleService>();
             services.AddSingleton<EmailService>();
+            services.AddTransient<IConfigurationService, ConfigurationService>();
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
         }
 

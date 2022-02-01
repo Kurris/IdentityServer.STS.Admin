@@ -17,11 +17,13 @@
 
             </li>
             <li>
+
                 在您的双因素验证器应用程序中扫描二维码或输入此密钥<kbd>{{setting.sharedKey}}</kbd>空格和大小写无关紧要。
                 <template v-if="setting.authenticatorUri!=null">
                     <div>
-                        <qriously :value="setting.authenticatorUri" :size="300" style="padding:6px" />
-                        <div id="qrCodeData" v-html="setting.authenticatorUri"></div>
+                        <el-tooltip effect="dark" :content="setting.authenticatorUri" placement="top">
+                            <qriously :value="setting.authenticatorUri" :size="300" style="padding:6px" />
+                        </el-tooltip>
                     </div>
                 </template>
 

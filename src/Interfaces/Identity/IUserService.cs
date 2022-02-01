@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
@@ -47,5 +48,27 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
         /// <param name="id"></param>
         /// <returns></returns>
         Task<bool> ExistsUserAsync(string id);
+
+        /// <summary>
+        /// 用户角色
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<IEnumerable<RoleDto>> QueryUserRoles(string id);
+
+        /// <summary>
+        /// 用户外部提供器
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        Task<Pagination<UserProviderDto>> QueryUserProviderPage(UserProviderSearchInput input);
+
+
+        /// <summary>
+        /// 用户声明
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        Task<Pagination<UserClaimsDto>> QueryUserClaimsPage(UserClaimsSearchInput input);
     }
 }

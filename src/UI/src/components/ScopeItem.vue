@@ -11,7 +11,7 @@
                 <strong>{{scope.displayName}}</strong>
 
                 <template v-if="scope.emphasize">
-                    <!-- 星号标记 -->
+                    <i class="header-icon el-icon-info"></i>
                 </template>
             </div>
 

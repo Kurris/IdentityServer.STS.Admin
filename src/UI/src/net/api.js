@@ -27,7 +27,7 @@ export const checkTwoFactorAuthenticationUser = data => {
 }
 
 //是否已经登录
-export const isAuthenticated = () => {
+export const getLoginStatus = () => {
 	return http({
 		url: 'api/authenticate/status',
 		method: 'get',

@@ -1,6 +1,6 @@
 <template>
     <div id='discoveryDocument'>
-        <jsonView :data="discoveryDocument" :theme="one-dark" />
+        <jsonView :data="discoveryDocument" />
     </div>
 </template>
 
@@ -20,11 +20,11 @@ export default {
     async beforeMount() {
         let res = await getDocument()
         this.discoveryDocument = res
-    }, //生命周期 - 挂载之前
+    },
 }
 </script>
-<style scoped>
-.jsonView {
-    left: 0%;
+<style scope>
+#discoveryDocument {
+    text-align: left;
 }
 </style>

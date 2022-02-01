@@ -36,8 +36,11 @@ namespace IdentityServer.STS.Admin
                     {
                         configuration.MinimumLevel.Debug()
                             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
                             .MinimumLevel.Override("System", LogEventLevel.Warning)
+                            //.MinimumLevel.Override("IdentityServer4", LogEventLevel.Warning)
                             .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
+                            .MinimumLevel.Override("IdentityServer4.Hosting.CorsPolicyProvider", LogEventLevel.Information)
                             .Enrich.FromLogContext()
                             // .WriteTo.File(@"idslog.txt")
                             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"

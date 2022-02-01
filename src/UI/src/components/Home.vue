@@ -75,7 +75,7 @@
 
 <script>
 
-import { isAuthenticated } from '../net/api.js'
+import { getLoginStatus } from '../net/api.js'
 
 export default {
 
@@ -95,11 +95,11 @@ export default {
         }
     },
     async beforeMount() {
-        let res = await isAuthenticated();
+        let res = await getLoginStatus();
         if (res.code == 401) {
             // this.$router.replace('/signIn')
         } else if (res.code == 200) {
-            this.isAuthenticated = res.data
+            this.isAuthenticated = res.data.isLogin
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
@@ -38,6 +39,12 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             await _userService.AddUserAsync(dto);
         }
 
+        [HttpGet("roles")]
+        public async Task<IEnumerable<RoleDto>> QueryUserRoles(string id)
+        {
+            return await _userService.QueryUserRoles(id);
+        }
+
         [HttpPut]
         public async Task UpdateUser(UserDto dto)
         {
@@ -48,6 +55,18 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         public async Task<bool> ExistsUser(UserExistsIn dto)
         {
             return await _userService.ExistsUserAsync(dto);
+        }
+
+        [HttpGet("externalProvider/page")]
+        public async Task<Pagination<UserProviderDto>> QueryUserProviderPage([FromQuery] UserProviderSearchInput input)
+        {
+            return await _userService.QueryUserProviderPage(input);
+        }
+
+        [HttpGet("claims/page")]
+        public async Task<Pagination<UserClaimsDto>> QueryUserClaimsPage([FromQuery] UserClaimsSearchInput input)
+        {
+            return await _userService.QueryUserClaimsPage(input);
         }
     }
 }

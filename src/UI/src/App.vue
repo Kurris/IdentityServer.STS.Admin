@@ -2,7 +2,8 @@
     <div id="app">
         <div id="header">
             <el-button type="text" @click="goHome()">{{title}}</el-button>
-            <el-button type="primary" v-show="status" @click="logout">注销</el-button>
+            <el-button type="primary" v-show="status.isAdmin" @click="$router.push('/admin')">管理员</el-button>
+            <el-button type="primary" v-show="status.isLogin" @click="logout">注销</el-button>
             <el-avatar icon="el-icon-user-solid"></el-avatar>
         </div>
         <router-view />
@@ -17,7 +18,7 @@
 </template>
 
 <script>
-import { isAuthenticated, logout } from './net/api.js'
+import { getLoginStatus, logout } from './net/api.js'
 
 export default {
     name: 'App',
@@ -29,7 +30,6 @@ export default {
     },
     methods: {
         goHome() {
-            // /home
             if (this.$route.path != '/home') {
                 this.$nextTick(() => {
                     this.$router.push('home')
@@ -47,7 +47,7 @@ export default {
         }
     },
     async beforeMount() {
-        let res = await isAuthenticated()
+        let res = await getLoginStatus()
         if (res != null) {
             if (res.data.code == 401) {
                 // this.$router.replace('/signIn')
@@ -62,11 +62,11 @@ export default {
 
 <style>
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
+    /* font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: grayscale; */
     text-align: center;
-    color: #2c3e50;
+    /* color: #2c3e50; */
 
     overflow-y: hidden;
     overflow-x: hidden;

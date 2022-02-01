@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
 
 namespace IdentityServer.STS.Admin.Helpers
@@ -49,6 +50,24 @@ namespace IdentityServer.STS.Admin.Helpers
                    || returnUrl.Contains(_authorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
 
+        public static DateTime? ToLocalDateTime(this DateTime? dateTime)
+        {
+            return dateTime != null
+                ? dateTime.Value.Kind == DateTimeKind.Utc
+                    ? dateTime.Value.ToLocalTime()
+                    : dateTime.Value
+                : default;
+        }
+
+        public static DateTime? ToLocalDateTime(this DateTimeOffset? dateTime)
+        {
+            return dateTime != null
+                ? dateTime.Value.DateTime.Kind == DateTimeKind.Utc
+                    ? dateTime.Value.DateTime.ToLocalTime()
+                    : dateTime.Value.DateTime
+                : default;
+        }
+
 
         public static void RegisterDbContexts<TIdentityDbContext, TConfigurationDbContext, TPersistedGrantDbContext, TDataProtectionDbContext>(this IServiceCollection services, IConfiguration configuration)
             where TIdentityDbContext : DbContext
@@ -64,7 +83,12 @@ namespace IdentityServer.STS.Admin.Helpers
             var migrationsAssembly = "IdentityServer.STS.Admin";
 
             //aspnet core identity 用户操作
-            services.AddDbContext<TIdentityDbContext>(options => options.UseMySql(identityConnectionString, sql => sql.MigrationsAssembly(migrationsAssembly)));
+            services.AddDbContext<TIdentityDbContext>((provider, options) =>
+            {
+                options.UseMySql(identityConnectionString, builder => { builder.MigrationsAssembly(migrationsAssembly); });
+                var loggerFactory = provider.GetService<ILoggerFactory>();
+                options.UseLoggerFactory(loggerFactory);
+            });
 
             //ids 配置操作
             services.AddConfigurationDbContext<TConfigurationDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(configurationConnectionString, sql => sql.MigrationsAssembly(migrationsAssembly)));

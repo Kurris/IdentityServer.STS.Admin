@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.DbContexts;
@@ -8,6 +9,7 @@ using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace IdentityServer.STS.Admin.Services.Admin.Identity
 {
@@ -127,6 +129,64 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         public async Task<bool> ExistsUserAsync(string id)
         {
             return await _identityDbContext.Users.AnyAsync(x => x.Id == id);
+        }
+
+        public async Task<IEnumerable<RoleDto>> QueryUserRoles(string id)
+        {
+            var user = await QueryUserByIdAsync(id);
+            if (user == null)
+                return Enumerable.Empty<RoleDto>();
+
+            var rows = await _identityDbContext.UserRoles.Where(x => x.UserId == id)
+                .GroupJoin(_identityDbContext.Roles,
+                    ur => ur.RoleId, r => r.Id, (userRole, roles) => new {userRole, roles})
+                .SelectMany(x => x.roles.DefaultIfEmpty(), (userRoles, role) => new RoleDto
+                {
+                    Id = userRoles.userRole.RoleId,
+                    Name = role.Name
+                }).OrderBy(x => x.Name).ToListAsync();
+
+            var query = from userRoles in _identityDbContext.UserRoles
+                        where userRoles.UserId == id
+                        join role in _identityDbContext.Roles on userRoles.RoleId equals role.Id into g
+                        from n in g.DefaultIfEmpty()
+                        select new RoleDto
+                        {
+                            Id = userRoles.RoleId,
+                            Name = n.Name
+                        };
+
+            return await query.OrderBy(x => x.Name).ToListAsync();
+            // return rows;
+        }
+
+
+        public async Task<Pagination<UserProviderDto>> QueryUserProviderPage(UserProviderSearchInput input)
+        {
+            var pages = await _identityDbContext.UserLogins.Where(x => x.UserId == input.Id)
+                .GroupJoin(_identityDbContext.Users, ul => ul.UserId, u => u.Id, (login, users) => new {login, users})
+                .SelectMany(x => x.users.DefaultIfEmpty(), (x, y) => new UserProviderDto
+                {
+                    UserId = y.Id,
+                    UserName = y.UserName,
+                    ProviderKey = x.login.ProviderKey,
+                    LoginProvider = x.login.LoginProvider,
+                    ProviderDisplayName = x.login.ProviderDisplayName
+                }).ToPagination(input);
+
+            return pages;
+        }
+
+        public async Task<Pagination<UserClaimsDto>> QueryUserClaimsPage(UserClaimsSearchInput input)
+        {
+            return await _identityDbContext.UserClaims.Where(x => x.UserId == input.UserId)
+                .Select(x => new UserClaimsDto
+                {
+                    ClaimId = x.Id,
+                    UserId = x.UserId,
+                    ClaimType = x.ClaimType,
+                    ClaimValue = x.ClaimValue
+                }).ToPaginationBy(x => x.ClaimType, input, false);
         }
     }
 }
