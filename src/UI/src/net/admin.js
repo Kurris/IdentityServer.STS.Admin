@@ -52,3 +52,27 @@ export const getStandardClaims = () => {
 		method: 'get',
 	})
 }
+
+export const getIdentityResourcePage = data => {
+	return http({
+		url: 'api/configuration/identityResource/page',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const getIdentityResourceById = data => {
+	return http({
+		url: 'api/configuration/identityResource',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const saveIdentityResource = data => {
+	return http({
+		url: 'api/configuration/identityResource',
+		method: 'post',
+		data: data,
+	})
+}

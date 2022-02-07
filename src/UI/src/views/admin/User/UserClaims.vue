@@ -6,8 +6,10 @@
             </div>
             <div>
                 <span>声明</span>
-                <el-select v-model="newClaim.type" filterable allow-create default-first-option placeholder="请选择用户声明或者创建声明">
-                    <el-option v-for="(item,index) in standardClaims" :key="index" :label="item" :value="item">
+                <el-select v-model="newClaim.type" filterable allow-create default-first-option
+                    placeholder="请选择用户声明或者创建声明">
+                    <el-option v-for="(item,index) in standardClaims" :key="index" :label="item"
+                        :value="item">
                     </el-option>
                 </el-select>
             </div>
@@ -27,7 +29,10 @@
                 <el-table-column label="值" prop="claimValue">
                 </el-table-column>
             </el-table>
-            <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pagination.pageIndex" :page-sizes="[20, 40, 50, 100]" :page-size="pagination.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="pagination.totalCount">
+            <el-pagination background @size-change="handleSizeChange"
+                @current-change="handleCurrentChange" :current-page="pagination.pageIndex"
+                :page-sizes="[20, 40, 50, 100]" :page-size="pagination.pageSize"
+                layout="total, sizes, prev, pager, next, jumper" :total="pagination.totalCount">
             </el-pagination>
         </el-card>
     </div>
@@ -59,6 +64,10 @@ export default {
     watch: {},
     methods: {
         load(id) {
+            this.newClaim = {
+                type: '',
+                value: ''
+            }
             this.pagination.userId = id
             this.getUserClaimsPage()
             getStandardClaims().then(res => {

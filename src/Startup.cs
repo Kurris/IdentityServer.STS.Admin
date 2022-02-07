@@ -136,7 +136,11 @@ namespace IdentityServer.STS.Admin
                 options.Filters.Add<ExceptionFilter>();
                 options.Filters.Add<ModelValidateFilter>();
             });
-            services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss"; });
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+            });
 
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
             services.AddTransient<IdentityDbContext>();
@@ -144,6 +148,7 @@ namespace IdentityServer.STS.Admin
             services.AddTransient<IRoleService, RoleService>();
             services.AddSingleton<EmailService>();
             services.AddTransient<IConfigurationService, ConfigurationService>();
+            services.AddTransient<IIdentityResourceService, IdentityResourceService>();
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
         }
 
