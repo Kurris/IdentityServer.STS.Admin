@@ -8,6 +8,7 @@ using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using IdentityServer4.EntityFramework.Entities;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Math.EC.Rfc7748;
 
 namespace IdentityServer.STS.Admin.Services.Admin.Identity
 {
@@ -30,54 +31,32 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task<IdentityResource> QueryIdentityResource(int id)
         {
-            return await _idsConfigurationDbContext.IdentityResources.AsNoTracking()
-                .Include(x => x.Properties).AsNoTracking()
+            return await _idsConfigurationDbContext.IdentityResources
+                .Include(x => x.Properties)
                 .Include(x => x.UserClaims).AsNoTracking()
                 .FirstAsync(x => x.Id == id);
         }
 
         public async Task SaveIdentityResource(IdentityResource identityResource)
         {
-            IdentityResource dbEntity = null;
-            if (identityResource.Id != 0)
+            if (identityResource.Id == 0)
             {
-                dbEntity = await QueryIdentityResource(identityResource.Id);
+                //add
+                await _idsConfigurationDbContext.IdentityResources.AddAsync(identityResource);
             }
+            else
+            {
+                //update
+                var claims = await _idsConfigurationDbContext.IdentityClaims.Where(x => x.IdentityResource.Id == identityResource.Id).ToListAsync();
+                _idsConfigurationDbContext.IdentityClaims.RemoveRange(claims);
 
-            // _idsConfigurationDbContext.Entry(identityResource.UserClaims).State = EntityState.Unchanged;
-            // _idsConfigurationDbContext.Entry(identityResource.Properties).State = EntityState.Unchanged;
-            _idsConfigurationDbContext.IdentityResources.Update(identityResource);
+                var properites = await _idsConfigurationDbContext.IdentityResourceProperties.Where(x => x.IdentityResourceId == identityResource.Id).ToListAsync();
+                _idsConfigurationDbContext.IdentityResourceProperties.RemoveRange(properites);
 
-            await SaveIdentityResourceClaims(identityResource.UserClaims, dbEntity?.UserClaims);
-            await SaveIdentityResourceProperties(identityResource.Properties, dbEntity?.Properties);
+                 _idsConfigurationDbContext.IdentityResources.Update(identityResource);
+            }
 
             await _idsConfigurationDbContext.SaveChangesAsync();
-        }
-
-
-        public async Task SaveIdentityResourceClaims(List<IdentityResourceClaim> identityResourceClaims, List<IdentityResourceClaim> dbEntities)
-        {
-            //不存在数据库中
-            foreach (var dbEntity in dbEntities)
-            {
-                var item = identityResourceClaims.FirstOrDefault(x => x.Id == dbEntity.Id);
-                if (item == null)
-                {
-                    _idsConfigurationDbContext.IdentityClaims.Remove(dbEntity);
-                }
-            }
-
-            foreach (var identityResourceClaim in identityResourceClaims)
-            {
-                if (identityResourceClaim.Id == 0)
-                    await _idsConfigurationDbContext.IdentityClaims.AddAsync(identityResourceClaim);
-                else
-                    _idsConfigurationDbContext.IdentityClaims.Update(identityResourceClaim);
-            }
-        }
-
-        public async Task SaveIdentityResourceProperties(List<IdentityResourceProperty> identityResourceProperties, List<IdentityResourceProperty> dbEntities)
-        {
         }
     }
 }

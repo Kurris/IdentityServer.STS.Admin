@@ -1,8 +1,20 @@
 <template>
     <div id='identityResource'>
-        <el-table :data="pagination.items" style="width: 100%">
-            <!-- <el-table-column label="身份资源标识" prop="id">
-            </el-table-column> -->
+        <div style="text-align:left">
+            <el-button type="primary" @click="addIdentityResource">添加新的身份资源</el-button>
+        </div>
+        <el-table :data="pagination.items" style="width: 100%" stripe>
+            <el-table-column type="expand">
+                <template slot-scope="props">
+                    <el-form label-position="left">
+                        <el-form-item label="身份声明">
+                            <template v-for="item in props.row.userClaims">
+                                <el-tag :key="item.type">{{item.type}}</el-tag>
+                            </template>
+                        </el-form-item>
+                    </el-form>
+                </template>
+            </el-table-column>
             <el-table-column label="是否启用" prop="enabled">
                 <template slot-scope="scope">
                     <el-tag v-if="scope.row.enabled" size="medium">是</el-tag>
@@ -85,7 +97,8 @@ export default {
             getIdentityResourcePage(this.pagination).then(res => {
                 this.pagination = res.data
             })
-        }, editIdentityResource(id) {
+        },
+        editIdentityResource(id) {
             this.currentId = id
             this.identityResourceDrawer = true
             this.$nextTick(() => {
@@ -94,6 +107,10 @@ export default {
         },
         afterSave() {
             this.identityResourceDrawer = false
+            this.getIdentityResourcePage()
+        },
+        addIdentityResource() {
+            this.identityResourceDrawer = true
         }
     },
     beforeMount() {
@@ -102,4 +119,13 @@ export default {
 }
 </script>
 <style scoped>
+.el-form-item label {
+    width: 90px;
+    color: #bf99ae;
+    font-size: 0;
+}
+
+.el-form-item .el-tag + .el-tag {
+    margin-left: 10px;
+}
 </style>

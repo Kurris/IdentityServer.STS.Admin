@@ -149,8 +149,7 @@ export default {
     text-align: left;
 }
 
-.userClaims {
-}
+
 .el-tag + .el-tag {
     margin-left: 10px;
 }
