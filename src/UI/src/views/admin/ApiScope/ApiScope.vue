@@ -1,7 +1,7 @@
 <template>
-    <div id='identityResource'>
+    <div id='apiScope'>
         <div style="text-align:left">
-            <el-button type="primary" @click="addIdentityResource">添加新的身份资源</el-button>
+            <el-button type="primary" @click="addIdentityResource">添加新的Api作用域</el-button>
         </div>
         <el-table :data="pagination.items" style="width: 100%" stripe>
             <el-table-column type="expand">
@@ -41,11 +41,6 @@
                     <el-tag v-if="scope.row.showInDiscoveryDocument" size="medium">是</el-tag>
                 </template>
             </el-table-column>
-            <el-table-column label="不可修改" prop="nonEditable">
-                <template slot-scope="scope">
-                    <el-tag v-if="scope.row.nonEditable" size="medium">是</el-tag>
-                </template>
-            </el-table-column>
             <el-table-column label="操作" fixed='right'>
                 <template slot-scope="scope">
                     <el-button size="mini" @click="editIdentityResource(scope.row.id)">编辑</el-button>
@@ -55,19 +50,19 @@
         <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pagination.pageIndex" :page-sizes="[20, 40, 50, 100]" :page-size="pagination.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="pagination.totalCount">
         </el-pagination>
 
-        <el-drawer title="身份资源管理" :visible.sync="identityResourceDrawer" :with-header="true" :size="800">
-            <IdentityResourceForm ref="IdentityResourceForm" @onSave="afterSave" />
+        <el-drawer title="api 作用域管理" :visible.sync="apiScopeDrawer" :with-header="true" :size="800">
+            <ApiScopeForm ref="ApiScopeForm" @onSave="afterSave" />
         </el-drawer>
     </div>
 </template>
 
 <script>
-import { getIdentityResourcePage } from '../../../net/admin.js'
-import IdentityResourceForm from './IdentityResourceForm.vue'
+import { getApiScopePage } from '../../../net/admin.js'
+import ApiScopeForm from './ApiScopeForm.vue'
 
 export default {
     components: {
-        IdentityResourceForm
+        ApiScopeForm
     },
     data() {
         return {
@@ -79,51 +74,45 @@ export default {
                 items: []
             },
             currentId: '',
-            identityResourceDrawer: false
+            apiScopeDrawer: false
         };
     },
+    computed: {},
+    watch: {},
     methods: {
         handleCurrentChange(page) {
             this.pagination.pageIndex = page
-            this.getIdentityResourcePage();
+            this.getApiScopePage();
         },
         handleSizeChange(size) {
             this.pagination.pageSize = size
-            this.getIdentityResourcePage();
+            this.getApiScopePage();
         },
-        getIdentityResourcePage() {
-            getIdentityResourcePage(this.pagination).then(res => {
+        getApiScopePage() {
+            getApiScopePage(this.pagination).then(res => {
                 this.pagination = res.data
+                console.log(this.pagination);
             })
         },
         editIdentityResource(id) {
             this.currentId = id
-            this.identityResourceDrawer = true
+            this.apiScopeDrawer = true
             this.$nextTick(() => {
-                this.$refs["IdentityResourceForm"].load(this.currentId)
+                this.$refs["ApiScopeForm"].load(this.currentId)
             })
         },
         afterSave() {
-            this.identityResourceDrawer = false
-            this.getIdentityResourcePage()
+            this.apiScopeDrawer = false
+            this.getApiScopePage()
         },
         addIdentityResource() {
-            this.identityResourceDrawer = true
+            this.apiScopeDrawer = true
         }
     },
     beforeMount() {
-        this.getIdentityResourcePage()
+        this.getApiScopePage()
     },
 }
 </script>
 <style scoped>
-.el-form-item label {
-    width: 90px;
-    color: #bf99ae;
-    font-size: 0;
-}
-
-.el-form-item .el-tag + .el-tag {
-    margin-left: 10px;
-}
 </style>

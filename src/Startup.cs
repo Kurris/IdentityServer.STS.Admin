@@ -126,7 +126,7 @@ namespace IdentityServer.STS.Admin
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
-                    AllowedOrigins = new[] {"http://localhost:8080 "},
+                    AllowedOrigins = new[] { "http://localhost:8080 " },
                     AllowAll = false
                 };
             });
@@ -150,6 +150,9 @@ namespace IdentityServer.STS.Admin
             services.AddTransient<IConfigurationService, ConfigurationService>();
             services.AddTransient<IIdentityResourceService, IdentityResourceService>();
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
+            services.AddTransient<IApiResourceService, ApiResourceService>();
+            services.AddTransient<IApiScopeService, ApiScopeService>();
+            services.AddTransient<IClientService, ClientService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -163,7 +166,7 @@ namespace IdentityServer.STS.Admin
             }
 
             //chrome 内核 80版本 cookie策略问题
-            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
+            app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
 
             app.UseCors();
 

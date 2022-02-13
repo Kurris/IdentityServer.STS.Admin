@@ -131,40 +131,33 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             return await _identityDbContext.Users.AnyAsync(x => x.Id == id);
         }
 
-        public async Task<IEnumerable<RoleDto>> QueryUserRoles(string id)
+        public async Task<IEnumerable<Role>> QueryUserRoles(string id)
         {
             var user = await QueryUserByIdAsync(id);
             if (user == null)
-                return Enumerable.Empty<RoleDto>();
+                return Enumerable.Empty<Role>();
 
             var rows = await _identityDbContext.UserRoles.Where(x => x.UserId == id)
                 .GroupJoin(_identityDbContext.Roles,
                     ur => ur.RoleId, r => r.Id, (userRole, roles) => new {userRole, roles})
-                .SelectMany(x => x.roles.DefaultIfEmpty(), (userRoles, role) => new RoleDto
-                {
-                    Id = userRoles.userRole.RoleId,
-                    Name = role.Name
-                }).OrderBy(x => x.Name).ToListAsync();
+                .SelectMany(x => x.roles.DefaultIfEmpty(), (userRoles, role) => role)
+                .OrderBy(x => x.Name).ToListAsync();
 
             var query = from userRoles in _identityDbContext.UserRoles
                         where userRoles.UserId == id
                         join role in _identityDbContext.Roles on userRoles.RoleId equals role.Id into g
                         from n in g.DefaultIfEmpty()
-                        select new RoleDto
-                        {
-                            Id = userRoles.RoleId,
-                            Name = n.Name
-                        };
+                        select n;
 
             return await query.OrderBy(x => x.Name).ToListAsync();
-            // return rows;
         }
 
 
         public async Task<Pagination<UserProviderDto>> QueryUserProviderPage(UserProviderSearchInput input)
         {
             var pages = await _identityDbContext.UserLogins.Where(x => x.UserId == input.Id)
-                .GroupJoin(_identityDbContext.Users, ul => ul.UserId, u => u.Id, (login, users) => new {login, users})
+                .GroupJoin(_identityDbContext.Users,
+                ul => ul.UserId, u => u.Id, (login, users) => new {login, users})
                 .SelectMany(x => x.users.DefaultIfEmpty(), (x, y) => new UserProviderDto
                 {
                     UserId = y.Id,

@@ -12,6 +12,5 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
         Task<IdentityResource> QueryIdentityResource(int id);
 
         Task SaveIdentityResource(IdentityResource identityResource);
-
     }
 }

@@ -76,3 +76,92 @@ export const saveIdentityResource = data => {
 		data: data,
 	})
 }
+
+export const getApiResourcePage = data => {
+	return http({
+		url: 'api/configuration/ApiResource/page',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const getApiResourceById = data => {
+	return http({
+		url: 'api/configuration/apiResource',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const saveApiResource = data => {
+	return http({
+		url: 'api/configuration/apiResource',
+		method: 'post',
+		data: data,
+	})
+}
+
+export const getApiScopePage = data => {
+	return http({
+		url: 'api/configuration/apiScope/page',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const getApiScopeById = data => {
+	return http({
+		url: 'api/configuration/apiScope',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const saveApiScope = data => {
+	return http({
+		url: 'api/configuration/apiScope',
+		method: 'post',
+		data: data,
+	})
+}
+
+export const getRolePage = data => {
+	return http({
+		url: 'api/role/page',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const getRoleById = data => {
+	return http({
+		url: 'api/role',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const saveRole = data => {
+	return http({
+		url: 'api/role',
+		method: 'post',
+		data: data,
+	})
+}
+//
+
+export const getRoleUserPage = data => {
+	return http({
+		url: 'api/role/userPage',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const getClientPage = data => {
+	return http({
+		method: 'get',
+		url: 'api/configuration/client/page',
+		params: data,
+	})
+}

@@ -7,7 +7,7 @@
                         <div slot="header" class="clearfix">
                             <span><b>客户端</b></span>
                         </div>
-                        <el-button type="primary">管理</el-button>
+                        <el-button type="primary" @click="$router.push('/admin/client')">管理</el-button>
                     </el-card>
                 </el-col>
                 <el-col :span="colSpan" v-show="isAdmin">
@@ -23,7 +23,7 @@
                         <div slot="header" class="clearfix">
                             <span><b>Api 资源</b></span>
                         </div>
-                        <el-button type="primary">管理</el-button>
+                        <el-button type="primary" @click="$router.push('/admin/apiResource')">管理</el-button>
                     </el-card>
                 </el-col>
                 <el-col :span="colSpan" v-show="isAdmin">
@@ -31,16 +31,7 @@
                         <div slot="header" class="clearfix">
                             <span><b>Api 作用域</b></span>
                         </div>
-                        <el-button type="primary">管理</el-button>
-                    </el-card>
-                </el-col>
-
-                <el-col :span="colSpan" v-show="isAdmin">
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span><b>持久授权</b></span>
-                        </div>
-                        <el-button type="primary">管理</el-button>
+                        <el-button type="primary" @click="$router.push('/admin/apiScope')">管理</el-button>
                     </el-card>
                 </el-col>
 
@@ -58,18 +49,10 @@
                         <div slot="header" class="clearfix">
                             <span><b>角色</b></span>
                         </div>
-                        <el-button type="primary">管理</el-button>
+                        <el-button type="primary" @click="$router.push('/admin/role')">管理</el-button>
                     </el-card>
                 </el-col>
 
-                <el-col :span="colSpan" v-show="isAdmin">
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span><b>审计</b></span>
-                        </div>
-                        <el-button type="primary">管理</el-button>
-                    </el-card>
-                </el-col>
             </el-row>
             <el-result v-if="!isAdmin&&status" icon="error" title="权限限制" subTitle="您当前没有权限访问">
                 <template slot="extra">

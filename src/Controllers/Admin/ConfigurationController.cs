@@ -16,12 +16,21 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
     {
         private readonly IConfigurationService _configurationService;
         private readonly IIdentityResourceService _identityResourceService;
+        private readonly IApiResourceService _apiResourceService;
+        private readonly IApiScopeService _apiScopeService;
+        private readonly IClientService _clientService;
 
         public ConfigurationController(IConfigurationService configurationService
-            , IIdentityResourceService identityResourceService)
+            , IIdentityResourceService identityResourceService
+            , IApiResourceService apiResourceService
+            , IApiScopeService apiScopeService
+            , IClientService clientService)
         {
             _configurationService = configurationService;
             _identityResourceService = identityResourceService;
+            _apiResourceService = apiResourceService;
+            _apiScopeService = apiScopeService;
+            _clientService = clientService;
         }
 
         [HttpGet("claims")]
@@ -30,6 +39,8 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             return _configurationService.GetStandardClaims();
         }
 
+
+        #region identity resource
 
         [HttpGet("identityResource/page")]
         public async Task<Pagination<IdentityResource>> QueryIdentityResourcePage([FromQuery] IdentityResourcePageIn pageIn)
@@ -48,5 +59,67 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         {
             await _identityResourceService.SaveIdentityResource(identityResource);
         }
+
+        #endregion
+
+
+        #region api resource
+
+        [HttpGet("apiResource/page")]
+        public async Task<Pagination<ApiResource>> QueryApiResourcePage([FromQuery] ApiResourcePageIn pageIn)
+        {
+            return await _apiResourceService.QueryApiResourcePage(pageIn);
+        }
+
+
+        [HttpGet("apiResource")]
+        public async Task<ApiResource> QueryApiResource(int id)
+        {
+            var res = await _apiResourceService.QueryApiResource(id);
+            return res;
+        }
+
+        [HttpPost("apiResource")]
+        public async Task SaveApiResource(ApiResource apiResource)
+        {
+            await _apiResourceService.SaveApiResource(apiResource);
+        }
+
+        #endregion
+
+        #region api scope
+
+        [HttpGet("apiScope/page")]
+        public async Task<Pagination<ApiScope>> QueryApiScopePage([FromQuery] ApiScopePageIn pageIn)
+        {
+            return await _apiScopeService.QueryApiScopePage(pageIn);
+        }
+
+
+        [HttpGet("apiScope")]
+        public async Task<ApiScope> QueryApiScope(int id)
+        {
+            var res = await _apiScopeService.QueryApiScope(id);
+            return res;
+        }
+
+        [HttpPost("apiScope")]
+        public async Task SaveApiScope(ApiScope apiScope)
+        {
+            await _apiScopeService.SaveApiScope(apiScope);
+        }
+
+
+        #endregion
+
+        #region client
+
+        [HttpGet("client/page")]
+        public async Task<Pagination<Client>> QueryClientPage([FromQuery] ClientSearchPageIn pageIn)
+        {
+            return await _clientService.QueryClientPage(pageIn);
+        }
+
+        #endregion
     }
 }

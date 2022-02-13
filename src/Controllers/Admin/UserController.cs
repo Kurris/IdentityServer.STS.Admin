@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
@@ -40,7 +41,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         [HttpGet("roles")]
-        public async Task<IEnumerable<RoleDto>> QueryUserRoles(string id)
+        public async Task<IEnumerable<Role>> QueryUserRoles(string id)
         {
             return await _userService.QueryUserRoles(id);
         }

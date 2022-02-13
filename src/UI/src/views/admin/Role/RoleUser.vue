@@ -1,30 +1,20 @@
 <template>
-    <div id='client'>
-        <div style="text-align:left">
-            <el-button type="primary" @click="addClient">添加新的客户端</el-button>
-        </div>
+    <div id='roleUser'>
         <el-table :data="pagination.items" style="width: 100%" stripe>
-            <el-table-column label="客户端标识" prop="clientId">
+            <el-table-column label="角色标识" prop="id" width="320px">
             </el-table-column>
-            <el-table-column label="客户端名称" prop="clientName">
+            <el-table-column label="用户名称" prop="userName">
             </el-table-column>
-            <el-table-column label="操作" fixed='right'>
-                <template slot-scope="scope">
-                    <el-button size="mini" @click="editClient(scope.row.id)">编辑</el-button>
-                </template>
+            <el-table-column label="邮件地址" prop="email">
             </el-table-column>
         </el-table>
         <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pagination.pageIndex" :page-sizes="[20, 40, 50, 100]" :page-size="pagination.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="pagination.totalCount">
         </el-pagination>
-
-        <el-drawer title="客户端管理" :visible.sync="clientDrawer" :with-header="true" :size="800">
-
-        </el-drawer>
     </div>
 </template>
 
 <script>
-import { getClientPage } from '../../../net/admin.js'
+import { getRoleUserPage } from '../../../net/admin.js'
 
 export default {
     components: {},
@@ -37,34 +27,31 @@ export default {
                 totalPagee: 0,
                 items: []
             },
-            clientDrawer: false
+            currentId: ''
         };
     },
+    computed: {},
+    watch: {},
     methods: {
         handleCurrentChange(page) {
             this.pagination.pageIndex = page
-            this.getClientPage();
+            this.getRoleUserPage();
         },
         handleSizeChange(size) {
             this.pagination.pageSize = size
-            this.getClientPage();
+            this.getRoleUserPage();
         },
-        getClientPage() {
-            getClientPage(this.pagination).then(res => {
+        getRoleUserPage() {
+            this.pagination.roleId = this.currentId
+            getRoleUserPage(this.pagination).then(res => {
                 this.pagination = res.data
                 console.log(this.pagination);
             })
         },
-        addClient() {
-
-        },
-        editClient(id) {
-            console.log(id);
-            this.clientDrawer = true
+        load(id) {
+            this.currentId = id
+            this.getRoleUserPage()
         }
-    },
-    beforeMount() {
-        this.getClientPage()
     },
 }
 </script>

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 
@@ -54,7 +55,7 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<IEnumerable<RoleDto>> QueryUserRoles(string id);
+        Task<IEnumerable<Role>> QueryUserRoles(string id);
 
         /// <summary>
         /// 用户外部提供器

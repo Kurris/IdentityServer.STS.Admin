@@ -33,7 +33,8 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         {
             return await _idsConfigurationDbContext.IdentityResources
                 .Include(x => x.Properties)
-                .Include(x => x.UserClaims).AsNoTracking()
+                .Include(x => x.UserClaims)
+                .AsNoTracking()
                 .FirstAsync(x => x.Id == id);
         }
 

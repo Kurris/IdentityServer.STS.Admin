@@ -1,6 +1,6 @@
 <template>
     <div id='identityResourceForm'>
-        <el-form ref="form" label-position="right" :model="form" label-width="150px">
+        <el-form ref="identityResourceForm" label-position="right" :model="form" label-width="150px">
             <el-form-item label="是否启用">
                 <el-switch v-model="form.enabled" :active-value="true" :inactive-value="false" />
             </el-form-item>
@@ -20,12 +20,10 @@
                 <el-switch v-model="form.emphasize" :active-value="true" :inactive-value="false" />
             </el-form-item>
             <el-form-item label="显示在发现文档">
-                <el-switch v-model="form.showInDiscoveryDocument" :active-value="true"
-                    :inactive-value="false" />
+                <el-switch v-model="form.showInDiscoveryDocument" :active-value="true" :inactive-value="false" />
             </el-form-item>
             <el-form-item label="不可修改">
-                <el-switch v-model="form.nonEditable" :active-value="true"
-                    :inactive-value="false" />
+                <el-switch v-model="form.nonEditable" :active-value="true" :inactive-value="false" />
             </el-form-item>
             <el-form-item label="身份声明">
                 <div class="userClaims">
@@ -41,13 +39,9 @@
                         </el-tag>
                     </template>
 
-                    <el-select v-focus v-if="newClaimsVisible" v-model="newClaimsValue" filterable
-                        @keyup.enter.native="handleInputConfirm" allow-create default-first-option
-                        placeholder="请选择身份声明" @change="handleInputConfirm"
-                        @focus="getStandardClaims">
+                    <el-select v-focus v-if="newClaimsVisible" v-model="newClaimsValue" filterable @keyup.enter.native="handleInputConfirm" allow-create default-first-option placeholder="请选择身份声明" @change="handleInputConfirm" @focus="getStandardClaims">
 
-                        <el-option v-for="item in standardClaims" :key="item" :label="item"
-                            :value="item">
+                        <el-option v-for="item in standardClaims" :key="item" :label="item" :value="item">
                         </el-option>
                     </el-select>
                     <el-button v-else class="button-new-tag" size="small" @click="showInput">
@@ -148,7 +142,6 @@ export default {
 #identityResourceForm {
     text-align: left;
 }
-
 
 .el-tag + .el-tag {
     margin-left: 10px;

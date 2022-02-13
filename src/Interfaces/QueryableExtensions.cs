@@ -35,8 +35,11 @@ namespace IdentityServer.STS.Admin.Interfaces
 
         public static async Task<Pagination<T>> ToPagination<T>(this IQueryable<T> query, PageIn pageInput) where T : class, new()
         {
-            var total = await query.CountAsync();
-            var items = await query.Skip((pageInput.PageIndex - 1) * pageInput.PageSize).Take(pageInput.PageSize).ToListAsync();
+            var total = await query.AsNoTracking().CountAsync();
+            var items = await query.Skip((pageInput.PageIndex - 1) * pageInput.PageSize)
+                .Take(pageInput.PageSize)
+                .AsNoTracking()
+                .ToListAsync();
 
             return new Pagination<T>
             {
