@@ -8,5 +8,9 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
     public interface IClientService
     {
         Task<Pagination<Client>> QueryClientPage(ClientSearchPageIn pageIn);
+
+        Task SaveClient(ClientInput client);
+
+        Task<Client> QueryClientById(int id);
     }
 }

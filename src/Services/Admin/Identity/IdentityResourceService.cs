@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.DbContexts;
@@ -8,7 +7,6 @@ using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using IdentityServer4.EntityFramework.Entities;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Math.EC.Rfc7748;
 
 namespace IdentityServer.STS.Admin.Services.Admin.Identity
 {
@@ -51,10 +49,10 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 var claims = await _idsConfigurationDbContext.IdentityClaims.Where(x => x.IdentityResource.Id == identityResource.Id).ToListAsync();
                 _idsConfigurationDbContext.IdentityClaims.RemoveRange(claims);
 
-                var properites = await _idsConfigurationDbContext.IdentityResourceProperties.Where(x => x.IdentityResourceId == identityResource.Id).ToListAsync();
-                _idsConfigurationDbContext.IdentityResourceProperties.RemoveRange(properites);
+                var properties = await _idsConfigurationDbContext.IdentityResourceProperties.Where(x => x.IdentityResourceId == identityResource.Id).ToListAsync();
+                _idsConfigurationDbContext.IdentityResourceProperties.RemoveRange(properties);
 
-                 _idsConfigurationDbContext.IdentityResources.Update(identityResource);
+                _idsConfigurationDbContext.IdentityResources.Update(identityResource);
             }
 
             await _idsConfigurationDbContext.SaveChangesAsync();

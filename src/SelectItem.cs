@@ -1,15 +1,15 @@
 namespace IdentityServer.STS.Admin
 {
-    public class SelectItem
+    public class SelectItem<TId, TText>
     {
-        public SelectItem(string id, string text)
+        public SelectItem(TId id, TText text)
         {
             Id = id;
             Text = text;
         }
 
-        public string Id { get; set; }
+        public TId Id { get; set; }
 
-        public string Text { get; set; }
+        public TText Text { get; set; }
     }
 }

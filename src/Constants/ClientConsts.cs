@@ -63,6 +63,6 @@ namespace IdentityServer.STS.Admin.Constants
                 "ES512"
             };
 
-        public static List<SelectItem> ProtocolTypes => new List<SelectItem> {new SelectItem("oidc", "OpenID Connect")};
+        public static List<SelectItem<string, string>> ProtocolTypes => new List<SelectItem<string, string>> {new SelectItem<string, string>("oidc", "OpenID Connect")};
     }
 }

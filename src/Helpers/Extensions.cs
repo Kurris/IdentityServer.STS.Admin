@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using IdentityServer.STS.Admin.Configuration;
@@ -117,7 +120,7 @@ namespace IdentityServer.STS.Admin.Helpers
                 //.AddScoped<ApplicationSignInManager<TUser>>() //用户登录管理器
                 .AddIdentity<TUser, TRole>() //用户 角色
                 .AddEntityFrameworkStores<TIdentityDbContext>() //aspnetcore user 操作
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders(); //token生成，验证 提供器
 
             //配置cookie
             services.Configure<CookiePolicyOptions>(options =>

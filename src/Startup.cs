@@ -61,22 +61,13 @@ namespace IdentityServer.STS.Admin
             //options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
             //options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
             //options.UserInteraction.ConsentUrl = "http://localhost:8080/consent";
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.Events.OnRedirectToLogin = async op =>
-                {
-                    op.RedirectUri = " http://localhost:8080/signIn";
-                    await Task.CompletedTask;
-                };
-                //options.LoginPath = "http://localhost:8080/signIn";
-                //options.LogoutPath = "http://localhost:8080/logout";
-                //options.AccessDeniedPath = "http://localhost:8080/error";
-            });
 
             //配置本地登录cookie过期跳转到登录界面
             services.ConfigureApplicationCookie(options =>
             {
-                options.ExpireTimeSpan = TimeSpan.FromDays(15);
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                options.SlidingExpiration = true;
+
                 options.Events.OnRedirectToLogin = async context =>
                 {
                     var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
@@ -126,7 +117,7 @@ namespace IdentityServer.STS.Admin
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
-                    AllowedOrigins = new[] { "http://localhost:8080 " },
+                    AllowedOrigins = new[] {"http://localhost:8080 "},
                     AllowAll = false
                 };
             });
@@ -166,7 +157,7 @@ namespace IdentityServer.STS.Admin
             }
 
             //chrome 内核 80版本 cookie策略问题
-            app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.Lax });
+            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
 
             app.UseCors();
 

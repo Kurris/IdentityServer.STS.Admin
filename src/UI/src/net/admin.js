@@ -165,3 +165,26 @@ export const getClientPage = data => {
 		params: data,
 	})
 }
+
+export const getClientById = data => {
+	return http({
+		method: 'get',
+		url: 'api/configuration/client',
+		params: data,
+	})
+}
+
+export const saveClient = data => {
+	return http({
+		method: 'post',
+		url: 'api/configuration/client',
+		data: data,
+	})
+}
+
+export const getClientType = () => {
+	return http({
+		method: 'get',
+		url: 'api/configuration/client/types',
+	})
+}

@@ -109,7 +109,6 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             await _apiScopeService.SaveApiScope(apiScope);
         }
 
-
         #endregion
 
         #region client
@@ -118,6 +117,25 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         public async Task<Pagination<Client>> QueryClientPage([FromQuery] ClientSearchPageIn pageIn)
         {
             return await _clientService.QueryClientPage(pageIn);
+        }
+
+        [HttpGet("client")]
+        public async Task<Client> QueryClientById(int id)
+        {
+            return await _clientService.QueryClientById(id);
+        }
+
+        [HttpPost("client")]
+        public async Task SaveClient(ClientInput client)
+        {
+            await _clientService.SaveClient(client);
+        }
+
+
+        [HttpGet("client/Types")]
+        public IEnumerable<SelectItem<int, string>> QueryClientSelection()
+        {
+            return EnumEx.GetEnumTypes<ClientType>();
         }
 
         #endregion
