@@ -188,3 +188,36 @@ export const getClientType = () => {
 		url: 'api/configuration/client/types',
 	})
 }
+
+export const getProtocolTypes = () => {
+	return http({
+		url: 'api/configuration/protocolTypes',
+		method: 'get',
+	})
+}
+export const getGrantTypes = () => {
+	return http({
+		url: 'api/configuration/grantTypes',
+		method: 'get',
+	})
+}
+
+export const getScopes = () => {
+	return http({
+		url: 'api/configuration/scopes',
+		method: 'get',
+	})
+}
+
+export const getAccessTokenTypes = () => {
+	return http({
+		url: 'api/configuration/accessTokenTypes',
+		method: 'get',
+	})
+}
+export const getTokenExpirations = () => {
+	return http({
+		url: 'api/configuration/tokenExpirations',
+		method: 'get',
+	})
+}

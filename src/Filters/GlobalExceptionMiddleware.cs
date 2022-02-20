@@ -27,7 +27,6 @@ namespace IdentityServer.STS.Admin.Filters
                 {
 
                 }
-
             }
             catch (Exception ex)
             {

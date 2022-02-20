@@ -38,7 +38,7 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<IEnumerable<GrantOutputModel>>> GetGrants()
         {
             var grants = await _interaction.GetAllUserGrantsAsync();
-
+            
             var list = new List<GrantOutputModel>();
             foreach (var grant in grants)
             {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.Constants;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
@@ -39,6 +40,37 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             return _configurationService.GetStandardClaims();
         }
 
+        [HttpGet("protocolTypes")]
+        public IEnumerable<SelectItem<string, string>> GetProtocolTypes()
+        {
+            return ClientConst.ProtocolTypes;
+        }
+
+
+        [HttpGet("grantTypes")]
+        public IEnumerable<string> GetGrantTypes()
+        {
+            return ClientConst.GrantTypes;
+        }
+
+
+        [HttpGet("scopes")]
+        public async Task<IEnumerable<string>> GetScopesAsync()
+        {
+            return await _clientService.GetScopesAsync();
+        }
+
+        [HttpGet("accessTokenTypes")]
+        public  IEnumerable<SelectItem<int,string>> GetAccessTokenTypes()
+        {
+          return  EnumEx.GetEnumTypes<IdentityServer4.Models.AccessTokenType>();
+        }
+
+        [HttpGet("tokenExpirations")]
+        public IEnumerable<SelectItem<int, string>> GetTokenExpirations()
+        {
+            return EnumEx.GetEnumTypes<IdentityServer4.Models.TokenExpiration>();
+        }
 
         #region identity resource
 
@@ -136,6 +168,18 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         public IEnumerable<SelectItem<int, string>> QueryClientSelection()
         {
             return EnumEx.GetEnumTypes<ClientType>();
+        }
+
+        [HttpPost("clientSecret")]
+        public async Task AddClientSecret(ClientSecretInput input)
+        {
+            await _clientService.AddSecret(input);
+        }
+
+        [HttpDelete("clientSecret")]
+        public async Task RemoveClientSecret(int id)
+        {
+            await _clientService.DeleteSecre(id);
         }
 
         #endregion

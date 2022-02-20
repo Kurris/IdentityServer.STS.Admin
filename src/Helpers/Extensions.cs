@@ -88,7 +88,12 @@ namespace IdentityServer.STS.Admin.Helpers
             //aspnet core identity 用户操作
             services.AddDbContext<TIdentityDbContext>((provider, options) =>
             {
-                options.UseMySql(identityConnectionString, builder => { builder.MigrationsAssembly(migrationsAssembly); });
+                options.UseMySql(identityConnectionString, builder =>
+                {
+                    builder.MigrationsAssembly(migrationsAssembly);
+                    builder.EnableRetryOnFailure();
+                });
+                options.EnableSensitiveDataLogging();
                 var loggerFactory = provider.GetService<ILoggerFactory>();
                 options.UseLoggerFactory(loggerFactory);
             });
