@@ -1,0 +1,3 @@
+# IdentityServer.STS.Admin
+Identity server 4 的SPA 实现,可能是全网唯一一个
+待完善前端界面...
