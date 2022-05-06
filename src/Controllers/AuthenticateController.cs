@@ -277,7 +277,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 var dic = new Dictionary<string, string>()
                 {
-                    ["userId"] = user.Id,
+                    ["userId"] = user.Id.ToString(),
                     ["code"] = code
                 };
 
@@ -377,7 +377,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 //账号密码验证成功
                 if (result.Succeeded)
                 {
-                    await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+                    await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
 
                     if (context != null)
                     {
@@ -835,7 +835,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 //url query
                 var dic = new Dictionary<string, string>()
                 {
-                    ["userId"] = user.Id,
+                    ["userId"] = user.Id.ToString(),
                     ["code"] = code,
                     ["email"] = user.Email,
                 };

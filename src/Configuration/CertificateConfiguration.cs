@@ -1,5 +1,8 @@
 namespace IdentityServer.STS.Admin.Configuration
 {
+    /// <summary>
+    /// 证书配置
+    /// </summary>
     public class CertificateConfiguration
     {
         public bool UseTemporarySigningKeyForDevelopment { get; set; }

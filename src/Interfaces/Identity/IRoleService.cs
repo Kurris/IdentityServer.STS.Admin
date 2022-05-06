@@ -10,12 +10,12 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
     {
         Task<IEnumerable<Role>> QueryRolesAsync();
         Task<Pagination<Role>> QueryRolePageAsync(RoleSearchInput input);
-        Task<Role> QueryRoleByIdAsync(string id);
+        Task<Role> QueryRoleByIdAsync(int id);
         Task SaveRole(Role role);
 
         Task<Pagination<User>> QueryRoleUserPage(RoleUserSearchPageIn pageIn);
 
          Task<bool> ExistsRoleAsync(Role dto);
-        Task<bool> ExistsRoleAsync(string id);
+        Task<bool> ExistsRoleAsync(int id);
     }
 }

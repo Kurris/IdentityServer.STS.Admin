@@ -2,8 +2,14 @@ using System.Collections.Generic;
 
 namespace IdentityServer.STS.Admin.Constants
 {
+    /// <summary>
+    /// 客户端相关常量
+    /// </summary>
     public class ClientConst
     {
+        /// <summary>
+        /// 密钥类型
+        /// </summary>
         public static List<string> SecretTypes =>
             new List<string>
             {
@@ -14,10 +20,13 @@ namespace IdentityServer.STS.Admin.Constants
             };
 
         /// <summary>
+        /// 标准claims
+        /// <remarks>
         /// http://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+        /// </remarks>
         /// </summary>
         /// <returns></returns>
-        public static List<string> StandardClaims =>
+        public static IEnumerable<string> StandardClaims =>
             new List<string>
             {
                 "name",
@@ -37,7 +46,10 @@ namespace IdentityServer.STS.Admin.Constants
                 "updated_at"
             };
 
-        public static List<string> GrantTypes =>
+        /// <summary>
+        /// 授权类型
+        /// </summary>
+        public static IEnumerable<string> GrantTypes =>
             new List<string>
             {
                 "implicit",
@@ -49,6 +61,9 @@ namespace IdentityServer.STS.Admin.Constants
                 "delegation"
             };
 
+        /// <summary>
+        /// 签名算法
+        /// </summary>
         public static List<string> SigningAlgorithms =>
             new List<string>
             {
@@ -63,9 +78,13 @@ namespace IdentityServer.STS.Admin.Constants
                 "ES512"
             };
 
-        public static List<SelectItem<string, string>> ProtocolTypes => new List<SelectItem<string, string>>
-        {
+        /// <summary>
+        /// 协议类型
+        /// </summary>
+        public static IEnumerable<SelectItem<string, string>> ProtocolTypes =>
+            new List<SelectItem<string, string>>
+            {
                 new SelectItem<string, string>("oidc", "OpenID Connect")
-        };
+            };
     }
 }

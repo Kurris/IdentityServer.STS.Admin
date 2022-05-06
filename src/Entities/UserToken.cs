@@ -7,7 +7,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// 用户令牌
     /// </summary>
     [Table("UserTokens")]
-    public class UserToken : IdentityUserToken<string>
+    public class UserToken : IdentityUserToken<int>
     {
     }
 }

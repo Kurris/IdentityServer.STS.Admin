@@ -7,7 +7,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// 用户外部登录
     /// </summary>
     [Table("UserLogins")]
-    public class UserLogin : IdentityUserLogin<string>
+    public class UserLogin : IdentityUserLogin<int>
     {
     }
 }

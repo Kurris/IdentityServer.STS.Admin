@@ -20,7 +20,7 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<UserDto> QueryUserByIdAsync(string id);
+        Task<UserDto> QueryUserByIdAsync(int id);
 
         /// <summary>
         /// 更新用户信息
@@ -48,14 +48,14 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<bool> ExistsUserAsync(string id);
+        Task<bool> ExistsUserAsync(int id);
 
         /// <summary>
         /// 用户角色
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<IEnumerable<Role>> QueryUserRoles(string id);
+        Task<IEnumerable<Role>> QueryUserRoles(int id);
 
         /// <summary>
         /// 用户外部提供器

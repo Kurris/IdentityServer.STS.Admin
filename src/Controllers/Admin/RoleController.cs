@@ -38,7 +38,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
 
 
         [HttpGet]
-        public async Task<Role> QueryRole(string id)
+        public async Task<Role> QueryRole(int id)
         {
             return await _roleService.QueryRoleByIdAsync(id);
         }

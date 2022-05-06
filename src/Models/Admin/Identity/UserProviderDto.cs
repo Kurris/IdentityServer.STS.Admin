@@ -2,7 +2,7 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
 {
     public class UserProviderDto
     {
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         public string UserName { get; set; }
 

@@ -7,7 +7,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// 角色声明
     /// </summary>
     [Table("RoleClaims")]
-    public class RoleClaim : IdentityRoleClaim<string>
+    public class RoleClaim : IdentityRoleClaim<int>
     {
     }
 }

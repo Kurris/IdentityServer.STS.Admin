@@ -23,7 +23,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
 
 
         [HttpGet]
-        public async Task<UserDto> QueryUserById(string id)
+        public async Task<UserDto> QueryUserById(int id)
         {
             return await _userService.QueryUserByIdAsync(id);
         }
@@ -41,7 +41,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         [HttpGet("roles")]
-        public async Task<IEnumerable<Role>> QueryUserRoles(string id)
+        public async Task<IEnumerable<Role>> QueryUserRoles(int id)
         {
             return await _userService.QueryUserRoles(id);
         }

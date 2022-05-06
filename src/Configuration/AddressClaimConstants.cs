@@ -1,11 +1,33 @@
 ﻿namespace IdentityServer.STS.Admin.Configuration
 {
+    /// <summary>
+    /// 地址claim常量
+    /// </summary>
     public class AddressClaimConstants
     {
-        public static readonly string StreetAddress = "street_address";
-        public static readonly string Locality = "locality";
-        public static readonly string Region = "region";
-        public static readonly string PostalCode = "postal_code";
-        public static readonly string Country = "country";
+        /// <summary>
+        /// 街道地址
+        /// </summary>
+        public const string StreetAddress = "street_address";
+
+        /// <summary>
+        /// 地区
+        /// </summary>
+        public const string Locality = "locality";
+
+        /// <summary>
+        /// 地区
+        /// </summary>
+        public const string Region = "region";
+
+        /// <summary>
+        /// 邮政编码
+        /// </summary>
+        public const string PostalCode = "postal_code";
+
+        /// <summary>
+        /// 国家
+        /// </summary>
+        public const string Country = "country";
     }
 }

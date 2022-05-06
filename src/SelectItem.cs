@@ -8,8 +8,8 @@ namespace IdentityServer.STS.Admin
             Text = text;
         }
 
-        public TId Id { get; set; }
+        public TId Id { get; }
 
-        public TText Text { get; set; }
+        public TText Text { get; }
     }
 }

@@ -11,7 +11,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// </remarks>
     /// </summary>
     [Table("Users")]
-    public class User : IdentityUser
+    public class User : IdentityUser<int>
     {
     }
 }

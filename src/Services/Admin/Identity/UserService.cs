@@ -45,7 +45,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             return pagination;
         }
 
-        public async Task<UserDto> QueryUserByIdAsync(string id)
+        public async Task<UserDto> QueryUserByIdAsync(int id)
         {
             var user = await _identityDbContext.Users.FindAsync(id);
             if (user == null)
@@ -68,7 +68,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task UpdateUserAsync(UserDto dto)
         {
-            if (string.IsNullOrEmpty(dto.Id))
+            if (dto.Id <= 0)
                 throw new Exception("用户标识不能为空");
 
             var user = await _identityDbContext.Users.FindAsync(dto.Id);
@@ -90,7 +90,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task AddUserAsync(UserDto dto)
         {
-            if (!string.IsNullOrEmpty(dto.Id))
+            if (dto.Id <= 0)
                 throw new Exception("用户标识有误");
 
             if (await ExistsUserAsync(new UserExistsIn
@@ -126,12 +126,12 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             return exist;
         }
 
-        public async Task<bool> ExistsUserAsync(string id)
+        public async Task<bool> ExistsUserAsync(int id)
         {
             return await _identityDbContext.Users.AnyAsync(x => x.Id == id);
         }
 
-        public async Task<IEnumerable<Role>> QueryUserRoles(string id)
+        public async Task<IEnumerable<Role>> QueryUserRoles(int id)
         {
             var user = await QueryUserByIdAsync(id);
             if (user == null)
@@ -157,7 +157,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         {
             var pages = await _identityDbContext.UserLogins.Where(x => x.UserId == input.Id)
                 .GroupJoin(_identityDbContext.Users,
-                ul => ul.UserId, u => u.Id, (login, users) => new {login, users})
+                    ul => ul.UserId, u => u.Id, (login, users) => new {login, users})
                 .SelectMany(x => x.users.DefaultIfEmpty(), (x, y) => new UserProviderDto
                 {
                     UserId = y.Id,

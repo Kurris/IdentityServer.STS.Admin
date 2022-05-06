@@ -7,7 +7,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// 用户角色
     /// </summary>
     [Table("UserRoles")]
-    public class UserRole : IdentityUserRole<string>
+    public class UserRole : IdentityUserRole<int>
     {
     }
 }

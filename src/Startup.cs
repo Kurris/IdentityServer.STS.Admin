@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.DependencyInjection;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer4.Extensions;
 using Newtonsoft.Json;
@@ -54,13 +55,8 @@ namespace IdentityServer.STS.Admin
                 , IdsPersistedGrantDbContext
                 , IdsDataProtectionDbContext>(Configuration);
 
-            services.AddAspNetIdentityAuthenticationServices<IdentityDbContext, User, Role>(Configuration);
-            services.AddIdentityServer<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
-
-            //options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
-            //options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
-            //options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
-            //options.UserInteraction.ConsentUrl = "http://localhost:8080/consent";
+            services.AddAspIdentity<IdentityDbContext, User, Role>(Configuration);
+            services.AddIdentityServer4<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
 
             //配置本地登录cookie过期跳转到登录界面
             services.ConfigureApplicationCookie(options =>

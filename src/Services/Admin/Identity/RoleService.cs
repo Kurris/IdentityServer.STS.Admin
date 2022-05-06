@@ -32,7 +32,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .ToPagination(input);
         }
 
-        public async Task<Role> QueryRoleByIdAsync(string id)
+        public async Task<Role> QueryRoleByIdAsync(int id)
         {
             var role = await _identityDbContext.Roles.FindAsync(id);
             return role;
@@ -57,7 +57,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             return await _identityDbContext.Roles.AnyAsync(x => x.Id == role.Id);
         }
 
-        public async Task<bool> ExistsRoleAsync(string id)
+        public async Task<bool> ExistsRoleAsync(int id)
         {
             return await _identityDbContext.Roles.AnyAsync(x => x.Id == id);
         }

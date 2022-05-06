@@ -6,7 +6,7 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
     {
         public int ClaimId { get; set; }
 
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         [Required]
         public string ClaimType { get; set; }

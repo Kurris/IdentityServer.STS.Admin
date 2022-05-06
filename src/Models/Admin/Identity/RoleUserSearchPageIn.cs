@@ -2,7 +2,7 @@
 {
     public class RoleUserSearchPageIn: PageIn
     {
-        public string RoleId { get; set; }
+        public int RoleId { get; set; }
 
     }
 }

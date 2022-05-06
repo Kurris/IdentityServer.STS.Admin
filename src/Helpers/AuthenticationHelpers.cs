@@ -28,10 +28,7 @@ namespace IdentityServer.STS.Admin.Helpers
                 return true;
 
 
-            if (userAgent.Contains("Chome/5") || userAgent.Contains("Chome/6"))
-                return true;
-
-            return false;
+            return userAgent.Contains("Chome/5") || userAgent.Contains("Chome/6");
         }
     }
 }

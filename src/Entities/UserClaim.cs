@@ -7,7 +7,7 @@ namespace IdentityServer.STS.Admin.Entities
     /// 用户声明
     /// </summary>
     [Table("UserClaims")]
-    public class UserClaim : IdentityUserClaim<string>
+    public class UserClaim : IdentityUserClaim<int>
     {
     }
 }

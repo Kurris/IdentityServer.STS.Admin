@@ -6,7 +6,7 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
 {
     public class UserDto
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         [Required(ErrorMessage = "用户名不能为空")]
         public string Username { get; set; }
