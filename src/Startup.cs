@@ -4,7 +4,6 @@ using IdentityServer4.Services;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Helpers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -14,11 +13,11 @@ using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.DependencyInjection;
 using IdentityServer.STS.Admin.Models;
-using IdentityServer4.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using IdentityServer.STS.Admin.Filters;
 using IdentityServer.STS.Admin.Interfaces.Identity;
+using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -35,6 +34,7 @@ namespace IdentityServer.STS.Admin
         public IWebHostEnvironment Environment { get; }
         public IConfiguration Configuration { get; }
 
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -47,6 +47,19 @@ namespace IdentityServer.STS.Admin
                         .AllowAnyMethod()
                         .AllowCredentials();
                 });
+            });
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add<ExceptionFilter>();
+                options.Filters.Add<ModelValidateFilter>();
+            });
+
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
             //数据访问层,非ids4操作
@@ -66,11 +79,11 @@ namespace IdentityServer.STS.Admin
 
                 options.Events.OnRedirectToLogin = async context =>
                 {
-                    var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                    var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>
                     {
                         Code = 302,
                         Msg = "登录失败",
-                        Data = "http://localhost:8080/signIn"
+                        Data = $"{Configuration.GetSection("FrontendBaseUrl").Value}/signIn"
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -93,7 +106,7 @@ namespace IdentityServer.STS.Admin
                     {
                         Code = 403,
                         Msg = "无权访问",
-                        Data = "http://localhost:8080/accessDenied"
+                        Data = $"{Configuration.GetSection("FrontendBaseUrl").Value}/accessDenied"
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -108,34 +121,26 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
+            //IdentityServer4 Cors
             services.AddSingleton<ICorsPolicyService>(provider =>
             {
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
-                    AllowedOrigins = new[] {"http://localhost:8080 "},
+                    AllowedOrigins = new[] {Configuration.GetSection("FrontendBaseUrl").Value},
                     AllowAll = false
                 };
             });
 
-            services.AddMvc(options =>
-            {
-                options.Filters.Add<ExceptionFilter>();
-                options.Filters.Add<ModelValidateFilter>();
-            });
-            services.AddControllers().AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
-            });
-
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
+
+            //admin service registered
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IRoleService, RoleService>();
             services.AddSingleton<EmailService>();
             services.AddTransient<IConfigurationService, ConfigurationService>();
             services.AddTransient<IIdentityResourceService, IdentityResourceService>();
-            services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
+            services.AddTransient<IReturnUrlParser, CustomReturnUrlParser>();
             services.AddTransient<IApiResourceService, ApiResourceService>();
             services.AddTransient<IApiScopeService, ApiScopeService>();
             services.AddTransient<IClientService, ClientService>();
@@ -152,14 +157,14 @@ namespace IdentityServer.STS.Admin
             }
 
             //chrome 内核 80版本 cookie策略问题
-            app.UseCookiePolicy(new CookiePolicyOptions() {MinimumSameSitePolicy = SameSiteMode.Lax});
-
+            app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
             app.UseCors();
 
             app.UseIdentityServer();
-            //app.UseAuthentication();
 
             app.UseRouting();
+
+            //identity framework authoriza
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
@@ -9,5 +10,7 @@ namespace IdentityServer.STS.Admin.Entities
     [Table("UserClaims")]
     public class UserClaim : IdentityUserClaim<int>
     {
+        [Key]
+        public override int Id { get; set; }
     }
 }

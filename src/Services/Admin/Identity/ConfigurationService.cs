@@ -8,7 +8,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
     {
         public IEnumerable<string> GetStandardClaims()
         {
-            return ClientConst.StandardClaims;
+            return ClientConstants.StandardClaims;
         }
     }
 }

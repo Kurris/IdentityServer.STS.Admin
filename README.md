@@ -1,5 +1,5 @@
 # IdentityServer.STS.Admin
->SPA implemention from [Skoruba.IdentityServer4.Admin](https://github.com/skoruba/IdentityServer4.Admin)
+>SPA implementation from [Skoruba.IdentityServer4.Admin](https://github.com/skoruba/IdentityServer4.Admin)
 >includes Identityserver4 and Admin,thanks alot!
 
 to be continued

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace IdentityServer.STS.Admin.DbContexts
 {
     /// <summary>
-    /// identity server 4 持久数据层
+    /// IdentityServer4's persisted grant dbcontext
     /// </summary>
     public class IdsPersistedGrantDbContext : PersistedGrantDbContext<IdsPersistedGrantDbContext>, IIdsPersistedGrantDbContext
     {

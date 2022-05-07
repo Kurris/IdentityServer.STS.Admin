@@ -1,4 +1,5 @@
 using IdentityServer.STS.Admin.Configuration;
+using IdentityServer.STS.Admin.Constants;
 using IdentityServer.STS.Admin.Interfaces;
 using IdentityServer4.EntityFramework.Storage;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -26,10 +27,10 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             where TConfigurationDbContext : DbContext, IIdsConfigurationDbContext
             where TDataProtectionDbContext : DbContext, IDataProtectionKeyContext
         {
-            var identityConnectionString = configuration.GetConnectionString(ConfigurationConst.IdentityDbConnectionStringKey);
-            var configurationConnectionString = configuration.GetConnectionString(ConfigurationConst.ConfigurationDbConnectionStringKey);
-            var persistedGrantsConnectionString = configuration.GetConnectionString(ConfigurationConst.PersistedGrantDbConnectionStringKey);
-            var dataProtectionConnectionString = configuration.GetConnectionString(ConfigurationConst.DataProtectionDbConnectionStringKey);
+            var identityConnectionString = configuration.GetConnectionString(ConfigurationConstants.IdentityDbConnectionStringKey);
+            var configurationConnectionString = configuration.GetConnectionString(ConfigurationConstants.ConfigurationDbConnectionStringKey);
+            var persistedGrantsConnectionString = configuration.GetConnectionString(ConfigurationConstants.PersistedGrantDbConnectionStringKey);
+            var dataProtectionConnectionString = configuration.GetConnectionString(ConfigurationConstants.DataProtectionDbConnectionStringKey);
 
             var migrationsAssembly = "IdentityServer.STS.Admin";
 

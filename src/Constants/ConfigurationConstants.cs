@@ -1,6 +1,6 @@
-namespace IdentityServer.STS.Admin.Configuration
+namespace IdentityServer.STS.Admin.Constants
 {
-    public class ConfigurationConst
+    public class ConfigurationConstants
     {
         public const string AdminConnectionStringKey = "AdminConnection";
         

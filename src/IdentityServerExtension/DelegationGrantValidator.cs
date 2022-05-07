@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using IdentityServer4.Models;
 using IdentityServer4.Validation;
 
-namespace IdentityServer.STS.Admin
+namespace IdentityServer.STS.Admin.IdentityServerExtension
 {
     public class DelegationGrantValidator: IExtensionGrantValidator
     {
@@ -33,7 +33,7 @@ namespace IdentityServer.STS.Admin
                 return;
             }
 
-            // get user's identity
+            //get user's identity
             var sub = result.Claims.FirstOrDefault(c => c.Type == "sub").Value;
 
             context.Result = new GrantValidationResult(sub, GrantType);

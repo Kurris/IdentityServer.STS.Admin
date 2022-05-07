@@ -99,6 +99,14 @@ export const externalRegister = data => {
 	})
 }
 
+export const register = data => {
+	return http({
+		url: 'api/authenticate/accout/register',
+		method: 'post',
+		data: data,
+	})
+}
+
 export const getError = data => {
 	return http({
 		url: 'api/authenticate/error',

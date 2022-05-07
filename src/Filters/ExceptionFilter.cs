@@ -11,8 +11,8 @@ namespace IdentityServer.STS.Admin.Filters
         {
             context.Result = new ObjectResult(new ApiResult<string>
             {
-                 Code =500,
-                  Msg = context.Exception.GetBaseException().Message,
+                Code = 500,
+                Msg = context.Exception.GetBaseException().Message,
             });
             context.ExceptionHandled = true;
 

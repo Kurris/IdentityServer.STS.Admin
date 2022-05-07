@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using IdentityServer.STS.Admin.Models;
 
 namespace IdentityServer.STS.Admin.Constants
 {
     /// <summary>
     /// 客户端相关常量
     /// </summary>
-    public class ClientConst
+    public class ClientConstants
     {
         /// <summary>
         /// 密钥类型

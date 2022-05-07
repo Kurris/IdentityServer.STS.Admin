@@ -69,7 +69,6 @@ namespace IdentityServer.STS.Admin.Helpers
         /// </summary>
         /// <param name="subject"></param>
         /// <param name="content"></param>
-        /// <param name="fromAddress"></param>
         /// <param name="toAddresses"></param>
         /// <param name="attachments"></param>
         /// <param name="options"></param>

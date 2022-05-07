@@ -1,4 +1,4 @@
-﻿namespace IdentityServer.STS.Admin.Configuration
+﻿namespace IdentityServer.STS.Admin.Constants
 {
     /// <summary>
     /// 地址claim常量

@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using IdentityModel;
 using IdentityServer.STS.Admin.Configuration;
-using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
@@ -25,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using MimeKit;
 
 namespace IdentityServer.STS.Admin.Controllers
@@ -42,6 +42,8 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly EmailService _emailService;
+        private readonly IConfiguration _configuration;
+
 
         public AuthenticateController(IIdentityServerInteractionService interaction,
             IWebHostEnvironment environment
@@ -50,7 +52,8 @@ namespace IdentityServer.STS.Admin.Controllers
             , IEventService eventService
             , IClientStore clientStore
             , IAuthenticationSchemeProvider schemeProvider
-            , EmailService emailService)
+            , EmailService emailService
+            , IConfiguration configuration)
         {
             _interaction = interaction;
             _environment = environment;
@@ -60,7 +63,10 @@ namespace IdentityServer.STS.Admin.Controllers
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _emailService = emailService;
+            _configuration = configuration;
         }
+
+        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
 
         /// <summary>
@@ -126,8 +132,11 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        #region external
-
+        /// <summary>
+        /// 外部登录
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         [HttpPost("externalLogin")]
         [AllowAnonymous]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
@@ -142,13 +151,11 @@ namespace IdentityServer.STS.Admin.Controllers
 
         [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteRrror = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
-            if (!string.IsNullOrEmpty(remoteRrror))
+            if (!string.IsNullOrEmpty(remoteError))
             {
-                ModelState.AddModelError(string.Empty, $"外部提供程序出错{remoteRrror}");
-
-                //return new ApiResult<object> {Route = DefineRoute.Login};
+                throw new Exception($"外部提供程序出错{remoteError}");
             }
 
             if (!string.IsNullOrEmpty(returnUrl))
@@ -159,7 +166,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return Redirect("http://localhost:8080/signIn");
+                return Redirect($"{FrontendBaseUrl}/signIn");
             }
 
             // 如果用户已登录，请使用此外部登录提供程序登录用户。
@@ -209,11 +216,17 @@ namespace IdentityServer.STS.Admin.Controllers
             }
         }
 
-        [HttpPost("externalRegister")]
+        /// <summary>
+        /// 外部登录注册当前用户体系
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [AllowAnonymous]
-        public async Task<ApiResult<object>> ExternalLoginConfirmation(ExternalLoginConfirmationOutputModel model)
+        [HttpPost("externalRegister")]
+        public async Task<ApiResult<object>> ExternalLoginConfirmation(ExternalLoginConfirmationInput input)
         {
-            model.ReturnUrl ??= "/home";
+            input.ReturnUrl ??= "/home";
 
             //从外部登录提供器中获取用户的信息
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -227,8 +240,8 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var user = new User
             {
-                UserName = model.UserName,
-                Email = model.Email
+                UserName = input.UserName,
+                Email = input.Email
             };
 
             var result = await _userManager.CreateAsync(user);
@@ -239,12 +252,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    if (Url.IsLocalUrl(model.ReturnUrl))
+                    if (Url.IsLocalUrl(input.ReturnUrl))
                     {
-                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = model.ReturnUrl};
+                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = input.ReturnUrl};
                     }
 
-                    return new ApiResult<object>()
+                    return new ApiResult<object>
                     {
                         Route = DefineRoute.HomePage
                     };
@@ -254,14 +267,18 @@ namespace IdentityServer.STS.Admin.Controllers
             throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
 
-        #endregion
 
-
-        [HttpPost("accout/register")]
+        /// <summary>
+        /// 注册账号
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [AllowAnonymous]
+        [HttpPost("accout/register")]
         public async Task<ApiResult<object>> Register(RegisterInputModel model)
         {
-            model.ReturnUrl ??= "http://localhost:8080/siginIn";
+            model.ReturnUrl ??= $"{FrontendBaseUrl}/siginIn";
 
             var user = new User
             {
@@ -283,7 +300,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 using (var content = new FormUrlEncodedContent(dic))
                 {
-                    var callbackUrl = "http://localhot:8080/confirmEmail?" + await content.ReadAsStringAsync();
+                    var callbackUrl = $"{FrontendBaseUrl}/confirmEmail?" + await content.ReadAsStringAsync();
 
                     await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
                     return new ApiResult<object>()
@@ -294,7 +311,7 @@ namespace IdentityServer.STS.Admin.Controllers
             }
             else
             {
-                throw new Exception();
+                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
             }
         }
 
@@ -844,7 +861,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var queries = await content.ReadAsStringAsync();
                     //前端地址
-                    var callbackUrl = "http://localhost:8080/resetPassword?" + queries;
+                    var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
 
                     await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
                 }

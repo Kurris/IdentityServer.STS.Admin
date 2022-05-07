@@ -19,7 +19,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
     {
         private readonly IdsConfigurationDbContext _idsConfigurationDbContext;
 
-        private const string _sharedSecret = "SharedSecret";
+        private const string SharedSecret = "SharedSecret";
 
         public ClientService(IdsConfigurationDbContext idsConfigurationDbContext)
         {
@@ -34,7 +34,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         /// <param name="secret"></param>
         private void HashClientSharedSecret(ClientSecretInput secret)
         {
-            if (secret.Type != _sharedSecret) return;
+            if (secret.Type != SharedSecret) return;
 
             if (secret.HashType == HashType.Sha256)
                 secret.Value = secret.Value.Sha256();

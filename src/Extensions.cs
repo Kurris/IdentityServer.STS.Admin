@@ -1,83 +1,67 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using IdentityServer.STS.Admin.Helpers;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
-using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 
 namespace IdentityServer.STS.Admin
 {
-    public class ReturnUrlParser : IReturnUrlParser
+    public static class Extensions
     {
-        private const string _authorize = "connect/authorize";
-        private const string _authorizeCallback = _authorize + "/callback";
+        /// <summary>
+        /// 授权url后缀
+        /// </summary>
+        private const string Authorize = "connect/authorize";
 
-        private readonly IAuthorizeRequestValidator _validator;
-        private readonly IUserSession _userSession;
+        /// <summary>
+        /// 授权回调url后缀
+        /// </summary>
+        private const string AuthorizeCallback = Authorize + "/callback";
 
-        private readonly ILogger<ReturnUrlParser> _logger;
 
-        public ReturnUrlParser(IAuthorizeRequestValidator validator,
-            IUserSession userSession,
-            ILogger<ReturnUrlParser> logger)
+        /// <summary>
+        /// 检查重定向地址是否为本地客户端
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static bool IsNativeClient(this AuthorizationRequest context)
         {
-            _validator = validator;
-            _userSession = userSession;
-            _logger = logger;
+            return !context.RedirectUri.StartsWith("https", StringComparison.Ordinal)
+                   && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
         }
 
-
-        public async Task<AuthorizationRequest> ParseAsync(string returnUrl)
+        public static bool IsLocal(this string returnUrl, string currentIp = "")
         {
-            if (IsValidReturnUrl(returnUrl))
+            if (string.IsNullOrEmpty(returnUrl))
             {
-                var parameters = returnUrl.ReadQueryStringAsNameValueCollection();
-                var user = await _userSession.GetUserAsync();
-                var result = await _validator.ValidateAsync(parameters, user);
-                if (!result.IsError)
-                {
-                    _logger.LogTrace("AuthorizationRequest being returned");
-                    return result.ValidatedRequest.ToAuthorizationRequest();
-                }
+                return false;
             }
 
-            _logger.LogTrace("No AuthorizationRequest being returned");
-            return null;
+            return returnUrl.Contains(currentIp, StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains(Authorize, StringComparison.OrdinalIgnoreCase)
+                   || returnUrl.Contains(AuthorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
 
-        public bool IsValidReturnUrl(string returnUrl)
+        public static DateTime? ToLocalDateTime(this DateTime? dateTime)
         {
-            if (returnUrl.IsLocalUrl() || returnUrl.IsLocal())
-            {
-                var index = returnUrl.IndexOf('?');
-                if (index >= 0)
-                {
-                    returnUrl = returnUrl.Substring(0, index);
-                }
-
-                if (returnUrl.EndsWith(_authorize, StringComparison.Ordinal) ||
-                    returnUrl.EndsWith(_authorizeCallback, StringComparison.Ordinal))
-                {
-                    _logger.LogTrace("returnUrl is valid");
-                    return true;
-                }
-            }
-
-            _logger.LogTrace("returnUrl is not valid");
-            return false;
+            return dateTime != null
+                ? dateTime.Value.Kind == DateTimeKind.Utc
+                    ? dateTime.Value.ToLocalTime()
+                    : dateTime.Value
+                : default;
         }
-    }
 
-    internal static class Extensions
-    {
+        public static DateTime? ToLocalDateTime(this DateTimeOffset? dateTime)
+        {
+            return dateTime != null
+                ? dateTime.Value.DateTime.Kind == DateTimeKind.Utc
+                    ? dateTime.Value.DateTime.ToLocalTime()
+                    : dateTime.Value.DateTime
+                : default;
+        }
+
         public static NameValueCollection ReadQueryStringAsNameValueCollection(this string url)
         {
             if (url != null)
@@ -87,14 +71,14 @@ namespace IdentityServer.STS.Admin
                 {
                     url = url.Substring(idx + 1);
                 }
-        
+
                 var query = QueryHelpers.ParseNullableQuery(url);
                 if (query != null)
                 {
                     return query.AsNameValueCollection();
                 }
             }
-        
+
             return new NameValueCollection();
         }
 
@@ -165,9 +149,9 @@ namespace IdentityServer.STS.Admin
                 AcrValues = request.GetAcrValues(),
                 ValidatedResources = request.ValidatedResources
             };
-        
+
             authRequest.Parameters.Add(request.Raw);
-        
+
             return authRequest;
         }
     }

@@ -1,3 +1,4 @@
+using IdentityServer.STS.Admin.IdentityServerExtension;
 using IdentityServer.STS.Admin.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -6,12 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace IdentityServer.STS.Admin.DependencyInjection
 {
     /// <summary>
-    /// identity server 4 扩展
+    /// IdentityServer4 extensions
     /// </summary>
     public static class IdentityServer4Extensions
     {
         /// <summary>
-        /// 使用identityserver4服务
+        /// 使用IdentityServer4服务
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
@@ -24,6 +25,8 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             where TConfigurationDbContext : DbContext, IIdsConfigurationDbContext
             where TUserIdentity : class
         {
+            var frontBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
+
             services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
@@ -31,13 +34,14 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseSuccessEvents = true;
 
-                    options.UserInteraction.LoginUrl = "http://localhost:8080/signIn";
+                    //自定义授权类型的SPA地址
+                    options.UserInteraction.LoginUrl = $"{frontBaseUrl}/signIn";
                     options.UserInteraction.LoginReturnUrlParameter = "returnUrl";
 
-                    options.UserInteraction.ErrorUrl = "http://localhost:8080/error";
-                    options.UserInteraction.LogoutUrl = "http://localhost:8080/logout";
-                    options.UserInteraction.ConsentUrl = "http://localhost:8080/consent";
-                    options.UserInteraction.DeviceVerificationUrl = "http://localhost:8080/device";
+                    options.UserInteraction.ErrorUrl = $"{frontBaseUrl}/error";
+                    options.UserInteraction.LogoutUrl = $"{frontBaseUrl}/logout";
+                    options.UserInteraction.ConsentUrl = $"{frontBaseUrl}/consent";
+                    options.UserInteraction.DeviceVerificationUrl = $"{frontBaseUrl}/device";
 
                     //options.UserInteraction = new UserInteractionOptions
                     //{

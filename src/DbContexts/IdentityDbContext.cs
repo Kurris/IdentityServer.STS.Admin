@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace IdentityServer.STS.Admin.DbContexts
 {
+    /// <summary>
+    /// aspnetcore identity framework's dbcontext
+    /// </summary>
     public class IdentityDbContext : IdentityDbContext<User, Role, int, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
     {
         public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options)
@@ -16,8 +19,8 @@ namespace IdentityServer.STS.Admin.DbContexts
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            
-            //根据TableAttribute重名identity实体
+
+            //rename by TableAttribute
             var entities = Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsDefined(typeof(TableAttribute)));
             foreach (var entity in entities)
             {

@@ -25,7 +25,6 @@ namespace IdentityServer.STS.Admin.Filters
 
                 if (!context.User.Identity.IsAuthenticated)
                 {
-
                 }
             }
             catch (Exception ex)

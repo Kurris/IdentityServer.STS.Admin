@@ -23,9 +23,10 @@
                     </div>
                     <div>
                         <span>OAuth2.0</span>
-                        <template v-for="(item,i) in externalProviders">
+                        <template v-for="(item, i) in externalProviders">
                             <div :key="i">
-                                <el-button @click="externalLogin(item.authenticationScheme)">{{item.displayName}}</el-button>
+                                <el-button @click="externalLogin(item.authenticationScheme)">{{ item.displayName }}
+                                </el-button>
                             </div>
                         </template>
                     </div>
@@ -93,7 +94,7 @@ export default {
             let returnUrl = this.$route.query.returnUrl
 
             if (returnUrl === undefined) {
-                returnUrl = location.protocol + "//" + location.host + "/home"
+                returnUrl = location.protocol + "//" + location.host
             }
             NProgress.start()
             let url = "http://localhost:5000/api/authenticate/externalLogin"
@@ -285,7 +286,7 @@ input[type="checkbox"] {
     background: #ce7d88;
 }
 
-.checkbox input[type="checkbox"]:checked + label {
+.checkbox input[type="checkbox"]:checked+label {
     color: #ce7d88;
     transition: 0.5s all ease;
 }

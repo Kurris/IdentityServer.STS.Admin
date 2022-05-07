@@ -1,4 +1,4 @@
-namespace IdentityServer.STS.Admin
+namespace IdentityServer.STS.Admin.Models
 {
     public class SelectItem<TId, TText>
     {

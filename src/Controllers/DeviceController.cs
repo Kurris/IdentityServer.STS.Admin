@@ -13,6 +13,7 @@ using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -23,13 +24,18 @@ namespace IdentityServer.STS.Admin.Controllers
     {
         private readonly IDeviceFlowInteractionService _interaction;
         private readonly IEventService _events;
+        private readonly IConfiguration _configuration;
 
         public DeviceController(IDeviceFlowInteractionService interaction,
-            IEventService eventService)
+            IEventService eventService
+            , IConfiguration configuration)
         {
             _interaction = interaction;
             _events = eventService;
+            _configuration = configuration;
         }
+
+        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
 
         [HttpGet("confirmation")]
@@ -45,6 +51,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 throw new Exception($"无效的用户验证码:{userCode}");
             }
+
             data.ConfirmUserCode = true;
             return new ApiResult<DeviceAuthorizationOutputModel>
             {
@@ -53,7 +60,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Callback([FromForm]DeviceAuthorizationInputModel model)
+        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInputModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -62,7 +69,8 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 throw new Exception(result.ValidationError);
             }
-            return Redirect("http://localhost:8080/successed");
+
+            return Redirect($"{FrontendBaseUrl}/successed");
         }
 
         private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInputModel model)

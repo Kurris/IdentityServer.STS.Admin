@@ -15,6 +15,7 @@ using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin.Controllers
@@ -27,15 +28,21 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IEventService _eventService;
         private readonly ILogger<ConsentController> _logger;
+        private readonly IConfiguration _configuration;
 
         public ConsentController(IIdentityServerInteractionService interactionService
             , IEventService eventService
-            , ILogger<ConsentController> logger)
+            , ILogger<ConsentController> logger
+            , IConfiguration configuration)
         {
             _interaction = interactionService;
             _eventService = eventService;
             _logger = logger;
+            _configuration = configuration;
         }
+
+
+        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
         /// <summary>
         /// 获取同意屏幕的配置数据
@@ -90,7 +97,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 //return View("Index", result.ConsentModel);
             }
 
-            return Redirect("Http://localhost:8080/error");
+            return Redirect($"{FrontendBaseUrl}/error");
         }
 
         /*****************************************/

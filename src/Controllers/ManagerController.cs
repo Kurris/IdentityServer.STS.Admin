@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -30,17 +31,22 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<ManagerController> _logger;
         private readonly UrlEncoder _urlEncoder;
+        private readonly IConfiguration _configuration;
 
         public ManagerController(UserManager<User> userManager
             , SignInManager<User> signInManager
             , ILogger<ManagerController> logger
-            , UrlEncoder urlEncoder)
+            , UrlEncoder urlEncoder
+            ,IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _urlEncoder = urlEncoder;
+            _configuration = configuration;
         }
+
+        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
 
         [HttpGet("profile")]
@@ -103,7 +109,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            await UpdateUserClaimsAsync(model, user);           
+            await UpdateUserClaimsAsync(model, user);
         }
 
 
@@ -113,7 +119,6 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-
             }
 
             var requirePassword = await _userManager.HasPasswordAsync(user);
@@ -140,7 +145,6 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-               
             }
 
             var personalDataProps = typeof(User).GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
@@ -148,9 +152,9 @@ namespace IdentityServer.STS.Admin.Controllers
 
             Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
             Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
-            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)),"application/octet-stream")
+            return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "application/octet-stream")
             {
-                 FileDownloadName = "PersonalData.json",
+                FileDownloadName = "PersonalData.json",
             };
         }
 
@@ -182,9 +186,6 @@ namespace IdentityServer.STS.Admin.Controllers
                 await _userManager.ReplaceClaimAsync(user, pair.Item1, pair.Item2);
             }
         }
-
-
-
 
 
         [HttpGet("setting/2fa/authenticator")]
@@ -219,7 +220,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
                 //return View(model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
@@ -231,7 +232,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 ModelState.AddModelError("代码", "验证码无效");
                 await LoadSharedKeyAndQrCodeUriAsync(user, model);
-                return new ApiResult<object> { Data = model };
+                return new ApiResult<object> {Data = model};
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
@@ -361,7 +362,7 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-            return new ApiResult<object>() { Data = recoveryCodes };
+            return new ApiResult<object>() {Data = recoveryCodes};
         }
 
 
@@ -382,10 +383,6 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-
-
-
-
         /// <summary>
         /// 检查是否存在密码
         /// </summary>
@@ -402,8 +399,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
 
-            
-            return new ApiResult<bool>() { Data = hasPassword };
+            return new ApiResult<bool>() {Data = hasPassword};
         }
 
         /// <summary>
@@ -419,21 +415,17 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
                 throw new Exception();
 
-
             IdentityResult result;
             if (string.IsNullOrEmpty(model.OldPassword))
                 result = await _userManager.AddPasswordAsync(user, model.NewPassword);
             else
                 result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
 
-
             if (!result.Succeeded)
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
 
-
             await _signInManager.RefreshSignInAsync(user);
         }
-
 
 
         [HttpGet("externalLogins")]
@@ -442,7 +434,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-               // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+                // return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
             }
 
             var model = new ExternalLoginsOutputModel
@@ -456,7 +448,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             model.ShowRemoveButton = await _userManager.HasPasswordAsync(user) || model.CurrentLogins.Count > 1;
 
-            return new ApiResult<object>() { Data = model };
+            return new ApiResult<object>() {Data = model};
         }
 
         [HttpPost("linkLogin")]
@@ -466,7 +458,7 @@ namespace IdentityServer.STS.Admin.Controllers
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             // Request a redirect to the external login provider to link a login for the current user
-            var redirectUrl ="http://localhost:5000" + Url.Action(nameof(LinkLoginCallback));
+            var redirectUrl = "http://localhost:5000" + Url.Action(nameof(LinkLoginCallback));
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(model.Provider, redirectUrl, _userManager.GetUserId(User));
 
             return new ChallengeResult(model.Provider, properties);
@@ -478,26 +470,25 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+                //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync(user.Id.ToString());
             if (info == null)
             {
-              //  throw new ApplicationException(_localizer["ErrorLoadingExternalLogin", user.Id]);
+                //  throw new ApplicationException(_localizer["ErrorLoadingExternalLogin", user.Id]);
             }
 
             var result = await _userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
-               // return new Exception(string.Join(",", result.Errors.Select(x=>x.Description)));
+                // return new Exception(string.Join(",", result.Errors.Select(x=>x.Description)));
             }
 
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-
-            var url = "http://localhost:8080/externalLogins";
+            var url = $"{FrontendBaseUrl}/externalLogins";
             return Redirect(url);
         }
 
@@ -507,7 +498,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-              //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
+                //  return NotFound(_localizer["UserNotFound", _userManager.GetUserId(User)]);
             }
 
             var result = await _userManager.RemoveLoginAsync(user, model.LoginProvider, model.ProviderKey);

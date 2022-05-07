@@ -17,6 +17,5 @@
         public string PostalCode { get; internal set; }
 
         public string Country { get; internal set; }
-
     }
 }

@@ -43,14 +43,14 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         [HttpGet("protocolTypes")]
         public IEnumerable<SelectItem<string, string>> GetProtocolTypes()
         {
-            return ClientConst.ProtocolTypes;
+            return ClientConstants.ProtocolTypes;
         }
 
 
         [HttpGet("grantTypes")]
         public IEnumerable<string> GetGrantTypes()
         {
-            return ClientConst.GrantTypes;
+            return ClientConstants.GrantTypes;
         }
 
 

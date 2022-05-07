@@ -1,20 +1,15 @@
-﻿using IdentityModel;
+﻿using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace IdentityServer.STS.Admin
+namespace IdentityServer.STS.Admin.IdentityServerExtension
 {
     public class UserProfile : IProfileService
     {
         private readonly UserManager<User> _userManager;
-
 
         public UserProfile(UserManager<User> userManager)
         {

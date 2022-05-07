@@ -51,11 +51,6 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     options.Scope.Add("user:email");
                     options.Scope.Add("user");
                     options.SaveTokens = true;
-                })
-                .AddWeibo(options =>
-                {
-                    options.ClientId = "3217031503";
-                    options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
                 });
 
             services.AddAuthorization(options =>
