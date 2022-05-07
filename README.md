@@ -1,3 +1,6 @@
 # IdentityServer.STS.Admin
-Identity server 4 的SPA 实现,可能是全网唯一一个
+SPA implemention from [Skoruba.IdentityServer4.Admin](https://github.com/skoruba/IdentityServer4.Admin)
+include Identityserver4 and Admin,thanks alot!
+
+to be continued
 待完善前端界面...
