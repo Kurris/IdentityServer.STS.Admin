@@ -1,19 +1,19 @@
 <template>
     <div id="app">
-        <div id="header">
+        <!-- <div id="header">
             <el-button type="text" @click="goHome()">{{title}}</el-button>
             <el-button type="primary" v-show="status.isAdmin" @click="$router.push('/admin')">管理员</el-button>
             <el-button type="primary" v-show="status.isLogin" @click="logout">注销</el-button>
             <el-avatar icon="el-icon-user-solid"></el-avatar>
-        </div>
+        </div> -->
         <router-view />
-        <div id="footer">
+        <!-- <div id="footer">
 
             {{title}}
             <p>
                 © 2020- {{new Date().getFullYear()}}
             </p>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -61,17 +61,20 @@ export default {
 </script>
 
 <style>
-#app {
-    /* font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale; */
-    text-align: center;
-    /* color: #2c3e50; */
 
-    overflow-y: hidden;
-    overflow-x: hidden;
+body{
+    margin: 0;
 }
-#header {
+
+#app {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    margin: 0;
+    padding: 0;
+}
+/* #header {
     margin-bottom: 60px;
     border-bottom: 0.5px;
     box-shadow: 0px 15px 10px -15px rgb(211, 209, 209);
@@ -80,5 +83,5 @@ export default {
 
 #footer {
     margin-top: 60px;
-}
+} */
 </style>

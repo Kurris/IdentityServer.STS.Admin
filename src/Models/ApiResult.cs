@@ -20,7 +20,7 @@ namespace IdentityServer.STS.Admin.Models
 
         public IApiResult GetDefaultSuccessApiResult<TResult>(TResult apiResult)
         {
-            return new ApiResult<TResult>()
+            return new ApiResult<TResult>
             {
                 Data = apiResult
             };
@@ -28,7 +28,7 @@ namespace IdentityServer.STS.Admin.Models
 
         public IApiResult GetDefaultErrorApiResult<TResult>(TResult apiResult)
         {
-            return new ApiResult<TResult>()
+            return new ApiResult<TResult>
             {
                 Code = 500,
                 Msg = "操作有误",
@@ -38,7 +38,7 @@ namespace IdentityServer.STS.Admin.Models
 
         public IApiResult GetDefaultValidateApiResult<TResult>(TResult apiResult)
         {
-            return new ApiResult<TResult>()
+            return new ApiResult<TResult>
             {
                 Code = 400,
                 Msg = "实体验证失败",
