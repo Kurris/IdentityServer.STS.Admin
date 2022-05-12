@@ -7,7 +7,7 @@
 			<div class="signin">
 				<div class="title">
 					<h1>登录</h1>
-					<div>没有帐号？<el-link type="primary" @click="$router.push('/register')">点此注册</el-link></div>
+					<div>没有帐号？<el-link type="success" @click="$router.push('/register')">点此注册</el-link></div>
 				</div>
 				<el-form>
 					<el-form-item>
@@ -18,8 +18,10 @@
 					</el-form-item>
 					<el-form-item>
 						<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-						<el-button style="float: right" type="primary" @click="login()">登录</el-button>
-						<el-link style="float: right; margin-right: 10px" type="primary" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
+						<el-link style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
+					</el-form-item>
+					<el-form-item>
+						<el-button style="width: 100%" type="success" @click="login()">登录</el-button>
 					</el-form-item>
 				</el-form>
 
@@ -27,7 +29,7 @@
                         <el-button @click="cancel()">取消</el-button>
                     </div> -->
 
-				<div>
+				<div v-if="externalProviders != null && externalProviders.length > 0">
 					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
 					<template v-for="(item, i) in externalProviders">
 						<template v-if="item.displayName == 'GitHub'">
@@ -128,13 +130,13 @@ export default {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	/* background-image: url(https://pic3.zhimg.com/v2-27776a6b6d1a30661f212c00e6e4597e_r.jpg); */
+	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
 }
 
 .container {
 	height: 500px;
 	width: 1000px;
-	box-shadow: 0px 1px 10px 10px #d9d9d9;
+	box-shadow: 10px 1px 50px 21px #d9d9d9;
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
