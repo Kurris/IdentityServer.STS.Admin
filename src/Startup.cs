@@ -77,6 +77,7 @@ namespace IdentityServer.STS.Admin
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 options.SlidingExpiration = true;
 
+                //local登录,cookie过期触发
                 options.Events.OnRedirectToLogin = async context =>
                 {
                     var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>
@@ -93,13 +94,14 @@ namespace IdentityServer.STS.Admin
                     context.Response.ContentType = "application/json";
                     context.Response.ContentLength = apiResult.Length;
 
-                    //MVC
+                    //MVC重定向
                     //context.Response.RedirectToAbsoluteUrl("绝对路径？ReturnUrl=");
 
                     await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(apiResult));
                     await Task.CompletedTask;
                 };
 
+                //local登录,访问无权限
                 options.Events.OnRedirectToAccessDenied = async context =>
                 {
                     var apiResult = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
@@ -164,7 +166,6 @@ namespace IdentityServer.STS.Admin
 
             app.UseRouting();
 
-            //identity framework authoriza
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

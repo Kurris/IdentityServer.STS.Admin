@@ -30,7 +30,7 @@ namespace IdentityServer.STS.Admin
                             .Enrich.FromLogContext()
                             // .WriteTo.File(@"idslog.txt")
                             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"
-                                , theme: AnsiConsoleTheme.Literate);
+                                , theme: SystemConsoleTheme.Literate);
                     });
 
                     webBuilder.UseStartup<Startup>();

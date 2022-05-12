@@ -149,6 +149,13 @@ namespace IdentityServer.STS.Admin.Controllers
             return Challenge(properties, input.Provider);
         }
 
+        /// <summary>
+        /// 外部登录回调
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <param name="remoteError"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
@@ -175,11 +182,9 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 if (Url.IsLocalUrl(returnUrl) || returnUrl.IsLocal(HttpContext.Connection.LocalIpAddress.MapToIPv4().ToString()))
                 {
-                    // return new ApiResult<object> {Route = DefineRoute.Redirect, Data = returnUrl};
                     return Redirect(returnUrl);
                 }
 
-                //   return RedirectToAction(nameof(HomeController.Index), "Home");
                 return Redirect(returnUrl + "/home");
             }
 
@@ -686,13 +691,13 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
 
-            var model = new LoginWith2faOutputModel()
+            var model = new LoginWith2faOutputModel
             {
                 ReturnUrl = returnUrl,
                 RememberMe = rememberMe
             };
 
-            return new ApiResult<object>()
+            return new ApiResult<object>
             {
                 Route = DefineRoute.LoginWith2Fa,
                 Data = model
@@ -702,17 +707,8 @@ namespace IdentityServer.STS.Admin.Controllers
 
         [AllowAnonymous]
         [HttpPost("twoFactorAuthenticationUser/signIn")]
-        public async Task<ApiResult<object>> LoginWith2fa(LoginWith2faInputModel input)
+        public async Task<ApiResult<object>> LoginWith2Fa(LoginWith2faInputModel input)
         {
-            if (!ModelState.IsValid)
-            {
-                return new ApiResult<object>()
-                {
-                    Route = DefineRoute.LoginWith2Fa,
-                    Data = input,
-                };
-            }
-
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
@@ -723,7 +719,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.Succeeded)
             {
-                return new ApiResult<object>()
+                return new ApiResult<object>
                 {
                     Route = string.IsNullOrEmpty(input.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
                     Data = input.ReturnUrl,
@@ -734,17 +730,18 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 return new ApiResult<object>
                 {
+                    Code = 0,
                     Route = DefineRoute.LoginWith2Fa,
                     Data = input,
+                    Msg = "账号已被锁定",
                 };
             }
 
-            ModelState.AddModelError(string.Empty, "验证码无效");
-
-            return new ApiResult<object>()
+            return new ApiResult<object>
             {
                 Route = DefineRoute.LoginWith2Fa,
                 Data = input,
+                Msg = "验证码无效"
             };
         }
 
