@@ -49,7 +49,8 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     options.AccessDeniedPath = "/api/authenticate/externalLoginCallback";
 
                     options.Scope.Add("user:email");
-                    options.Scope.Add("user");
+                    options.Scope.Add("read:user");
+
                     options.SaveTokens = true;
                 });
 

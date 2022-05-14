@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
@@ -97,7 +98,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 //return View("Index", result.ConsentModel);
             }
 
-            return Redirect($"{FrontendBaseUrl}/error");
+            return Redirect($"{FrontendBaseUrl}/signin?returnUrl={HttpUtility.UrlEncode(model.ReturnUrl)}");
         }
 
         /*****************************************/
@@ -153,7 +154,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 result.ValidationError = ConsentOptions.InvalidSelectionErrorMessage;
             }
 
-            if (grantedConsent != null)
+            if (grantedConsent != null && grantedConsent.Error == null)
             {
                 // communicate outcome of consent back to identityserver
                 await _interaction.GrantConsentAsync(request, grantedConsent);

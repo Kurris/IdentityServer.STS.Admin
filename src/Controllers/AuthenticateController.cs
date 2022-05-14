@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using System.Web;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 
@@ -141,10 +142,10 @@ namespace IdentityServer.STS.Admin.Controllers
         [AllowAnonymous]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
-            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={input.ReturnUrl}";
-            redirectUrl = redirectUrl.Replace('&', '*');
+            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
+            // redirectUrl = redirectUrl.Replace('&', '*');
 
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider,redirectUrl);
 
             return Challenge(properties, input.Provider);
         }
@@ -167,7 +168,11 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (!string.IsNullOrEmpty(returnUrl))
             {
-                returnUrl = returnUrl.Replace('*', '&');
+                returnUrl = HttpUtility.UrlDecode(returnUrl);
+                // if (returnUrl.Contains("*"))
+                // {
+                //     returnUrl = returnUrl.Replace('*', '&');
+                // }
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -217,7 +222,7 @@ namespace IdentityServer.STS.Admin.Controllers
             using (var urlEncodedContent = new FormUrlEncodedContent(urlParams))
             {
                 var urlParamsString = await urlEncodedContent.ReadAsStringAsync();
-                return Redirect(returnUrl + "/externalLoginConfirmation" + "?" + urlParamsString);
+                return Redirect("http://localhost:8080/externalLoginConfirmation" + "?" + urlParamsString);
             }
         }
 
@@ -257,9 +262,13 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    if (Url.IsLocalUrl(input.ReturnUrl))
+                    if (input.ReturnUrl.IsLocal())
                     {
-                        return new ApiResult<object> {Route = DefineRoute.Redirect, Data = input.ReturnUrl};
+                        return new ApiResult<object>
+                        {
+                            Route = DefineRoute.Redirect,
+                            Data = input.ReturnUrl
+                        };
                     }
 
                     return new ApiResult<object>
@@ -352,6 +361,7 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<object>> Login([FromBody] LoginInputModel request)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
+            var tenant = context?.Tenant;
 
             // the user clicked the "cancel" button
             if (request.RequestType != "login")

@@ -18,7 +18,7 @@
 					</el-form-item>
 					<el-form-item>
 						<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-						<el-link style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
+						<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
 					</el-form-item>
 					<el-form-item>
 						<el-button style="width: 100%" type="success" @click="login()">登录</el-button>
@@ -64,6 +64,7 @@ export default {
 	methods: {
 		async login() {
 			const returnUrl = this.$route.query.returnUrl
+			console.log(returnUrl)
 			const username = this.form.userName
 			const password = this.form.password
 
