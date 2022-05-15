@@ -29,72 +29,54 @@
 
 			<div class="panel">
 				<div class="notice">
-					<AuthorizeItem :title="setting.clientName" description="个人的信息(只读)或者其他应用级别的权限(读写)">
+					<AuthorizeItem :title="setting.clientName" description="希望获取额外的访问权限">
 						<template slot="img">
 							<el-avatar></el-avatar>
 						</template>
 						<span>来自于 <el-link type="primary">Kurris</el-link> </span>
 					</AuthorizeItem>
 
-					<AuthorizeItem :title="setting.clientName" description="个人的信息(只读)或者其他应用级别的权限(读写)">
+					<AuthorizeItem
+						title="用户私人的数据"
+						:isDropdown="true"
+						:scopeLength="setting.identityScopes.length + setting.apiScopes.length"
+						description="个人的信息(只读)或者其他应用级别的权限(读写)"
+					>
 						<template slot="img">
-							<i class="el-icon-user" style="font-size: 40px"></i>
+							<i class="el-icon-user" style="color: #555b65; font-size: 40px"></i>
 						</template>
-						<span>来自于 <el-link type="primary">Kurris</el-link> </span>
+						<template slot="dropdown">
+							<div class="userData">
+								<template slot="title">
+									<i class="el-icon-user" style="font-size: 32px"></i>
+									<div>个人的用户数据</div>
+								</template>
+								<template v-if="setting.identityScopes != null && setting.identityScopes.length > 0">
+									<template v-for="(item, index) in setting.identityScopes">
+										<div :key="index">
+											<ScopeItem :scope="item" />
+										</div>
+									</template>
+								</template>
+								<template v-if="setting.apiScopes != null && setting.apiScopes.length > 0">
+									<template v-for="(item, index) in setting.apiScopes">
+										<div :key="index">
+											<ScopeItem :scope="item" />
+										</div>
+									</template>
+								</template>
+								<a href="">
+									<i class="el-icon-question" style="font-size: 12px">了解更多</i>
+								</a>
+							</div>
+						</template>
 					</AuthorizeItem>
 
-					<div class="userData">
-						<template slot="title">
-							<i class="el-icon-user" style="font-size: 32px"></i>
-							<div>个人的用户数据</div>
-						</template>
-						<template v-if="setting.identityScopes != null && setting.identityScopes.length > 0">
-							<div class="col-sm-12">
-								<div>
-									<h5>
-										<i>个人信息</i>
-									</h5>
-									<div class="card-body">
-										<ul class="list-group">
-											<template v-for="(item, index) in setting.identityScopes">
-												<div :key="index">
-													<ScopeItem :scope="item" />
-												</div>
-											</template>
-										</ul>
-									</div>
-								</div>
-							</div>
-						</template>
-						<template v-if="setting.ApiScopes != null && setting.ApiScopes.length > 0">
-							<div class="col-sm-12">
-								<div class="card mt-3">
-									<h5 class="card-header">
-										<i class="fa fa-lock"></i>
-										应用访问
-									</h5>
-									<div class="card-body">
-										<ul class="list-group">
-											<template v-for="(item, index) in setting.ApiScopes">
-												<div :key="index">
-													<ScopeItem :scope="item" />
-												</div>
-											</template>
-										</ul>
-									</div>
-								</div>
-							</div>
-						</template>
-						<i class="el-icon-question"></i>
-						了解更多
-					</div>
 					<el-divider></el-divider>
 					<div>
 						<span style="font-weight: bold; font-size: 14px"> 存在的许可 </span>
-						<div style="font-size: 10px; color: #91969b">
-							<strong>
-								<i class="el-icon-success"></i>
-							</strong>
+						<div style="font-size: 10px; color: #91969b; margin-top: 2px">
+							<i class="el-icon-success"></i>
 							更新用户所有数据
 						</div>
 					</div>
@@ -102,10 +84,9 @@
 				<div class="btn">
 					<div style="text-align: center; margin-bottom: 30px">
 						<el-divider></el-divider>
-						<!-- <template v-if="setting.allowRememberConsent">
+						<template v-if="setting.allowRememberConsent">
 							<el-switch v-model="setting.rememberConsent" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
-							<strong>记住</strong>
-						</template> -->
+						</template>
 						<div style="margin-bottom: 10px">
 							<el-button size="small" @click="process('no')">不许可</el-button>
 							<el-button type="success" size="small" autofocus @click="process('yes')">许可</el-button>
@@ -125,6 +106,16 @@
 					</div>
 				</div>
 			</div>
+
+			<div class="footer">
+				<div>
+					<i class="el-icon-time"></i>
+					过期
+					<div style="font-weight: bold">5分钟后</div>
+				</div>
+			</div>
+
+			<div class="other">了解更多关于OAuth</div>
 		</div>
 	</div>
 </template>
@@ -184,13 +175,32 @@ export default {
 
 .panel {
 	width: 500px;
-	/* height: 500px; */
 	border: 1px solid #d0d7dd;
 	border-radius: 7px;
 	background-color: white;
 }
 
+.footer {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	width: 500px;
+	height: 65px;
+	border: 1px solid #d0d7dd;
+	border-radius: 7px;
+	margin-top: 20px;
+	font-size: 12px;
+	color: #92969a;
+}
+
 .logo {
+	text-align: center;
+	margin-top: 20px;
+}
+
+.other {
+	font-size: 12px;
+	color: #92969a;
 	text-align: center;
 	margin-top: 20px;
 }
@@ -230,13 +240,12 @@ div.dashed + div.dashed {
 	margin-left: 1px;
 }
 
-.authorizeItem + .authorizeItem {
-	margin-bottom: 20px;
-}
-
 .title {
 	text-align: center;
 	margin-top: 20px;
 	margin-bottom: 20px;
+}
+.userData {
+	max-width: 420px;
 }
 </style>
