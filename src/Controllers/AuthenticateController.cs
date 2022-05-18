@@ -145,7 +145,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
             // redirectUrl = redirectUrl.Replace('&', '*');
 
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider,redirectUrl);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
 
             return Challenge(properties, input.Provider);
         }
@@ -537,14 +537,13 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
         /// <summary>
-        /// Handle logout page postback
+        /// 处理注销后的操作
         /// </summary>
         [AllowAnonymous]
         [HttpPost("loggedOut")]
-        public async Task<ApiResult<object>> Logout(LogoutInputModel model)
+        public async Task<ApiResult<object>> Logout(LogoutInput model)
         {
-            // build a model so the logged out page knows what to display
-            var output = await BuildLoggedOutViewModelAsync(model.LogoutId);
+            var output = await BuildLoggedOutModelAsync(model.LogoutId);
 
             if (User?.Identity.IsAuthenticated == true)
             {
@@ -556,17 +555,19 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             //检查是否需要在上游的认证中心触发注销
-            if (output.TriggerExternalSignout)
+            if (output.TriggerExternalSignOut)
             {
-                //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这，
-                //让我们完成完整的单点登出处理
-                var url = Url.Action("Logout", new {logoutId = output.LogoutId});
+                //身份认证服务器的前端需要使用表单提交的方式请求当前路由
+                //方法返回值需要返回IActionResult才能让浏览器302重定向
+                //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这
+                //这里处理完成的单点登出处理
+                //var url = "当前方法路由的地址";
 
                 //触发到第三方登录来退出
-                SignOut(new AuthenticationProperties
-                {
-                    RedirectUri = url
-                }, output.ExternalAuthenticationScheme);
+                // SignOut(new AuthenticationProperties
+                // {
+                //     RedirectUri = url
+                // }, output.ExternalAuthenticationScheme);
             }
 
             return new ApiResult<object>
@@ -577,17 +578,17 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        private async Task<LoggedOutOutputModel> BuildLoggedOutViewModelAsync(string logoutId)
+        private async Task<LoggedOutOutput> BuildLoggedOutModelAsync(string logoutId)
         {
-            // get context information (client name, post logout redirect URI and iframe for federated signout)
-            var logout = await _interaction.GetLogoutContextAsync(logoutId);
+            //获取退出登录上下文信息，包括应用名称，注销后重定向地址或者集成退出的iframe
+            var logoutContext = await _interaction.GetLogoutContextAsync(logoutId);
 
-            var output = new LoggedOutOutputModel
+            var output = new LoggedOutOutput
             {
                 AutomaticRedirectAfterSignOut = AccountOptions.AutomaticRedirectAfterSignOut,
-                PostLogoutRedirectUri = logout?.PostLogoutRedirectUri,
-                ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout.ClientName,
-                SignOutIframeUrl = logout?.SignOutIFrameUrl,
+                PostLogoutRedirectUri = logoutContext?.PostLogoutRedirectUri,
+                ClientName = string.IsNullOrEmpty(logoutContext?.ClientName) ? logoutContext?.ClientId : logoutContext.ClientName,
+                SignOutIframeUrl = logoutContext?.SignOutIFrameUrl,
                 LogoutId = logoutId
             };
 
@@ -596,16 +597,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
                 if (idp != null && idp != IdentityServerConstants.LocalIdentityProvider)
                 {
-                    var providerSupportsSignout = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
-                    if (providerSupportsSignout)
+                    var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
+                    if (providerSupportsSignOut)
                     {
-                        if (output.LogoutId == null)
-                        {
-                            //如果没有当前注销上下文，我们需要创建一个从当前登录用户捕获必要信息的上下文
-                            //在我们注销之前，请重定向到外部 IdP 进行注销
-                            output.LogoutId = await _interaction.CreateLogoutContextAsync();
-                        }
-
+                        //如果没有当前注销上下文，我们需要创建一个从当前登录用户捕获必要信息的上下文
+                        //在我们注销之前，请重定向到外部 IdP 进行注销
+                        output.LogoutId ??= await _interaction.CreateLogoutContextAsync();
                         output.ExternalAuthenticationScheme = idp;
                     }
                 }

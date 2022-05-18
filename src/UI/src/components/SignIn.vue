@@ -1,8 +1,8 @@
 <template>
-	<div class="panel">
+	<div class="panel" v-if="externalProviders.length > 0">
 		<div class="container">
 			<div class="slot">
-				<img src="../assets/review.png" alt="" srcset="" />
+				<img src="../assets/login_left.svg" alt="" srcset="" />
 			</div>
 			<div class="signin">
 				<div class="title">
@@ -106,7 +106,6 @@ export default {
 			}
 			NProgress.start()
 			let url = 'http://localhost:5000/api/authenticate/externalLogin'
-			// window.location = url
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")

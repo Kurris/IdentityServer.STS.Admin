@@ -53,17 +53,17 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("setting")]
         public async Task<ApiResult<object>> GetSetting(string returnUrl)
         {
-            var output = await BuildViewModelAsync(returnUrl);
+            var output = await BuildConsentModelAsync(returnUrl);
             if (output != null)
             {
-                return new ApiResult<object>()
+                return new ApiResult<object>
                 {
                     Code = 200,
-                    Data = output,
+                    Data = output
                 };
             }
 
-            return new ApiResult<object>() {Route = DefineRoute.Error};
+            return new ApiResult<object> {Route = DefineRoute.Error};
         }
 
         /// <summary>
@@ -101,29 +101,25 @@ namespace IdentityServer.STS.Admin.Controllers
             return Redirect($"{FrontendBaseUrl}/signin?returnUrl={HttpUtility.UrlEncode(model.ReturnUrl)}");
         }
 
-        /*****************************************/
-        /* helper APIs for the ConsentController */
-        /*****************************************/
+
         private async Task<ProcessConsentResult> ProcessConsent(ConsentInputModel model)
         {
             var result = new ProcessConsentResult();
 
-            // validate return url is still valid
-            var request = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-            if (request == null) return result;
+            //验证重定向url是否正确
+            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            if (context == null) return result;
 
             ConsentResponse grantedConsent = null;
 
-            // user clicked 'no' - send back the standard 'access_denied' response
-            if (model?.Button == "no")
+            //不允许授权，返回标准的"access_denied"响应
+            if (model.Button == "no")
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
-
-                // emit event
-                await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues));
+                await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
             }
-            // user clicked 'yes' - validate the data
-            else if (model?.Button == "yes")
+            //验证数据合法性
+            else if (model.Button == "yes")
             {
                 // if the user consented to some scope, build the response model
                 if (model.ScopesConsented != null && model.ScopesConsented.Any())
@@ -141,8 +137,7 @@ namespace IdentityServer.STS.Admin.Controllers
                         Description = model.Description
                     };
 
-                    // emit event
-                    await _eventService.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
+                    await _eventService.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
                 }
                 else
                 {
@@ -156,39 +151,37 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (grantedConsent != null && grantedConsent.Error == null)
             {
-                // communicate outcome of consent back to identityserver
-                await _interaction.GrantConsentAsync(request, grantedConsent);
+                //将同意结果传达回身份服务器
+                await _interaction.GrantConsentAsync(context, grantedConsent);
 
-                // indicate that's it ok to redirect back to authorization endpoint
+                //指示可以重定向回授权终结点 
                 result.RedirectUri = model.ReturnUrl;
-                result.Client = request.Client;
+                result.Client = context.Client;
             }
             else
             {
-                // we need to redisplay the consent UI
-                result.ConsentModel = await BuildViewModelAsync(model.ReturnUrl, model);
+                //重新展示同意屏幕
+                result.ConsentModel = await BuildConsentModelAsync(model.ReturnUrl, model);
             }
 
             return result;
         }
 
-        private async Task<ConsentOutputModel> BuildViewModelAsync(string returnUrl, ConsentInputModel model = null)
+        private async Task<ConsentOutputModel> BuildConsentModelAsync(string returnUrl, ConsentInputModel model = null)
         {
-            var request = await _interaction.GetAuthorizationContextAsync(returnUrl);
-            if (request != null)
+            var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+            if (context != null)
             {
-                return CreateConsentViewModel(model, returnUrl, request);
+                return CreateConsentViewModel(model, returnUrl, context);
             }
-            else
-            {
-                _logger.LogError("No consent request matching request: {0}", returnUrl);
-            }
+
+            _logger.LogError($"No consent request matching request: {returnUrl}");
 
             return null;
         }
 
         private ConsentOutputModel CreateConsentViewModel(ConsentInputModel model, string returnUrl,
-            AuthorizationRequest request)
+            AuthorizationRequest context)
         {
             var vm = new ConsentOutputModel
             {
@@ -198,18 +191,18 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 ReturnUrl = returnUrl,
 
-                ClientName = request.Client.ClientName ?? request.Client.ClientId,
-                ClientUrl = request.Client.ClientUri,
-                ClientLogoUrl = request.Client.LogoUri,
-                AllowRememberConsent = request.Client.AllowRememberConsent
+                ClientName = context.Client.ClientName ?? context.Client.ClientId,
+                ClientUrl = context.Client.ClientUri,
+                ClientLogoUrl = context.Client.LogoUri,
+                AllowRememberConsent = context.Client.AllowRememberConsent
             };
 
-            vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            vm.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
 
             var apiScopes = new List<ScopeOutputModel>();
-            foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
+            foreach (var parsedScope in context.ValidatedResources.ParsedScopes)
             {
-                var apiScope = request.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
+                var apiScope = context.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
                 if (apiScope != null)
                 {
                     var scopeVm = CreateScopeViewModel(parsedScope, apiScope, vm.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
@@ -217,7 +210,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            if (ConsentOptions.EnableOfflineAccess && request.ValidatedResources.Resources.OfflineAccess)
+            if (ConsentOptions.EnableOfflineAccess && context.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
             }

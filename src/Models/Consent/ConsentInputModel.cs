@@ -8,11 +8,10 @@ namespace IdentityServer.STS.Admin.Models.Consent
 
         public IEnumerable<string> ScopesConsented { get; set; }
 
-        public bool RememberConsent { get; set; }
+        public bool RememberConsent { get; set; } = true;
 
         public string ReturnUrl { get; set; }
 
         public string Description { get; set; }
-
     }
 }

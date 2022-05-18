@@ -1,6 +1,6 @@
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class LogoutOutputModel  :LogoutInputModel
+    public class LogoutOutputModel  :LogoutInput
     {
         public bool ShowLogoutPrompt { get; set; } = true;
 

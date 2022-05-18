@@ -3,13 +3,13 @@
 		<div class="scopeItem">
 			<el-checkbox v-model="scope.checked" :disabled="scope.required">
 				{{ scope.displayName }}
-				<i v-if="scope.emphasize" class="el-icon-info"></i>
+
+				<el-tooltip v-if="scope.description != null" :content="scope.description" placement="bottom" effect="light">
+					<i v-if="scope.emphasize" class="el-icon-info"></i>
+				</el-tooltip>
 				<template v-if="scope.required">(必须)</template>
 				<input v-if="scope.required" type="hidden" name="ScopesConsented" :value="scope.Value" />
 			</el-checkbox>
-			<template v-if="scope.description != null">
-				<div>{{ scope.description }}</div>
-			</template>
 		</div>
 	</div>
 </template>

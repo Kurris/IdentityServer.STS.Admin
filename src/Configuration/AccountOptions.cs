@@ -25,6 +25,6 @@ namespace IdentityServer.STS.Admin.Configuration
         /// <summary>
         /// 是否在退出登录后自动重定向
         /// </summary>
-        public const bool AutomaticRedirectAfterSignOut = true;
+        public const bool AutomaticRedirectAfterSignOut = false;
     }
 }

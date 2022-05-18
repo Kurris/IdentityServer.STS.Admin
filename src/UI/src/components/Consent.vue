@@ -1,47 +1,29 @@
 <template>
 	<div class="consent">
-		<div>
+		<div v-if="setting != null">
 			<div class="logo">
-				<!-- <template v-if="setting.clientLogoUrl != null"> -->
 				<el-avatar :src="setting.ClientLogoUrl" :size="70"></el-avatar>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+				<div v-for="n in 7" :key="n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
 				<i class="el-icon-success" style="font-size: 32px"></i>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<div class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<el-avatar :src="setting.ClientLogoUrl" :size="70"></el-avatar>
+				<div v-for="n in 7" :key="n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="70"></el-avatar>
 				<!-- </template> -->
 			</div>
 
 			<div class="title">
-				<h2>{{ setting.clientName }}正在请求额外的权限</h2>
+				<h2>{{ setting.clientName }} 正在请求额外的权限</h2>
 			</div>
 
 			<div class="panel">
 				<div class="notice">
 					<AuthorizeItem :title="setting.clientName" description="希望获取额外的访问权限">
 						<template slot="img">
-							<el-avatar></el-avatar>
+							<el-avatar src=""></el-avatar>
 						</template>
 						<span>来自于 <el-link type="primary">Kurris</el-link> </span>
 					</AuthorizeItem>
 
-					<AuthorizeItem
-						title="用户私人的数据"
-						:isDropdown="true"
-						:scopeLength="setting.identityScopes.length + setting.apiScopes.length"
-						description="个人的信息(只读)或者其他应用级别的权限(读写)"
-					>
+					<AuthorizeItem title="用户私人的数据" :isDropdown="true" :scopeLength="scopeLength" description="个人的信息(只读)或者其他应用级别的权限(读写)">
 						<template slot="img">
 							<i class="el-icon-user" style="color: #555b65; font-size: 40px"></i>
 						</template>
@@ -51,23 +33,23 @@
 									<i class="el-icon-user" style="font-size: 32px"></i>
 									<div>个人的用户数据</div>
 								</template>
-								<template v-if="setting.identityScopes != null && setting.identityScopes.length > 0">
+								<template v-if="setting.identityScopes != 'undefined'">
 									<template v-for="(item, index) in setting.identityScopes">
 										<div :key="index">
 											<ScopeItem :scope="item" />
 										</div>
 									</template>
 								</template>
-								<template v-if="setting.apiScopes != null && setting.apiScopes.length > 0">
+								<template v-if="setting.apiScopes != 'undefined'">
 									<template v-for="(item, index) in setting.apiScopes">
 										<div :key="index">
 											<ScopeItem :scope="item" />
 										</div>
 									</template>
 								</template>
-								<a href="">
+								<el-link>
 									<i class="el-icon-question" style="font-size: 12px">了解更多</i>
-								</a>
+								</el-link>
 							</div>
 						</template>
 					</AuthorizeItem>
@@ -84,19 +66,15 @@
 				<div class="btn">
 					<div style="text-align: center; margin-bottom: 30px">
 						<el-divider></el-divider>
-						<template v-if="setting.allowRememberConsent">
-							<el-switch v-model="setting.rememberConsent" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
-						</template>
-						<div style="margin-bottom: 10px">
-							<el-button size="small" @click="process('no')">不许可</el-button>
-							<el-button type="success" size="small" autofocus @click="process('yes')">许可</el-button>
+						<div style="margin-top: 40px">
+							<el-button class="nohover" size="small" @click="process('no')">不许可</el-button>
+							<el-button class="green" size="small" autofocus @click="process('yes')">许可</el-button>
 						</div>
 
-						<div style="font-size: 10px">
+						<div style="font-size: 10px; margin-top: 30px">
 							<template v-if="setting.clientUrl != null">
-								<span style="color: #91969b"> 许可将会重定向到 </span>
-
-								<div>
+								<span style="color: #91969b"> 许可授权将会重定向到 </span>
+								<div style="margin-top: 10px">
 									<strong>
 										{{ setting.clientUrl }}
 									</strong>
@@ -109,13 +87,18 @@
 
 			<div class="footer">
 				<div>
-					<i class="el-icon-time"></i>
+					<i class="el-icon-time" style="font-weight: bold; font-size: 14px"></i>
+					拥有者
+					<div style="font-weight: bold">来自外部授权应用</div>
+				</div>
+				<div>
+					<i class="el-icon-time" style="font-weight: bold; font-size: 14px"></i>
 					过期
 					<div style="font-weight: bold">5分钟后</div>
 				</div>
 			</div>
 
-			<div class="other">了解更多关于OAuth</div>
+			<div class="other">了解更多关于OAuth2.0</div>
 		</div>
 	</div>
 </template>
@@ -133,7 +116,7 @@ export default {
 	},
 	data() {
 		return {
-			setting: {},
+			setting: null,
 		}
 	},
 	methods: {
@@ -145,7 +128,7 @@ export default {
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=button value='" + btn + "'/>")
-			document.write("<input type=hidden name=rememberConsent value='" + this.setting.rememberConsent + "'/>")
+			document.write("<input type=hidden name=rememberConsent value='true'/>")
 			document.write("<input type=hidden name=returnUrl value='" + this.setting.returnUrl + "'/>")
 
 			let scopeNames = idScopes.map(x => x.value)
@@ -157,10 +140,19 @@ export default {
 			document.form1.submit()
 		},
 	},
+	computed: {
+		scopeLength() {
+			if (this.setting.identityScopes && this.setting.apiScopes) {
+				let res = this.setting.identityScopes.length + this.setting.apiScopes.length
+				console.log(res)
+				return res
+			}
+			return 0
+		},
+	},
 	async beforeMount() {
 		let returnUrl = this.$url.getValueFromQuery('returnUrl')
 		let response = await getConsentSetting({ returnUrl })
-		console.log(response)
 		this.setting = response.data
 	},
 }
@@ -247,5 +239,16 @@ div.dashed + div.dashed {
 }
 .userData {
 	max-width: 420px;
+}
+
+.el-button.green {
+	background-color: #67a060;
+	color: white;
+}
+
+.el-button.nohover:hover {
+	border-color: #dddfe5;
+	background-color: unset;
+	color: unset;
 }
 </style>
