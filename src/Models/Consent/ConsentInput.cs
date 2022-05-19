@@ -2,7 +2,7 @@
 
 namespace IdentityServer.STS.Admin.Models.Consent
 {
-    public class ConsentInputModel
+    public class ConsentInput
     {
         public string Button { get; set; }
 

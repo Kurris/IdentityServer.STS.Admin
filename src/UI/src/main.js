@@ -18,7 +18,7 @@ Vue.prototype.$url = url
 
 UseCustomDirective(Vue)
 
-Vue.use(ElementUI)
+Vue.use(ElementUI, { size: 'small' })
 Vue.use(VueQriously)
 
 Vue.config.productionTip = false

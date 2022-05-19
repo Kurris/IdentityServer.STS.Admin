@@ -29,18 +29,15 @@
 						</template>
 						<template slot="dropdown">
 							<div class="userData">
-								<template slot="title">
-									<i class="el-icon-user" style="font-size: 32px"></i>
-									<div>个人的用户数据</div>
-								</template>
-								<template v-if="setting.identityScopes != 'undefined'">
+								<span style="font-size: 10px; color: #91969b"> 勾选以下授权范围,以表示同意当前请求拥有的授权类型 </span>
+								<template v-if="setting.identityScopes">
 									<template v-for="(item, index) in setting.identityScopes">
 										<div :key="index">
 											<ScopeItem :scope="item" />
 										</div>
 									</template>
 								</template>
-								<template v-if="setting.apiScopes != 'undefined'">
+								<template v-if="setting.apiScopes">
 									<template v-for="(item, index) in setting.apiScopes">
 										<div :key="index">
 											<ScopeItem :scope="item" />
@@ -67,8 +64,8 @@
 					<div style="text-align: center; margin-bottom: 30px">
 						<el-divider></el-divider>
 						<div style="margin-top: 40px">
-							<el-button class="nohover" size="small" @click="process('no')">不许可</el-button>
-							<el-button class="green" size="small" autofocus @click="process('yes')">许可</el-button>
+							<el-button class="nohover" size="small" @click="process(false)">不许可</el-button>
+							<el-button class="green" size="small" autofocus @click="process(true)">许可</el-button>
 						</div>
 
 						<div style="font-size: 10px; margin-top: 30px">
@@ -87,14 +84,14 @@
 
 			<div class="footer">
 				<div>
-					<i class="el-icon-time" style="font-weight: bold; font-size: 14px"></i>
+					<i class="el-icon-location-outline" style="font-weight: bold; font-size: 14px"></i>
 					拥有者
-					<div style="font-weight: bold">来自外部授权应用</div>
+					<div style="font-weight: bold; margin-left: 18px">来自外部授权应用</div>
 				</div>
 				<div>
 					<i class="el-icon-time" style="font-weight: bold; font-size: 14px"></i>
 					过期
-					<div style="font-weight: bold">5分钟后</div>
+					<div style="font-weight: bold; margin-left: 18px">5分钟后</div>
 				</div>
 			</div>
 
@@ -120,21 +117,21 @@ export default {
 		}
 	},
 	methods: {
-		process(btn) {
+		process(allow) {
 			let idScopes = this.setting.identityScopes.filter(x => x.checked)
 
 			NProgress.start()
 			let url = 'http://localhost:5000/api/consent/setting/process'
 
-			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
-			document.write("<input type=hidden name=button value='" + btn + "'/>")
-			document.write("<input type=hidden name=rememberConsent value='true'/>")
-			document.write("<input type=hidden name=returnUrl value='" + this.setting.returnUrl + "'/>")
+			document.write(`<form action=${url}  method=post name=form1 style='display:none'>`)
+			document.write(`<input type=hidden name=allow value=${allow}></input>`)
+			document.write(`<input type=hidden name=rememberConsent value='true'/>`)
+			document.write(`<input type=hidden name=returnUrl value=${this.setting.returnUrl}></input>`)
 
 			let scopeNames = idScopes.map(x => x.value)
 			for (let i = 0; i < scopeNames.length; i++) {
 				const element = scopeNames[i]
-				document.write("<input type=hidden name=scopesConsented value='" + element + "'/>")
+				document.write(`<input type=hidden name=scopesConsented value=${element}></input>`)
 			}
 			document.write('</form>')
 			document.form1.submit()
