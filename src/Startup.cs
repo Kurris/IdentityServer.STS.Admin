@@ -71,10 +71,10 @@ namespace IdentityServer.STS.Admin
             services.AddAspIdentity<IdentityDbContext, User, Role>(Configuration);
             services.AddIdentityServer4<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
 
-            //配置本地登录cookie过期跳转到登录界面
+            //配置本地登录cookie相关处理
             services.ConfigureApplicationCookie(options =>
             {
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(3);
                 options.SlidingExpiration = true;
 
                 //local登录,cookie过期触发

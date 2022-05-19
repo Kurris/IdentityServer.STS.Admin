@@ -4,7 +4,7 @@ namespace IdentityServer.STS.Admin.Models.Consent
 {
     public class ConsentInput
     {
-        public string Button { get; set; }
+        public bool Allow { get; set; }
 
         public IEnumerable<string> ScopesConsented { get; set; }
 

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityServer.STS.Admin.Configuration;
-using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Consent;
 using IdentityServer4;
@@ -14,7 +13,6 @@ using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -43,7 +41,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
+        private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
         /// <summary>
         /// 获取同意屏幕的配置数据
@@ -70,7 +68,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 处理同意屏幕的处理
         /// </summary>
         [HttpPost("setting/process")]
-        public async Task<IActionResult> GetSetting([FromForm] ConsentInputModel model)
+        public async Task<IActionResult> GetSetting([FromForm] ConsentInput model)
         {
             var result = await ProcessConsent(model);
 
@@ -102,7 +100,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        private async Task<ProcessConsentResult> ProcessConsent(ConsentInputModel model)
+        private async Task<ProcessConsentResult> ProcessConsent(ConsentInput model)
         {
             var result = new ProcessConsentResult();
 
@@ -113,22 +111,18 @@ namespace IdentityServer.STS.Admin.Controllers
             ConsentResponse grantedConsent = null;
 
             //不允许授权，返回标准的"access_denied"响应
-            if (model.Button == "no")
+            if (!model.Allow)
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
                 await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
             }
             //验证数据合法性
-            else if (model.Button == "yes")
+            else if (model.Allow)
             {
                 // if the user consented to some scope, build the response model
                 if (model.ScopesConsented != null && model.ScopesConsented.Any())
                 {
                     var scopes = model.ScopesConsented;
-                    if (ConsentOptions.EnableOfflineAccess == false)
-                    {
-                        scopes = scopes.Where(x => x != IdentityServerConstants.StandardScopes.OfflineAccess);
-                    }
 
                     grantedConsent = new ConsentResponse
                     {
@@ -141,12 +135,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
                 else
                 {
-                    result.ValidationError = ConsentOptions.MustChooseOneErrorMessage;
+                    result.ValidationError = "至少选择一个选项";
                 }
             }
             else
             {
-                result.ValidationError = ConsentOptions.InvalidSelectionErrorMessage;
+                result.ValidationError = "错误的选择";
             }
 
             if (grantedConsent != null && grantedConsent.Error == null)
@@ -167,7 +161,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return result;
         }
 
-        private async Task<ConsentOutputModel> BuildConsentModelAsync(string returnUrl, ConsentInputModel model = null)
+        private async Task<ConsentOutputModel> BuildConsentModelAsync(string returnUrl, ConsentInput model = null)
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context != null)
@@ -180,7 +174,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return null;
         }
 
-        private ConsentOutputModel CreateConsentViewModel(ConsentInputModel model, string returnUrl,
+        private ConsentOutputModel CreateConsentViewModel(ConsentInput model, string returnUrl,
             AuthorizationRequest context)
         {
             var vm = new ConsentOutputModel
@@ -210,7 +204,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            if (ConsentOptions.EnableOfflineAccess && context.ValidatedResources.Resources.OfflineAccess)
+            if (context.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
             }
@@ -257,8 +251,8 @@ namespace IdentityServer.STS.Admin.Controllers
             return new ScopeOutputModel
             {
                 Value = IdentityServerConstants.StandardScopes.OfflineAccess,
-                DisplayName = ConsentOptions.OfflineAccessDisplayName,
-                Description = ConsentOptions.OfflineAccessDescription,
+                DisplayName = "离线访问",
+                Description = "当离线时,能够访问应用和资源",
                 Emphasize = true,
                 Checked = check
             };

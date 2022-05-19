@@ -143,8 +143,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
             var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
-            // redirectUrl = redirectUrl.Replace('&', '*');
-
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
 
             return Challenge(properties, input.Provider);

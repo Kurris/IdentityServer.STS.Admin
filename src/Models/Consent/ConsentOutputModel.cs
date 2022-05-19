@@ -2,7 +2,7 @@
 
 namespace IdentityServer.STS.Admin.Models.Consent
 {
-    public class ConsentOutputModel : ConsentInputModel
+    public class ConsentOutputModel : ConsentInput
     {
         /// <summary>
         /// 应用名称

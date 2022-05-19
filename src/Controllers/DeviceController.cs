@@ -83,7 +83,7 @@ namespace IdentityServer.STS.Admin.Controllers
             ConsentResponse grantedConsent = null;
 
             // user clicked 'no' - send back the standard 'access_denied' response
-            if (model.Button == "no")
+            if (!model.Allow)
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
 
@@ -91,16 +91,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues));
             }
             // user clicked 'yes' - validate the data
-            else if (model.Button == "yes")
+            else if (model.Allow)
             {
                 // if the user consented to some scope, build the response model
                 if (model.ScopesConsented != null && model.ScopesConsented.Any())
                 {
                     var scopes = model.ScopesConsented;
-                    if (ConsentOptions.EnableOfflineAccess == false)
-                    {
-                        scopes = scopes.Where(x => x != IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess);
-                    }
 
                     grantedConsent = new ConsentResponse
                     {
@@ -114,12 +110,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
                 else
                 {
-                    result.ValidationError = ConsentOptions.MustChooseOneErrorMessage;
+                    result.ValidationError = "至少选择一个选项";
                 }
             }
             else
             {
-                result.ValidationError = ConsentOptions.InvalidSelectionErrorMessage;
+                result.ValidationError = "错误的选择";
             }
 
             if (grantedConsent != null)
@@ -180,7 +176,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            if (ConsentOptions.EnableOfflineAccess && request.ValidatedResources.Resources.OfflineAccess)
+            if (request.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
             }
@@ -222,8 +218,8 @@ namespace IdentityServer.STS.Admin.Controllers
             return new ScopeOutputModel
             {
                 Value = IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess,
-                DisplayName = ConsentOptions.OfflineAccessDisplayName,
-                Description = ConsentOptions.OfflineAccessDescription,
+                DisplayName = "离线访问",
+                Description = "当离线时,能够访问应用和资源",
                 Emphasize = true,
                 Checked = check
             };

@@ -38,7 +38,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseSuccessEvents = true;
 
-                    //自定义授权类型的SPA地址
+                    //自定义交互地址
                     options.UserInteraction.LoginUrl = $"{frontBaseUrl}/signIn";
                     options.UserInteraction.LoginReturnUrlParameter = "returnUrl";
 
