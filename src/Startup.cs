@@ -74,7 +74,8 @@ namespace IdentityServer.STS.Admin
             //配置本地登录cookie相关处理
             services.ConfigureApplicationCookie(options =>
             {
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(3);
+                //本地登录30天cookie
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 options.SlidingExpiration = true;
 
                 //local登录,cookie过期触发

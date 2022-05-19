@@ -77,7 +77,7 @@ export default {
 			})
 
 			if (response.route == 2) {
-				this.$router.push('/home')
+				this.$router.push('/zone')
 			} else if (response.route == 1) {
 				window.location = response.data
 			} else if (response.route == 4) {
@@ -93,7 +93,7 @@ export default {
 		cancel() {
 			let returnUrl = this.$route.query.returnUrl
 			if (returnUrl === undefined) {
-				this.$router.push('/home')
+				this.$router.push('/zone')
 			} else {
 				window.location.href = returnUrl
 			}

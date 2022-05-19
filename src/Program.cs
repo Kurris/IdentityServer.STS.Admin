@@ -24,7 +24,6 @@ namespace IdentityServer.STS.Admin
                             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
                             .MinimumLevel.Override("System", LogEventLevel.Warning)
-                            //.MinimumLevel.Override("IdentityServer4", LogEventLevel.Warning)
                             .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
                             .MinimumLevel.Override("IdentityServer4.Hosting.CorsPolicyProvider", LogEventLevel.Information)
                             .Enrich.FromLogContext()

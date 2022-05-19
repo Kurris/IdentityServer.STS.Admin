@@ -74,31 +74,23 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 获取登录状态
         /// </summary>
         /// <returns></returns>
-        [AllowAnonymous]
         [HttpGet("status")]
         public async Task<ApiResult<object>> GetIsAuthenticated()
         {
-            var isLogin = User.IsAuthenticated();
-            var isAdmin = false;
-            if (isLogin)
-            {
-                var subId = User.GetSubjectId();
-                var user = await _userManager.FindByIdAsync(subId);
-                // var users = await _userManager.GetUsersInRoleAsync("Administrator");
-                isAdmin = await _userManager.IsInRoleAsync(user, "Administrator");
-            }
+            var subId = User.GetSubjectId();
+            var user = await _userManager.FindByIdAsync(subId);
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Administrator");
 
             var apiResult = new ApiResult<object>
             {
-                Code = isLogin ? 200 : 401,
                 Data = new
                 {
-                    isLogin,
+                    user,
                     isAdmin
                 },
             };
 
-            return await Task.FromResult(apiResult);
+            return apiResult;
         }
 
 

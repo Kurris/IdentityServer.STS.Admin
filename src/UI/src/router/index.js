@@ -5,7 +5,7 @@ import NProgress from 'nprogress'
 import adminRouters from './adminRouters'
 
 const signIn = () => import('../components/SignIn.vue')
-const home = () => import('../components/Home.vue')
+const zone = () => import('../components/Zone.vue')
 const discoveryDocument = () => import('../components/DiscoveryDocument.vue')
 const logout = () => import('../components/Logout.vue')
 const loggedOut = () => import('../components/LoggedOut.vue')
@@ -30,13 +30,14 @@ const device = () => import('../components/Device.vue')
 const userCodeCapture = () => import('../components/UserCodeCapture.vue')
 const userCodeConfirmation = () => import('../components/UserCodeConfirmation.vue')
 const successed = () => import('../components/Successed.vue')
+const setting = () => import('../components/Setting.vue')
 
 vue.use(vueRouter)
 
 const routes = [
 	{
 		path: '/',
-		redirect: '/home',
+		redirect: '/zone',
 	},
 	...adminRouters,
 	{
@@ -45,8 +46,14 @@ const routes = [
 		component: signIn,
 	},
 	{
-		path: '/home',
-		component: home,
+		path: '/zone/:userName',
+		component: zone,
+		children: [
+			{
+				path: 'setting',
+				component: setting,
+			},
+		],
 	},
 	{
 		path: '/discoveryDocument',

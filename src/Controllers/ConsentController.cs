@@ -161,7 +161,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return result;
         }
 
-        private async Task<ConsentOutputModel> BuildConsentModelAsync(string returnUrl, ConsentInput model = null)
+        private async Task<ConsentOutput> BuildConsentModelAsync(string returnUrl, ConsentInput model = null)
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context != null)
@@ -174,10 +174,10 @@ namespace IdentityServer.STS.Admin.Controllers
             return null;
         }
 
-        private ConsentOutputModel CreateConsentViewModel(ConsentInput model, string returnUrl,
+        private ConsentOutput CreateConsentViewModel(ConsentInput model, string returnUrl,
             AuthorizationRequest context)
         {
-            var vm = new ConsentOutputModel
+            var vm = new ConsentOutput
             {
                 RememberConsent = model?.RememberConsent ?? false,
                 ScopesConsented = model?.ScopesConsented ?? Enumerable.Empty<string>(),

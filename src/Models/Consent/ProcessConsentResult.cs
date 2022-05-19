@@ -12,7 +12,7 @@ namespace IdentityServer.STS.Admin.Models.Consent
 
         public bool ShowView => ConsentModel != null;
 
-        public ConsentOutputModel ConsentModel { get; set; }
+        public ConsentOutput ConsentModel { get; set; }
 
         public bool HasValidationError => ValidationError != null;
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Consent;
 using IdentityServer.STS.Admin.Models.Device;
@@ -17,6 +16,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
+    /// <summary>
+    /// 设备授权
+    /// </summary>
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -38,8 +40,14 @@ namespace IdentityServer.STS.Admin.Controllers
         public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
 
 
+        /// <summary>
+        /// 确认设备授权码
+        /// </summary>
+        /// <param name="userCode"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [HttpGet("confirmation")]
-        public async Task<ApiResult<DeviceAuthorizationOutputModel>> GetUserCodeConfirmationModel(string userCode)
+        public async Task<ApiResult<DeviceAuthorizationOutput>> GetUserCodeConfirmationInfo(string userCode)
         {
             if (string.IsNullOrEmpty(userCode))
             {
@@ -53,14 +61,21 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             data.ConfirmUserCode = true;
-            return new ApiResult<DeviceAuthorizationOutputModel>
+            return new ApiResult<DeviceAuthorizationOutput>
             {
                 Data = data
             };
         }
 
+        /// <summary>
+        /// 设备授权回调处理
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="Exception"></exception>
         [HttpPost]
-        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInputModel model)
+        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInput model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -73,7 +88,12 @@ namespace IdentityServer.STS.Admin.Controllers
             return Redirect($"{FrontendBaseUrl}/successed");
         }
 
-        private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInputModel model)
+        /// <summary>
+        /// 处理同意屏幕
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInput model)
         {
             var result = new ProcessConsentResult();
 
@@ -82,15 +102,13 @@ namespace IdentityServer.STS.Admin.Controllers
 
             ConsentResponse grantedConsent = null;
 
-            // user clicked 'no' - send back the standard 'access_denied' response
+            //返回标准的access_denied响应
             if (!model.Allow)
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
-
-                // emit event
                 await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues));
             }
-            // user clicked 'yes' - validate the data
+            //验证数据
             else if (model.Allow)
             {
                 // if the user consented to some scope, build the response model
@@ -105,7 +123,6 @@ namespace IdentityServer.STS.Admin.Controllers
                         Description = model.Description
                     };
 
-                    // emit event
                     await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
                 }
                 else
@@ -136,20 +153,15 @@ namespace IdentityServer.STS.Admin.Controllers
             return result;
         }
 
-        private async Task<DeviceAuthorizationOutputModel> BuildOutputModelAsync(string userCode, DeviceAuthorizationInputModel model = null)
+        private async Task<DeviceAuthorizationOutput> BuildOutputModelAsync(string userCode, DeviceAuthorizationInput model = null)
         {
             var request = await _interaction.GetAuthorizationContextAsync(userCode);
-            if (request != null)
-            {
-                return CreateConsentOutputModel(userCode, model, request);
-            }
-
-            return null;
+            return request != null ? CreateConsentOutputModel(userCode, model, request) : null;
         }
 
-        private DeviceAuthorizationOutputModel CreateConsentOutputModel(string userCode, DeviceAuthorizationInputModel model, DeviceFlowAuthorizationRequest request)
+        private DeviceAuthorizationOutput CreateConsentOutputModel(string userCode, DeviceAuthorizationInput model, DeviceFlowAuthorizationRequest request)
         {
-            var vm = new DeviceAuthorizationOutputModel
+            var vm = new DeviceAuthorizationOutput
             {
                 UserCode = userCode,
                 Description = model?.Description,
@@ -163,7 +175,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 AllowRememberConsent = request.Client.AllowRememberConsent
             };
 
-            vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
 
             var apiScopes = new List<ScopeOutputModel>();
             foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
@@ -186,7 +198,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return vm;
         }
 
-        private ScopeOutputModel CreateScopeViewModel(IdentityResource identity, bool check)
+        private static ScopeOutputModel CreateScopeModel(IdentityResource identity, bool check)
         {
             return new ScopeOutputModel
             {
@@ -199,7 +211,7 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutputModel CreateScopeOutputModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+        private static ScopeOutputModel CreateScopeOutputModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
         {
             return new ScopeOutputModel
             {
@@ -213,7 +225,7 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutputModel GetOfflineAccessScope(bool check)
+        private static ScopeOutputModel GetOfflineAccessScope(bool check)
         {
             return new ScopeOutputModel
             {

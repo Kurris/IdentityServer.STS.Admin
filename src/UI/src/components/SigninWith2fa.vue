@@ -37,7 +37,7 @@ export default {
                 NProgress.start()
                 window.location.href = resp.data
             } else if (resp.route == 2) {
-                this.$router.push('/home')
+                this.$router.push('/zone')
             }
         },
         async loginWithCode() {
