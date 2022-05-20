@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IdentityServer.STS.Admin.Enums;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class ForgotPasswordInputModel
+    public class ForgotPasswordInput
     {
         [Required]
-        public LoginResolutionPolicy Policy { get; set; }
+        public LoginResolutionPolicyType Policy { get; set; }
 
         public string Content { get; set; }
     }

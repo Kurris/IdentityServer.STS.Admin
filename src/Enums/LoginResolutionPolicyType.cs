@@ -1,6 +1,6 @@
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public enum LoginResolutionPolicy
+    public enum LoginResolutionPolicyType
     {
         Username = 0,
         Email = 1

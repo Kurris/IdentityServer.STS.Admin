@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class ResetPasswordInputModel
+    public class ResetPasswordInput
     {
         [Required]
         [EmailAddress]
@@ -13,7 +13,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("Password")]
+        [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; }
 
         public string Code { get; set; }

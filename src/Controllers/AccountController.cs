@@ -25,7 +25,9 @@ using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using System.Web;
+using IdentityServer.STS.Admin.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 
 namespace IdentityServer.STS.Admin.Controllers
@@ -33,7 +35,7 @@ namespace IdentityServer.STS.Admin.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthenticateController : ControllerBase
+    public class AccountController : ControllerBase
     {
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
@@ -44,9 +46,10 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountController> _logger;
 
 
-        public AuthenticateController(IIdentityServerInteractionService interaction,
+        public AccountController(IIdentityServerInteractionService interaction,
             IWebHostEnvironment environment
             , SignInManager<User> signInManager
             , UserManager<User> userManager
@@ -54,7 +57,8 @@ namespace IdentityServer.STS.Admin.Controllers
             , IClientStore clientStore
             , IAuthenticationSchemeProvider schemeProvider
             , EmailService emailService
-            , IConfiguration configuration)
+            , IConfiguration configuration
+            , ILogger<AccountController> logger)
         {
             _interaction = interaction;
             _environment = environment;
@@ -65,6 +69,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _schemeProvider = schemeProvider;
             _emailService = emailService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
@@ -77,20 +82,24 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("status")]
         public async Task<ApiResult<object>> GetIsAuthenticated()
         {
-            var subId = User.GetSubjectId();
-            var user = await _userManager.FindByIdAsync(subId);
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Administrator");
+            var isLogin = User.IsAuthenticated();
 
-            var apiResult = new ApiResult<object>
+            User user = null;
+
+            if (isLogin)
+            {
+                var subId = User.GetSubjectId();
+                user = await _userManager.FindByIdAsync(subId);
+            }
+
+            return new ApiResult<object>
             {
                 Data = new
                 {
-                    user,
-                    isAdmin
-                },
+                    isLogin,
+                    user
+                }
             };
-
-            return apiResult;
         }
 
 
@@ -116,6 +125,8 @@ namespace IdentityServer.STS.Admin.Controllers
                     }
                 };
             }
+
+            _logger.LogInformation("Enabled external login providers: {Providers}", string.Join(",", output.ExternalProviders.Select(x => x.DisplayName)));
 
             return new ApiResult<object>
             {
@@ -620,8 +631,6 @@ namespace IdentityServer.STS.Admin.Controllers
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
             {
                 var isLocal = context.IdP == IdentityServerConstants.LocalIdentityProvider;
-
-                // this is meant to short circuit the UI and only trigger the one external IdP
                 var output = new LoginOutputModel
                 {
                     EnableLocalLogin = isLocal,
@@ -765,15 +774,15 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        [HttpGet("2fa/signInWithCode")]
         [AllowAnonymous]
+        [HttpGet("2fa/signInWithCode")]
         public async Task<ApiResult<string>> LoginWithRecoveryCode(string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            //确保用户首先通过用户名和密码
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                // throw new InvalidOperationException(_localizer["Unable2FA"]);
+                throw new InvalidOperationException("用户尚未启用双重验证");
             }
 
             //var model = new LoginWithRecoveryCodeViewModel()
@@ -781,7 +790,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //    ReturnUrl = returnUrl
             //};
 
-            return new ApiResult<string>()
+            return new ApiResult<string>
             {
                 Data = returnUrl,
             };
@@ -820,58 +829,60 @@ namespace IdentityServer.STS.Admin.Controllers
             throw new Exception("异常错误");
         }
 
+        /// <summary>
+        /// 忘记密码，发送邮件验证
+        /// </summary>
+        /// <param name="model"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         [HttpPost("password/email")]
         [AllowAnonymous]
-        public async Task ForgotPassword(ForgotPasswordInputModel model)
+        public async Task ForgotPassword(ForgotPasswordInput model)
         {
-            if (ModelState.IsValid)
+            var user = model.Policy switch
             {
-                var user = model.Policy switch
-                {
-                    LoginResolutionPolicy.Email => await _userManager.FindByEmailAsync(model.Content),
-                    LoginResolutionPolicy.Username => await _userManager.FindByNameAsync(model.Content),
-                    _ => throw new InvalidOperationException()
-                };
+                LoginResolutionPolicyType.Email => await _userManager.FindByEmailAsync(model.Content),
+                LoginResolutionPolicyType.Username => await _userManager.FindByNameAsync(model.Content),
+                _ => throw new InvalidOperationException()
+            };
 
-                if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    // 不能透露用户不存在，只能提醒已发送邮件
-                    if (user == null)
-                        return;
-                }
+            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+            {
+                // 不能透露用户不存在，只能提醒已发送邮件
+                if (user == null)
+                    return;
+            }
 
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                //url query
-                var dic = new Dictionary<string, string>()
-                {
-                    ["userId"] = user.Id.ToString(),
-                    ["code"] = code,
-                    ["email"] = user.Email,
-                };
+            //url query
+            var dic = new Dictionary<string, string>
+            {
+                ["userId"] = user.Id.ToString(),
+                ["code"] = code,
+                ["email"] = user.Email,
+            };
 
-                using (var content = new FormUrlEncodedContent(dic))
-                {
-                    var queries = await content.ReadAsStringAsync();
-                    //前端地址
-                    var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
-
-                    await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
-                }
+            using (var content = new FormUrlEncodedContent(dic))
+            {
+                var queries = await content.ReadAsStringAsync();
+                //前端地址
+                var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
+                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
             }
         }
 
         /// <summary>
-        /// 
+        /// 通过邮件重置密码
         /// </summary>
         /// <param name="model"></param>
         /// <exception cref="Exception"></exception>
-        [HttpPut("password/email/found")]
         [AllowAnonymous]
-        public async Task ResetPasswordFromEmailSide(ResetPasswordInputModel model)
+        [HttpPut("password/email/found")]
+        public async Task ResetPasswordFromEmailSide(ResetPasswordInput model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
+
             //不能透露用户不存在,默认完成
             if (user == null)
                 return;
