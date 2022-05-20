@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
 using IdentityServer.STS.Admin.DependencyInjection;
 using IdentityServer.STS.Admin.Models;
 using Newtonsoft.Json;
@@ -99,7 +98,6 @@ namespace IdentityServer.STS.Admin
                     //context.Response.RedirectToAbsoluteUrl("绝对路径？ReturnUrl=");
 
                     await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(apiResult));
-                    await Task.CompletedTask;
                 };
 
                 //local登录,访问无权限
@@ -120,7 +118,6 @@ namespace IdentityServer.STS.Admin
                     context.Response.ContentLength = apiResult.Length;
 
                     await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(apiResult));
-                    await Task.CompletedTask;
                 };
             });
 

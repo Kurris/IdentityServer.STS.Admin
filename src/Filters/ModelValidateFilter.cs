@@ -28,11 +28,19 @@ namespace IdentityServer.STS.Admin.Filters
             {
                 if (context.Result is ObjectResult objectResult)
                 {
-                    var result = objectResult.Value ?? string.Empty;
-                    var type = result.GetType();
+                    var result = objectResult.Value;
+                    var type = result?.GetType();
 
-                    if (type.IsGenericType && typeof(IApiResult).IsAssignableFrom(type))
-                        context.Result = new ObjectResult(result);
+                    if (type != null)
+                    {
+                        if (type.IsGenericType && typeof(IApiResult).IsAssignableFrom(type))
+                            context.Result = new ObjectResult(result);
+                        else
+                        {
+                            var injectApiResult = context.HttpContext.RequestServices.GetService<IApiResult>();
+                            context.Result = new ObjectResult(injectApiResult.GetDefaultSuccessApiResult(result));
+                        }
+                    }
                     else
                     {
                         var injectApiResult = context.HttpContext.RequestServices.GetService<IApiResult>();

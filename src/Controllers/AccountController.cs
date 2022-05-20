@@ -79,6 +79,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 获取登录状态
         /// </summary>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("status")]
         public async Task<ApiResult<object>> GetIsAuthenticated()
         {
@@ -100,6 +101,12 @@ namespace IdentityServer.STS.Admin.Controllers
                     user
                 }
             };
+        }
+
+        [HttpGet("user")]
+        public async Task<User> GetUserByName(string userName)
+        {
+            return await _userManager.FindByNameAsync(userName);
         }
 
 
@@ -362,7 +369,7 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<object>> Login([FromBody] LoginInputModel request)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
-            var tenant = context?.Tenant;
+            // var tenant = context?.Tenant;
 
             // the user clicked the "cancel" button
             if (request.RequestType != "login")
@@ -465,22 +472,14 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 if (result.IsLockedOut)
                 {
-                    //return new ApiResult<object>()
-                    //{
-                    //    Route = DefineRoute.Lockout,
-                    //};
                     throw new Exception("账号已被锁定");
                 }
             }
 
-            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "invalid credentials",
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "错误的凭证",
                 clientId: context?.Client.ClientId));
 
             throw new Exception("账号或者密码错误");
-
-            //// something went wrong, show form with error
-            //var loginResult = await BuildLoginResultAsync(request);
-            //return loginResult;
         }
 
 
@@ -612,18 +611,6 @@ namespace IdentityServer.STS.Admin.Controllers
             return output;
         }
 
-
-        private async Task<ApiResult<object>> BuildLoginResultAsync(LoginInputModel model)
-        {
-            var output = await BuildLoginResultAsync(model.ReturnUrl);
-            output.Username = model.Username;
-            output.RememberLogin = model.RememberLogin;
-            return new ApiResult<object>()
-            {
-                Route = DefineRoute.None,
-                Data = output,
-            };
-        }
 
         private async Task<LoginOutputModel> BuildLoginResultAsync(string returnUrl)
         {

@@ -52,11 +52,19 @@
 					</AuthorizeItem>
 
 					<el-divider></el-divider>
-					<div>
-						<span style="font-weight: bold; font-size: 14px"> 存在的许可 </span>
-						<div style="font-size: 10px; color: #91969b; margin-top: 2px">
-							<i class="el-icon-success"></i>
-							更新用户所有数据
+					<div class="extension">
+						<div>
+							<span style="font-weight: bold; font-size: 14px"> 存在的许可 </span>
+							<div style="font-size: 10px; color: #91969b; margin-top: 2px">
+								<i class="el-icon-success"></i>
+								更新用户所有数据
+							</div>
+						</div>
+						<div>
+							<!-- <span style="font-weight: bold; font-size: 14px"></span> -->
+							<div style="font-size: 10px; color: #91969b; margin-top: 2px">
+								<el-checkbox v-model="setting.rememberConsent"> 允许记住授权操作</el-checkbox>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -125,7 +133,7 @@ export default {
 
 			document.write(`<form action=${url}  method=post name=form1 style='display:none'>`)
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)
-			document.write(`<input type=hidden name=rememberConsent value='true'/>`)
+			document.write(`<input type=hidden name=rememberConsent value=${this.setting.rememberConsent}></input>`)
 			document.write(`<input type=hidden name=returnUrl value=${this.setting.returnUrl}></input>`)
 
 			let scopeNames = idScopes.map(x => x.value)
@@ -141,7 +149,6 @@ export default {
 		scopeLength() {
 			if (this.setting.identityScopes && this.setting.apiScopes) {
 				let res = this.setting.identityScopes.length + this.setting.apiScopes.length
-				console.log(res)
 				return res
 			}
 			return 0
@@ -201,6 +208,13 @@ export default {
 .notice {
 	padding: 30px;
 }
+
+.extension {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+
 .el-collapse {
 	border-top: none;
 	border-bottom: none;

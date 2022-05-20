@@ -20,7 +20,7 @@ namespace IdentityServer.STS.Admin.Models.Consent
         /// <summary>
         /// 是否记住同意屏幕的操作
         /// </summary>
-        public bool RememberConsent { get; set; } = true;
+        public bool RememberConsent { get; set; }
 
         /// <summary>
         /// 返回的url

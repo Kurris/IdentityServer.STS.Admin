@@ -3,16 +3,24 @@ import http from './http'
 //用户登录
 export const signIn = data => {
 	return http({
-		url: 'api/authenticate/login',
+		url: 'api/account/login',
 		data: data,
 		method: 'post',
 	})
 }
-//
+
+export const getUserByName = data => {
+	return http({
+		url: 'api/account/user',
+		method: 'get',
+		params: data,
+	})
+}
+
 //
 export const siginTwoFactorAuthenticationUser = data => {
 	return http({
-		url: 'api/authenticate/twoFactorAuthenticationUser/signIn',
+		url: 'api/account/twoFactorAuthenticationUser/signIn',
 		data: data,
 		method: 'post',
 	})
@@ -20,7 +28,7 @@ export const siginTwoFactorAuthenticationUser = data => {
 
 export const checkTwoFactorAuthenticationUser = data => {
 	return http({
-		url: 'api/authenticate/twoFactorAuthenticationUser',
+		url: 'api/account/twoFactorAuthenticationUser',
 		params: data,
 		method: 'get',
 	})
@@ -29,7 +37,7 @@ export const checkTwoFactorAuthenticationUser = data => {
 //是否已经登录
 export const getLoginStatus = () => {
 	return http({
-		url: 'api/authenticate/status',
+		url: 'api/account/status',
 		method: 'get',
 	})
 }
@@ -44,7 +52,7 @@ export const getDocument = () => {
 //
 export const goSignInWithCode = data => {
 	return http({
-		url: 'api/authenticate/2fa/signInWithCode',
+		url: 'api/account/2fa/signInWithCode',
 		method: 'get',
 		params: data,
 	})
@@ -52,7 +60,7 @@ export const goSignInWithCode = data => {
 
 export const signInWithCode = data => {
 	return http({
-		url: 'api/authenticate/2fa/signInWithCode',
+		url: 'api/account/2fa/signInWithCode',
 		method: 'post',
 		data: data,
 	})
@@ -61,7 +69,7 @@ export const signInWithCode = data => {
 //检查登录
 export const checkLogin = data => {
 	return http({
-		url: 'api/authenticate/loginUiSetting',
+		url: 'api/account/loginUiSetting',
 		method: 'get',
 		params: data,
 	})
@@ -69,7 +77,7 @@ export const checkLogin = data => {
 
 export const logout = data => {
 	return http({
-		url: 'api/authenticate/logout',
+		url: 'api/account/logout',
 		method: 'get',
 		params: data,
 	})
@@ -77,7 +85,7 @@ export const logout = data => {
 
 export const loggedOut = data => {
 	return http({
-		url: 'api/authenticate/loggedOut',
+		url: 'api/account/loggedOut',
 		method: 'post',
 		data: data,
 	})
@@ -85,7 +93,7 @@ export const loggedOut = data => {
 
 export const externalLogin = data => {
 	return http({
-		url: 'api/authenticate/externalLogin',
+		url: 'api/account/externalLogin',
 		method: 'get',
 		params: data,
 	})
@@ -93,7 +101,7 @@ export const externalLogin = data => {
 
 export const externalRegister = data => {
 	return http({
-		url: 'api/authenticate/externalRegister',
+		url: 'api/account/externalRegister',
 		method: 'post',
 		data: data,
 	})
@@ -101,7 +109,7 @@ export const externalRegister = data => {
 
 export const register = data => {
 	return http({
-		url: 'api/authenticate/accout/register',
+		url: 'api/account/accout/register',
 		method: 'post',
 		data: data,
 	})
@@ -109,7 +117,7 @@ export const register = data => {
 
 export const getError = data => {
 	return http({
-		url: 'api/authenticate/error',
+		url: 'api/account/error',
 		method: 'get',
 		params: data,
 	})
@@ -253,7 +261,7 @@ export const deleteExternalLogin = data => {
 
 export const forgetPasswordAndSendEmail = data => {
 	return http({
-		url: 'api/authenticate/password/email',
+		url: 'api/account/password/email',
 		method: 'post',
 		data: data,
 	})
@@ -262,7 +270,7 @@ export const forgetPasswordAndSendEmail = data => {
 
 export const resetPassword = data => {
 	return http({
-		url: 'api/authenticate/password/email/found',
+		url: 'api/account/password/email/found',
 		method: 'put',
 		data: data,
 	})

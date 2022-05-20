@@ -15,7 +15,7 @@ const error = () => import('../components/Error.vue')
 const signinWithRecoveryCode = () => import('../components/SigninWithRecoveryCode.vue')
 const signinWith2fa = () => import('../components/SigninWith2fa.vue')
 const enableAuthenticator = () => import('../components/EnableAuthenticator.vue')
-const twoFactorAuthentication = () => import('../components/TwoFactorAuthentication.vue')
+const twoFactorAuthentication = () => import('../components/setting/TwoFactorAuthentication.vue')
 const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/Grants.vue')
@@ -41,19 +41,28 @@ const routes = [
 	},
 	...adminRouters,
 	{
-		name: 'signin',
+		name: 'signIn',
 		path: '/signIn',
 		component: signIn,
 	},
 	{
 		path: '/zone/:userName',
 		component: zone,
+	},
+	{
+		path: '/setting',
+		component: setting,
 		children: [
 			{
-				path: 'setting',
-				component: setting,
+				path: 'twoFactorAuthentication',
+				component: twoFactorAuthentication,
 			},
 		],
+	},
+	{
+		name: 'zone',
+		path: '/zone',
+		component: zone,
 	},
 	{
 		path: '/discoveryDocument',
@@ -91,10 +100,7 @@ const routes = [
 		path: '/enableAuthenticator',
 		component: enableAuthenticator,
 	},
-	{
-		path: '/twoFactorAuthentication',
-		component: twoFactorAuthentication,
-	},
+
 	{
 		path: '/showRecoveryCodes',
 		component: showRecoveryCodes,

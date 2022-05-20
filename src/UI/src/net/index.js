@@ -27,8 +27,10 @@ export default function axiosRequest(config) {
 				document.body.removeChild(a)
 			} else {
 				if (result.data.code == 302) {
-					NProgress.start()
-					window.location.href = result.data.data + '?returnUrl=' + window.location
+					//避免死循环
+					if (window.location.href.indexOf('/signIn') < 0) {
+						window.location.href = result.data.data + '?returnUrl=' + window.location
+					}
 				} else if (result.data.code == 500) {
 					ElementUI.Notification.error(result.data.msg)
 				} else if (result.data.code == 400) {

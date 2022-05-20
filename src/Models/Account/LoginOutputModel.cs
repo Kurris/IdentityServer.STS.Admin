@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using IdentityServer.STS.Admin.Enums;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
@@ -9,7 +10,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         public bool AllowRememberLogin { get; set; } = true;
         public bool EnableLocalLogin { get; set; } = true;
 
-        public LoginResolutionPolicy LoginResolutionPolicy { get; set; } = LoginResolutionPolicy.Username;
+        public LoginResolutionPolicyType LoginResolutionPolicy { get; set; } = LoginResolutionPolicyType.Username;
 
         public IEnumerable<ExternalProvider> ExternalProviders { get; set; } = Enumerable.Empty<ExternalProvider>();
         public IEnumerable<ExternalProvider> VisibleExternalProviders => ExternalProviders.Where(x => !string.IsNullOrWhiteSpace(x.DisplayName));

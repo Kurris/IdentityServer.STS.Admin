@@ -25,16 +25,12 @@
 					</el-form-item>
 				</el-form>
 
-				<!-- <div>
-                        <el-button @click="cancel()">取消</el-button>
-                    </div> -->
-
 				<div v-if="externalProviders != null && externalProviders.length > 0">
 					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
 					<template v-for="(item, i) in externalProviders">
 						<template v-if="item.displayName == 'GitHub'">
 							<div :key="i">
-								<img src="../assets/auth2logo/GitHub-Mark-32px.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
+								<img class="externalProvider" src="../assets/auth2logo/GitHub-Mark-32px.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
 							</div>
 						</template>
 					</template>
@@ -45,7 +41,8 @@
 </template>
 
 <script>
-import { signIn, checkLogin } from '../net/api.js'
+// getLoginStatus
+import { signIn, checkLogin, getLoginStatus } from '../net/api.js'
 
 import NProgress from 'nprogress'
 
@@ -64,7 +61,6 @@ export default {
 	methods: {
 		async login() {
 			const returnUrl = this.$route.query.returnUrl
-			console.log(returnUrl)
 			const username = this.form.userName
 			const password = this.form.password
 
@@ -77,7 +73,12 @@ export default {
 			})
 
 			if (response.route == 2) {
-				this.$router.push('/zone')
+				let res = await getLoginStatus()
+				let userName = res.data.user.userName
+				console.log(userName)
+				this.$router.push({
+					path: '/zone/' + userName,
+				})
 			} else if (response.route == 1) {
 				window.location = response.data
 			} else if (response.route == 4) {
@@ -88,14 +89,6 @@ export default {
 						returnUrl: response.data.returnUrl,
 					},
 				})
-			}
-		},
-		cancel() {
-			let returnUrl = this.$route.query.returnUrl
-			if (returnUrl === undefined) {
-				this.$router.push('/zone')
-			} else {
-				window.location.href = returnUrl
 			}
 		},
 		async externalLogin(provider) {
@@ -159,7 +152,7 @@ export default {
 	padding-bottom: 2px;
 }
 
-img:hover {
+img.externalProvider:hover {
 	cursor: pointer;
 }
 </style>
