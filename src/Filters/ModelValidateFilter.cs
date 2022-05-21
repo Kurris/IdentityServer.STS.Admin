@@ -37,9 +37,6 @@ namespace IdentityServer.STS.Admin.Filters
                             context.Result = new ObjectResult(result);
                         else
                         {
-                            
-                        }
-                        {
                             var injectApiResult = context.HttpContext.RequestServices.GetService<IApiResult>();
                             context.Result = new ObjectResult(injectApiResult.GetDefaultSuccessApiResult(result));
                         }
