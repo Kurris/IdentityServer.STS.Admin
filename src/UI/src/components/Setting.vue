@@ -1,11 +1,11 @@
 <template>
 	<div id="setting">
-		<el-menu default-active="2">
+		<el-menu default-active="2" router>
 			<el-menu-item index="4">
 				<i class="el-icon-setting"></i>
 				<span slot="title">账号</span>
 			</el-menu-item>
-			<el-menu-item index="4">
+			<el-menu-item index="/setting/profile">
 				<i class="el-icon-setting"></i>
 				<span slot="title">个人概要</span>
 			</el-menu-item>
@@ -19,9 +19,9 @@
 					<i class="el-icon-setting"></i>
 					<span slot="title">邮件</span>
 				</el-menu-item>
-				<el-menu-item index="4">
+				<el-menu-item index="/setting/twoFactorAuthentication">
 					<i class="el-icon-setting"></i>
-					<span slot="title">密码和授权</span>
+					<span slot="title">双重验证</span>
 				</el-menu-item>
 				<el-menu-item index="4">
 					<i class="el-icon-setting"></i>
@@ -53,4 +53,8 @@ export default {
 	async beforeMount() {},
 }
 </script>
-<style scoped></style>
+<style scoped>
+#setting {
+	display: flex;
+}
+</style>

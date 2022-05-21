@@ -20,7 +20,6 @@
 					</el-card>
 				</div>
 			</template>
-			<template v-else> 介绍界面 </template>
 		</template>
 
 		<!-- <el-row justify="space-around" :gutter="30">
@@ -47,15 +46,6 @@
 						<span><b>我的个人数据</b></span>
 					</div>
 					<el-button type="primary" @click="$router.push('/personalData')">我的个人数据</el-button>
-				</el-card>
-			</el-col>
-
-			<el-col :span="colSpan">
-				<el-card class="box-card">
-					<div slot="header" class="clearfix">
-						<span><b>双因素身份验证</b></span>
-					</div>
-					<el-button type="primary" @click="go2fa">双因素身份验证</el-button>
 				</el-card>
 			</el-col>
 
@@ -109,11 +99,7 @@ export default {
 		}
 	},
 	components: {},
-	methods: {
-		go2fa() {
-			this.$router.push('/twoFactorAuthentication')
-		},
-	},
+	methods: {},
 	async beforeMount() {
 		if (this.isCurrentUser) {
 			let userRes = await getUserByName({

@@ -20,7 +20,7 @@ const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/Grants.vue')
 const password = () => import('../components/Password.vue')
-const profile = () => import('../components/Profile.vue')
+const profile = () => import('../components/setting/Profile.vue')
 const personalData = () => import('../components/PersonalData.vue')
 const externalLogins = () => import('../components/ExternalLogins.vue')
 const forgotPassword = () => import('../components/ForgotPassword.vue')
@@ -35,10 +35,10 @@ const setting = () => import('../components/Setting.vue')
 vue.use(vueRouter)
 
 const routes = [
-	{
-		path: '/',
-		redirect: '/zone',
-	},
+	// {
+	// 	path: '/',
+	// 	redirect: '/zone',
+	// },
 	...adminRouters,
 	{
 		name: 'signIn',
@@ -56,6 +56,10 @@ const routes = [
 			{
 				path: 'twoFactorAuthentication',
 				component: twoFactorAuthentication,
+			},
+			{
+				path: 'profile',
+				component: profile,
 			},
 		],
 	},
@@ -117,10 +121,7 @@ const routes = [
 		path: '/password',
 		component: password,
 	},
-	{
-		path: '/profile',
-		component: profile,
-	},
+
 	{
 		path: '/personalData',
 		component: personalData,

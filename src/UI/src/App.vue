@@ -6,6 +6,7 @@
 					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
 				</a>
 
+				<el-link style="color: white; margin-left: 10px" @click="$router.push('/')">首页</el-link>
 				<el-link style="color: white; margin-left: 10px" href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
 				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
 			</div>
@@ -26,7 +27,7 @@
 									<i class="el-icon-star-off">状态</i>
 								</button>
 							</el-dropdown-item>
-							<el-dropdown-item divided>个人概要</el-dropdown-item>
+							<el-dropdown-item divided command="profile">个人概要</el-dropdown-item>
 							<el-dropdown-item command="setting">设置</el-dropdown-item>
 							<el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
 						</el-dropdown-menu>
@@ -61,6 +62,10 @@ export default {
 			} else if (cmd == 'setting') {
 				this.$router.push({
 					path: '/setting',
+				})
+			} else if (cmd == 'profile') {
+				this.$router.push({
+					path: '/zone/' + this.status.user.userName,
 				})
 			}
 		},
