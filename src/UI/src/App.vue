@@ -1,13 +1,14 @@
 <template>
 	<div id="app">
-		<div id="header" v-if="status != null && $route.path != '/signIn'">
+		<div id="header"
+			v-if="status != null && $route.path != '/signIn' && $route.path != '/signinWith2fa' && $route.path != '/consent' && $route.path != '/loginWithRecoveryCode'">
 			<div class="left">
 				<a href="http://docs.identityserver.io/en/latest/" title="跳转到identityserver4 document">
 					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
 				</a>
-
 				<el-link style="color: white; margin-left: 10px" @click="$router.push('/')">首页</el-link>
-				<el-link style="color: white; margin-left: 10px" href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
+				<el-link style="color: white; margin-left: 10px"
+					href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
 				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
 			</div>
 			<div class="right">
@@ -23,7 +24,8 @@
 								登录为: <strong>{{ status.user.userName }}</strong>
 							</el-dropdown-item>
 							<el-dropdown-item divided>
-								<button style="width: 150px; height: 30px; background-color: white; border-radius: 4px; border: 1px solid #eceef4">
+								<button
+									style="width: 150px; height: 30px; background-color: white; border-radius: 4px; border: 1px solid #eceef4">
 									<i class="el-icon-star-off">状态</i>
 								</button>
 							</el-dropdown-item>
@@ -115,6 +117,7 @@ body {
 	background-color: #25292e;
 	border-bottom: 0.5px;
 }
+
 .left {
 	display: flex;
 	justify-content: center;

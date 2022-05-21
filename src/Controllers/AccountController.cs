@@ -324,7 +324,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var callbackUrl = $"{FrontendBaseUrl}/confirmEmail?" + await content.ReadAsStringAsync();
 
-                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
+                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] { new MailboxAddress(model.UserName, model.Email) });
                     return new ApiResult<object>()
                     {
                         Route = DefineRoute.ConfirmEmail
@@ -698,14 +698,21 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// 双重验证登录
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpPost("twoFactorAuthenticationUser/signIn")]
-        public async Task<ApiResult<object>> LoginWith2Fa(LoginWith2faInputModel input)
+        public async Task<ApiResult<object>> LoginWith2Fa(LoginWith2faInput input)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
-                throw new InvalidOperationException("无法加载双因素身份验证用户");
+                throw new InvalidOperationException("用户凭证已过期,请重新登录!");
 
+            //处理空和分隔符
             var authenticatorCode = input.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
             var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, input.RememberMe, input.RememberMachine);
@@ -719,6 +726,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
+            //正常情况下在登录后就会提醒被锁定
             if (result.IsLockedOut)
             {
                 return new ApiResult<object>
@@ -739,19 +747,21 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// 获取错误内容
+        /// </summary>
+        /// <param name="errorId"></param>
+        /// <returns></returns>
         [HttpGet("error")]
         public async Task<ApiResult<object>> GetError(string errorId)
         {
-            // retrieve error details from identityserver
+            //获取错误的上下文
             var message = await _interaction.GetErrorContextAsync(errorId);
 
-            if (message != null)
+            //存在错误,在开发环境显示错误内容
+            if (message != null && !_environment.IsDevelopment())
             {
-                if (!_environment.IsDevelopment())
-                {
-                    // only show in development
-                    message.ErrorDescription = null;
-                }
+                message.ErrorDescription = null;
             }
 
             return new ApiResult<object>
@@ -761,6 +771,12 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
+        /// <summary>
+        /// 恢复码登录检查是否存在登录凭证
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpGet("2fa/signInWithCode")]
         public async Task<ApiResult<string>> LoginWithRecoveryCode(string returnUrl = null)
@@ -772,11 +788,6 @@ namespace IdentityServer.STS.Admin.Controllers
                 throw new InvalidOperationException("用户尚未启用双重验证");
             }
 
-            //var model = new LoginWithRecoveryCodeViewModel()
-            //{
-            //    ReturnUrl = returnUrl
-            //};
-
             return new ApiResult<string>
             {
                 Data = returnUrl,
@@ -784,16 +795,20 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        [HttpPost("2fa/signInWithCode")]
+        /// <summary>
+        /// 恢复码登录
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [AllowAnonymous]
-        public async Task<ApiResult<object>> LoginWithRecoveryCode(LoginWithRecoveryCodeInputModel model)
+        [HttpPost("2fa/signInWithCode")]
+        public async Task<ApiResult<object>> LoginWithRecoveryCode(LoginWithRecoveryCodeInput model)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
-            {
-                //throw new InvalidOperationException(_localizer["Unable2FA"]);
                 throw new Exception("用户尚未开启双重验证");
-            }
+
 
             var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
 
@@ -821,8 +836,8 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        [HttpPost("password/email")]
         [AllowAnonymous]
+        [HttpPost("password/email")]
         public async Task ForgotPassword(ForgotPasswordInput model)
         {
             var user = model.Policy switch
@@ -855,7 +870,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 var queries = await content.ReadAsStringAsync();
                 //前端地址
                 var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
-                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
+                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] { new MailboxAddress(user.UserName, user.Email) });
             }
         }
 
