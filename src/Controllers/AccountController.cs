@@ -684,7 +684,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
 
-            var model = new LoginWith2faOutputModel
+            var model = new LoginWith2faOutput
             {
                 ReturnUrl = returnUrl,
                 RememberMe = rememberMe
@@ -779,7 +779,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpGet("2fa/signInWithCode")]
-        public async Task<ApiResult<string>> LoginWithRecoveryCode(string returnUrl = null)
+        public async Task LoginWithRecoveryCode(string returnUrl = null)
         {
             //确保用户首先通过用户名和密码
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -787,11 +787,6 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 throw new InvalidOperationException("用户尚未启用双重验证");
             }
-
-            return new ApiResult<string>
-            {
-                Data = returnUrl,
-            };
         }
 
 

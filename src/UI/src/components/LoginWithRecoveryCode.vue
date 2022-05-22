@@ -17,10 +17,10 @@
                     </div>
 
                     <span style="font-size: 13px;">恢复码:</span>
-                    <el-input v-model.number="code" maxlength="6" style="margin-bottom: 20px;margin-top: 10px;" placeholder="6位恢复码"
+                    <el-input v-model="code" style="margin-bottom: 20px;margin-top: 10px;" placeholder="请输入恢复码"
                         autofocus />
 
-                    <el-button class="green" @click="login" :disabled="!ableLogin">登录</el-button>
+                    <el-button class="green" @click="login">恢复码验证</el-button>
 
                     <p style="font-size: 13px;color: #636d74;">
                         您已请求使用恢复码登录,当您无法访问双重验证器所在的设备,输入一组恢复码来验证您的身份。
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { signInWithCode } from '../net/api.js'
+import { signInWithCode, getLoginStatus, goSignInWithCode } from '../net/api.js'
 import NProgress from 'nprogress'
 
 export default {
@@ -60,18 +60,14 @@ export default {
                 NProgress.start()
                 window.location.href = resp.data
             } else if (resp.route == 2) {
-                this.$router.push('/zone')
+                let res = await getLoginStatus()
+                let userName = res.data.user.userName
+                this.$router.push('/zone/' + userName)
             }
         }
     },
-    computed: {
-        ableLogin() {
-            if (this.code == null)
-                return false
-
-            let res = (this.code + '').length == 6
-            return res;
-        }
+    async beforeMount() {
+        await goSignInWithCode()
     }
 }
 </script>

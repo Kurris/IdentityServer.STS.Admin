@@ -12,7 +12,6 @@ const loggedOut = () => import('../components/LoggedOut.vue')
 const externalLoginConfirmation = () => import('../components/ExternalLoginConfirmation.vue')
 const consent = () => import('../components/Consent.vue')
 const error = () => import('../components/Error.vue')
-const signinWithRecoveryCode = () => import('../components/SigninWithRecoveryCode.vue')
 const signinWith2fa = () => import('../components/SigninWith2fa.vue')
 const enableAuthenticator = () => import('../components/EnableAuthenticator.vue')
 const twoFactorAuthentication = () => import('../components/setting/TwoFactorAuthentication.vue')
@@ -95,10 +94,6 @@ const routes = [
 	{
 		path: '/signinWith2fa',
 		component: signinWith2fa,
-	},
-	{
-		path: '/signinWithRecoveryCode',
-		component: signinWithRecoveryCode,
 	},
 	{
 		path: '/enableAuthenticator',

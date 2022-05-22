@@ -20,7 +20,7 @@
 					<el-input v-model.number="model.twoFactorCode" maxlength="6"
 						style="margin-bottom: 20px;margin-top: 10px;" placeholder="6位验证码" autofocus />
 
-					<el-button class="green" @click="login">登录</el-button>
+					<el-button class="green" @click="login">验证</el-button>
 
 					<p style="font-size: 13px;color: #636d74;">您的登录使用身份验证器应用程序进行保护,打开双重验证器应用(TOTP)查看您的验证码</p>
 					<el-divider></el-divider>
@@ -34,7 +34,7 @@
 			</div>
 
 			<div class="footer">
-				无法访问您的身份验证设备?<el-link type="primary" @click="loginWithCode()">使用恢复码登录</el-link>
+				无法访问您的身份验证设备?<el-link type="primary" @click="goUseRecoveryCode">使用恢复码登录</el-link>
 			</div>
 
 		</div>
@@ -42,7 +42,8 @@
 </template>
 
 <script>
-import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, goSignInWithCode, getLoginStatus } from '../net/api.js'
+// 
+import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
 
 import NProgress from 'nprogress'
 
@@ -70,12 +71,13 @@ export default {
 				})
 			}
 		},
-		async loginWithCode() {
-			let res = await goSignInWithCode()
+		async goUseRecoveryCode() {
+			let returnUrl = this.$route.query.returnUrl
+
 			this.$router.push({
 				path: '/loginWithRecoveryCode',
 				query: {
-					returnUrl: res.data,
+					returnUrl
 				},
 			})
 		},
