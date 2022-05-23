@@ -14,6 +14,7 @@ namespace IdentityServer.STS.Admin.Models.Manager
         [BindNever]
         public string SharedKey { get; set; }
 
+
         [BindNever]
         public string AuthenticatorUri { get; set; }
     }

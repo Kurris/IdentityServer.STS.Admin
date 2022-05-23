@@ -94,17 +94,25 @@ export default {
 		async externalLogin(provider) {
 			let returnUrl = this.$route.query.returnUrl
 
+			let isLocal = false
 			if (returnUrl === undefined) {
 				returnUrl = location.protocol + '//' + location.host
+				isLocal = true
 			}
 			NProgress.start()
-			let url = 'http://localhost:5000/api/authenticate/externalLogin'
+			let url = 'http://localhost:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
 			document.write("<input type=hidden name=returnUrl value='" + returnUrl + "'/>")
+			document.write("<input type=hidden name=isLocal value='" + isLocal + "'/>")
 			document.write('</form>')
-			document.form1.submit()
+
+			try {
+				document.form1.submit()
+			} catch (error) {
+				console.log(error)
+			}
 		},
 	},
 	beforeMount() {

@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Web;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Resolvers;
 using Microsoft.AspNetCore.Builder;
@@ -41,17 +44,42 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
             });
 
+            var frontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
+
             services.AddAuthentication()
                 .AddGitHub(options =>
                 {
                     options.ClientId = "6aced974f4ac1536ff1d";
                     options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
-                    options.AccessDeniedPath = "/api/authenticate/externalLoginCallback";
 
                     options.Scope.Add("user:email");
                     options.Scope.Add("read:user");
 
                     options.SaveTokens = true;
+                    options.ReturnUrlParameter = "returnUrl";
+
+                    options.Events.OnRemoteFailure = async context =>
+                    {
+                        if (context.Properties != null)
+                        {
+                            var p = context.Properties.RedirectUri.IndexOf('?');
+                            var l = context.Properties.RedirectUri.Length;
+                            var kv = HttpUtility.ParseQueryString(context.Properties.RedirectUri.Substring(p + 1, l - p - 1));
+
+                            var query = new FormUrlEncodedContent(new Dictionary<string, string>
+                            {
+                                ["isLocal"] = kv.Get("isLocal"),
+                                ["remoteError"] = context.Failure.Message,
+                                ["returnUrl"] = kv.Get("returnUrl"),
+                            });
+
+                            context.Response.Redirect($"{frontendBaseUrl}/error?{await query.ReadAsStringAsync()}");
+                        }
+                        else
+                        {
+                            context.Response.Redirect($"{frontendBaseUrl}/error?remoteError={context.Failure.Message}");
+                        }
+                    };
                 });
 
             services.AddAuthorization(options =>

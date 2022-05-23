@@ -61,7 +61,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 };
             }
 
-            return new ApiResult<object> { Route = DefineRoute.Error };
+            return new ApiResult<object> {Route = DefineRoute.Error};
         }
 
         /// <summary>
@@ -100,6 +100,11 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// 处理同意屏幕
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         private async Task<ProcessConsentResult> ProcessConsent(ConsentInput model)
         {
             var result = new ProcessConsentResult();
@@ -113,9 +118,8 @@ namespace IdentityServer.STS.Admin.Controllers
             //不允许授权，返回标准的"access_denied"响应
             if (!model.Allow)
             {
-                grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
+                grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
                 await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
-
             }
             //验证数据合法性
             else if (model.Allow)

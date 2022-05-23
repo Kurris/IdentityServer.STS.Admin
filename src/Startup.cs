@@ -151,10 +151,10 @@ namespace IdentityServer.STS.Admin
         {
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            // if (env.IsDevelopment())
+            // {
+            //     app.UseDeveloperExceptionPage();
+            // }
 
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});

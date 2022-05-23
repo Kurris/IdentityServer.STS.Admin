@@ -152,7 +152,7 @@ namespace IdentityServer.STS.Admin.Controllers
         [AllowAnonymous]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
-            var redirectUrl = $"http://localhost:5000/api/authenticate/externalLoginCallback?ReturnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
+            var redirectUrl = $"http://localhost:5000/api/account/externalLoginCallback?isLocal={input.IsLocal}&returnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
 
             return Challenge(properties, input.Provider);
@@ -161,26 +161,17 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 外部登录回调
         /// </summary>
+        /// <param name="isLocal"></param>
         /// <param name="returnUrl"></param>
-        /// <param name="remoteError"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(bool isLocal, string returnUrl)
         {
-            if (!string.IsNullOrEmpty(remoteError))
-            {
-                throw new Exception($"外部提供程序出错{remoteError}");
-            }
-
             if (!string.IsNullOrEmpty(returnUrl))
             {
                 returnUrl = HttpUtility.UrlDecode(returnUrl);
-                // if (returnUrl.Contains("*"))
-                // {
-                //     returnUrl = returnUrl.Replace('*', '&');
-                // }
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -193,12 +184,10 @@ namespace IdentityServer.STS.Admin.Controllers
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
             if (result.Succeeded)
             {
-                if (Url.IsLocalUrl(returnUrl) || returnUrl.IsLocal(HttpContext.Connection.LocalIpAddress.MapToIPv4().ToString()))
+                if (isLocal)
                 {
                     return Redirect(returnUrl);
                 }
-
-                return Redirect(returnUrl + "/home");
             }
 
             if (result.RequiresTwoFactor)
@@ -219,7 +208,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
             var userName = info.Principal.Identity.Name;
 
-            var urlParams = new Dictionary<string, string>()
+            var urlParams = new Dictionary<string, string>
             {
                 ["email"] = email,
                 ["userName"] = userName,
@@ -250,7 +239,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return new ApiResult<object>()
+                return new ApiResult<object>
                 {
                     Route = DefineRoute.ExternalLoginFailure
                 };
@@ -324,7 +313,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var callbackUrl = $"{FrontendBaseUrl}/confirmEmail?" + await content.ReadAsStringAsync();
 
-                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] { new MailboxAddress(model.UserName, model.Email) });
+                    await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
                     return new ApiResult<object>()
                     {
                         Route = DefineRoute.ConfirmEmail
@@ -752,6 +741,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="errorId"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("error")]
         public async Task<ApiResult<object>> GetError(string errorId)
         {
@@ -803,7 +793,6 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
                 throw new Exception("用户尚未开启双重验证");
-
 
             var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
 
@@ -865,7 +854,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 var queries = await content.ReadAsStringAsync();
                 //前端地址
                 var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
-                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] { new MailboxAddress(user.UserName, user.Email) });
+                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
             }
         }
 

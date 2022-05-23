@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -29,21 +30,24 @@ namespace IdentityServer.STS.Admin.Filters
             }
             catch (Exception ex)
             {
-                string msg = ex.GetBaseException().Message;
-
-                context.Response.StatusCode = 200;
-                byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                if (!context.Response.HasStarted && context.Response.StatusCode != 302)
                 {
-                    Code = 500,
-                    Msg = msg
-                }, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                }));
+                    string msg = ex.GetBaseException().Message;
 
-                context.Response.ContentType = "application/json";
-                context.Response.ContentLength = content.Length;
-                await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
+                    context.Response.StatusCode = 200;
+                    byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                    {
+                        Code = 500,
+                        Msg = msg
+                    }, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    }));
+
+                    context.Response.ContentType = "application/json";
+                    context.Response.ContentLength = content.Length;
+                    await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
+                }
             }
         }
     }

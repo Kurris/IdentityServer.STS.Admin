@@ -2,23 +2,8 @@
 	<div id="twoFactorAuthentication">
 		<div>
 			<h1>双因素身份验证 (2FA)</h1>
-			<template v-if="setting.is2faEnabled">
-				<template v-if="setting.recoveryCodesLeft == 0">
-					<div class="col-12">
-						<strong>您还没有恢复码</strong>
-						<p>你必须 <el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link> 在您使用恢复码登录之前</p>
-					</div>
-				</template>
-				<template v-else-if="setting.recoveryCodesLeft == 1">
-					<div class="col-12">
-						<div class="alert alert-danger">
-							<strong>您还剩 1 个恢复码</strong>
-							<p>您可以生成一组新的恢复码</p>
-							<el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link>
-						</div>
-					</div>
-				</template>
-				<template v-else-if="setting.recoveryCodesLeft <= 3">
+			<template v-if="setting.is2FaEnabled">
+				<template if="setting.recoveryCodesLeft <= 3">
 					<div class="alert alert-warning">
 						<strong>你有 {{ setting.recoveryCodesLeft }}个恢复码剩下</strong>
 						<p>你应该<el-link type="primary" @click="$router.push('/showRecoveryCodes')">生成一组新的恢复码</el-link></p>
@@ -28,7 +13,7 @@
 				<template v-if="setting.isMachineRemembered">
 					<div>
 						<div style="padding: 3px">
-							<el-button type="success" @click="forget2faBrowser">忘记这个浏览器</el-button>
+							<el-button type="success" @click="forget2faBrowser">忘记这个设备</el-button>
 						</div>
 					</div>
 				</template>
@@ -74,6 +59,9 @@ export default {
 		setup() {
 			this.$router.push('/enableAuthenticator')
 		},
+		reset() {
+			resetAuthenticator().then(() => this.$router.push('/enableAuthenticator'))
+		},
 		async forget2faBrowser() {
 			await forget2faClient()
 			let res = await getTwofactorSetting()
@@ -103,9 +91,6 @@ export default {
 						message: '已取消充值恢复码',
 					})
 				})
-		},
-		reset() {
-			resetAuthenticator().then(() => this.$router.push('/enableAuthenticator'))
 		},
 	},
 

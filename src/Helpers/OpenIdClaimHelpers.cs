@@ -109,21 +109,21 @@ namespace IdentityServer.STS.Admin.Helpers
         /// <param name="oldProfile"></param>
         /// <param name="newProfile"></param>
         /// <returns></returns>
-        public static IList<Claim> ExtractClaimsToRemove(OpenIdProfile oldProfile, OpenIdProfile newProfile)
+        public static IEnumerable<Claim> ExtractClaimsToRemove(OpenIdProfile oldProfile, OpenIdProfile newProfile)
         {
             var claimsToRemove = new List<Claim>();
 
-            if (string.IsNullOrWhiteSpace(newProfile.FullName) && !string.IsNullOrWhiteSpace(oldProfile.FullName))
+            if (string.IsNullOrEmpty(newProfile.FullName) && !string.IsNullOrEmpty(oldProfile.FullName))
             {
                 claimsToRemove.Add(new Claim(JwtClaimTypes.Name, oldProfile.FullName));
             }
 
-            if (string.IsNullOrWhiteSpace(newProfile.Website) && !string.IsNullOrWhiteSpace(oldProfile.Website))
+            if (string.IsNullOrEmpty(newProfile.Website) && !string.IsNullOrEmpty(oldProfile.Website))
             {
                 claimsToRemove.Add(new Claim(JwtClaimTypes.WebSite, oldProfile.Website));
             }
 
-            if (string.IsNullOrWhiteSpace(newProfile.Profile) && !string.IsNullOrWhiteSpace(oldProfile.Profile))
+            if (string.IsNullOrEmpty(newProfile.Profile) && !string.IsNullOrEmpty(oldProfile.Profile))
             {
                 claimsToRemove.Add(new Claim(JwtClaimTypes.Profile, oldProfile.Profile));
             }
@@ -131,7 +131,7 @@ namespace IdentityServer.STS.Admin.Helpers
             var oldAddressClaim = ExtractAddressClaim(oldProfile);
             var newAddressClaim = ExtractAddressClaim(newProfile);
 
-            if (string.IsNullOrWhiteSpace(newAddressClaim.Value) && !string.IsNullOrWhiteSpace(oldAddressClaim.Value))
+            if (string.IsNullOrEmpty(newAddressClaim.Value) && !string.IsNullOrEmpty(oldAddressClaim.Value))
             {
                 claimsToRemove.Add(oldAddressClaim);
             }
@@ -145,7 +145,7 @@ namespace IdentityServer.STS.Admin.Helpers
         /// <param name="oldProfile"></param>
         /// <param name="newProfile"></param>
         /// <returns></returns>
-        public static IList<Claim> ExtractClaimsToAdd(OpenIdProfile oldProfile, OpenIdProfile newProfile)
+        public static IEnumerable<Claim> ExtractClaimsToAdd(OpenIdProfile oldProfile, OpenIdProfile newProfile)
         {
             var claimsToAdd = new List<Claim>();
 
@@ -181,7 +181,7 @@ namespace IdentityServer.STS.Admin.Helpers
         /// <param name="oldClaims"></param>
         /// <param name="newProfile"></param>
         /// <returns></returns>
-        public static IList<Tuple<Claim, Claim>> ExtractClaimsToReplace(IList<Claim> oldClaims, OpenIdProfile newProfile)
+        public static IEnumerable<Tuple<Claim, Claim>> ExtractClaimsToReplace(IList<Claim> oldClaims, OpenIdProfile newProfile)
         {
             var oldProfile = ExtractProfileInfo(oldClaims);
             var claimsToReplace = new List<Tuple<Claim, Claim>>();
