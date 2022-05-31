@@ -1,16 +1,21 @@
 <template>
 	<div id="externalLoginConfirmation">
-		<el-form ref="form" :model="form" label-width="80px">
-			<el-form-item label="用户名称">
-				<el-input v-model="form.userName"></el-input>
-			</el-form-item>
-			<el-form-item label="邮件">
-				<el-input v-model="form.email"></el-input>
-			</el-form-item>
-			<el-form-item>
-				<el-button type="primary" @click="externalRegister()">注册</el-button>
-			</el-form-item>
-		</el-form>
+		<div class="container">
+			<el-form ref="form" :model="form" label-width="80px">
+				<el-form-item>
+					<el-input v-model="form.userName" placeholder="用户名"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-input v-model="form.email" placeholder="邮件地址"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-input v-model="form.password" placeholder="密码"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="externalRegister()">注册</el-button>
+				</el-form-item>
+			</el-form>
+		</div>
 	</div>
 </template>
 
@@ -24,6 +29,7 @@ export default {
 			form: {
 				email: this.$route.query.email,
 				userName: this.$route.query.userName,
+				password:'',
 				returnUrl: this.$route.query.returnUrl,
 			},
 		}
@@ -46,4 +52,26 @@ export default {
 	},
 }
 </script>
-<style scoped></style>
+<style scoped>
+#externalLoginConfirmation {
+	height: 100vh;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.container {
+	height: 500px;
+	width: 1000px;
+	box-shadow: 10px 1px 50px 21px #d9d9d9;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	background-color: #ffffff;
+}
+
+>>> .el-input__inner {
+	width: 300px !important;
+}
+</style>

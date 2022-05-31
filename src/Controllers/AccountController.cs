@@ -10,14 +10,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using IdentityModel;
-using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Account;
 using IdentityServer4;
 using IdentityServer4.Events;
-using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +23,6 @@ using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using System.Web;
-using IdentityServer.STS.Admin.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -72,7 +69,8 @@ namespace IdentityServer.STS.Admin.Controllers
             _logger = logger;
         }
 
-        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
+        private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
+        private string BackendBaseUrl => _configuration.GetSection("BackendBaseUrl").Value;
 
 
         /// <summary>
@@ -91,6 +89,11 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 var subId = User.GetSubjectId();
                 user = await _userManager.FindByIdAsync(subId);
+                if (user == null)
+                {
+                    await _signInManager.SignOutAsync();
+                    isLogin = false;
+                }
             }
 
             return new ApiResult<object>
@@ -102,6 +105,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             };
         }
+
 
         [HttpGet("user")]
         public async Task<User> GetUserByName(string userName)
@@ -120,25 +124,12 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<object>> CheckLoginAndGetUiSetting(string returnUrl)
         {
             var output = await BuildLoginResultAsync(returnUrl);
-            if (!output.EnableLocalLogin && output.ExternalProviders.Count() == 1)
-            {
-                //只有一个外部登录可用
-                output.ExternalProviders = new[]
-                {
-                    new ExternalProvider
-                    {
-                        DisplayName = output.ExternalProviders.FirstOrDefault()?.DisplayName,
-                        AuthenticationScheme = output.ExternalProviders.FirstOrDefault()?.AuthenticationScheme
-                    }
-                };
-            }
-
             _logger.LogInformation("Enabled external login providers: {Providers}", string.Join(",", output.ExternalProviders.Select(x => x.DisplayName)));
 
             return new ApiResult<object>
             {
                 Route = DefineRoute.Login,
-                Data = output,
+                Data = output
             };
         }
 
@@ -148,12 +139,17 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPost("externalLogin")]
         [AllowAnonymous]
+        [HttpPost("externalLogin")]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
-            var redirectUrl = $"http://localhost:5000/api/account/externalLoginCallback?isLocal={input.IsLocal}&returnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}";
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, redirectUrl);
+            var callbackUrl = BackendBaseUrl + Url.Action("ExternalLoginCallback", new
+            {
+                isLocal = input.IsLocal,
+                returnUrl = HttpUtility.UrlEncode(input.ReturnUrl)
+            });
+
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(input.Provider, callbackUrl);
 
             return Challenge(properties, input.Provider);
         }
@@ -186,8 +182,13 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 if (isLocal)
                 {
-                    return Redirect(returnUrl);
+                    var obj = await GetIsAuthenticated();
+                    var dynamicInfo = obj.Data as dynamic;
+                    var currentUserName = dynamicInfo.user.UserName;
+                    return Redirect($"{FrontendBaseUrl}/zone/{currentUserName}");
                 }
+
+                return Redirect(returnUrl);
             }
 
             if (result.RequiresTwoFactor)
@@ -219,7 +220,7 @@ namespace IdentityServer.STS.Admin.Controllers
             using (var urlEncodedContent = new FormUrlEncodedContent(urlParams))
             {
                 var urlParamsString = await urlEncodedContent.ReadAsStringAsync();
-                return Redirect("http://localhost:8080/externalLoginConfirmation" + "?" + urlParamsString);
+                return Redirect($"{FrontendBaseUrl}/externalLoginConfirmation" + "?" + urlParamsString);
             }
         }
 
@@ -239,10 +240,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return new ApiResult<object>
-                {
-                    Route = DefineRoute.ExternalLoginFailure
-                };
+                throw new Exception("外部登录关联已失效");
             }
 
             var user = new User
@@ -254,6 +252,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var result = await _userManager.CreateAsync(user);
             if (result.Succeeded)
             {
+                //关联外部登录
                 result = await _userManager.AddLoginAsync(user, info);
                 if (result.Succeeded)
                 {
@@ -314,16 +313,14 @@ namespace IdentityServer.STS.Admin.Controllers
                     var callbackUrl = $"{FrontendBaseUrl}/confirmEmail?" + await content.ReadAsStringAsync();
 
                     await _emailService.SendEmailAsync("注册", callbackUrl, new[] {new MailboxAddress(model.UserName, model.Email)});
-                    return new ApiResult<object>()
+                    return new ApiResult<object>
                     {
                         Route = DefineRoute.ConfirmEmail
                     };
                 }
             }
-            else
-            {
-                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
-            }
+
+            throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
 
 
@@ -355,56 +352,62 @@ namespace IdentityServer.STS.Admin.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ApiResult<object>> Login([FromBody] LoginInputModel request)
+        public async Task<ApiResult<object>> Login([FromBody] LoginInput request)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
-            // var tenant = context?.Tenant;
+            //todo 租户处理
+            //var tenant = context?.Tenant;
 
-            // the user clicked the "cancel" button
-            if (request.RequestType != "login")
-            {
-                if (context != null)
-                {
-                    //如果用户取消，发送一个取消认证许可的结果到ids，甚至可以说这个客户端没有请求"许可";
-                    //并且返回一个令牌 取消 OIDC的错误结果到客户端; 
-                    await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
+            //取消登录
 
-                    //如果GetAuthorizationContextAsync不是返回null值，那么这个返回地址就是可用的
-                    if (context.IsNativeClient())
-                    {
-                        //本地客户端的话,这个会让终端用户有更好的交互体验
-                        return new ApiResult<object>
-                        {
-                            Route = DefineRoute.LoadingPage,
-                            Data = request.ReturnUrl,
-                        };
-                    }
+            #region cancel login
 
-                    return new ApiResult<object>
-                    {
-                        Route = DefineRoute.Redirect,
-                        Data = request.ReturnUrl,
-                    };
-                }
+            // if (request.RequestType != "login")
+            // {
+            //     if (context != null)
+            //     {
+            //         //如果用户取消，发送一个取消认证的结果到ids，甚至可以说这个客户端没有请求"许可";
+            //         //并且返回一个令牌 取消 OIDC的错误结果到客户端; 
+            //         await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
+            //
+            //         //如果GetAuthorizationContextAsync不是返回null值，那么这个返回地址就是可用的
+            //         if (context.IsNativeClient())
+            //         {
+            //             //本地客户端的话,这个会让终端用户有更好的交互体验
+            //             return new ApiResult<object>
+            //             {
+            //                 Route = DefineRoute.LoadingPage,
+            //                 Data = request.ReturnUrl,
+            //             };
+            //         }
+            //
+            //         return new ApiResult<object>
+            //         {
+            //             Route = DefineRoute.Redirect,
+            //             Data = request.ReturnUrl,
+            //         };
+            //     }
+            //
+            //     //返回主页
+            //     return new ApiResult<object>
+            //     {
+            //         Route = DefineRoute.HomePage,
+            //     };
+            // }
 
-                //返回主页
-                return new ApiResult<object>
-                {
-                    Route = DefineRoute.HomePage,
-                };
-            }
+            #endregion
 
             var user = await _userManager.FindByNameAsync(request.Username);
             if (user != null)
             {
-                var result = await _signInManager.PasswordSignInAsync(
+                var signResult = await _signInManager.PasswordSignInAsync(
                     user.UserName
                     , request.Password
                     , request.RememberLogin
                     , true);
 
                 //账号密码验证成功
-                if (result.Succeeded)
+                if (signResult.Succeeded)
                 {
                     await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
 
@@ -446,9 +449,9 @@ namespace IdentityServer.STS.Admin.Controllers
                     throw new Exception("invalid return URL");
                 }
 
-                if (result.RequiresTwoFactor)
+                if (signResult.RequiresTwoFactor)
                 {
-                    return new ApiResult<object>()
+                    return new ApiResult<object>
                     {
                         Route = DefineRoute.LoginWith2Fa,
                         Data = new
@@ -459,7 +462,7 @@ namespace IdentityServer.STS.Admin.Controllers
                     };
                 }
 
-                if (result.IsLockedOut)
+                if (signResult.IsLockedOut)
                 {
                     throw new Exception("账号已被锁定");
                 }
@@ -473,19 +476,18 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
         /// <summary>
-        /// Show logout page
+        /// 退出
         /// </summary>
-        [HttpGet("logout")]
         [AllowAnonymous]
+        [HttpGet("logout")]
         public async Task<ApiResult<object>> Logout(string logoutId)
         {
-            // build a model so the logout page knows what to display
-            var output = await BuildLogoutViewModelAsync(logoutId);
+            //处理如何显示退出登录提醒界面
+            var output = await BuildLogoutModelAsync(logoutId);
 
-            if (output.ShowLogoutPrompt == false)
+            if (!output.ShowLogoutPrompt)
             {
-                //如果注销请求已从身份服务器正确进行身份验证，则
-                //我们不需要显示提示，只需直接将用户注销即可。
+                //如果注销请求已从身份服务器正确进行身份验证，则不需要显示提示，只需直接将用户注销即可。
                 return await Logout(output);
             }
 
@@ -497,30 +499,35 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        private async Task<LogoutOutputModel> BuildLogoutViewModelAsync(string logoutId)
+        /// <summary>
+        /// 获取退出登录对象
+        /// </summary>
+        /// <param name="logoutId"></param>
+        /// <returns></returns>
+        private async Task<LogoutOutput> BuildLogoutModelAsync(string logoutId)
         {
-            var output = new LogoutOutputModel
+            var output = new LogoutOutput
             {
                 LogoutId = logoutId,
-                ShowLogoutPrompt = AccountOptions.ShowLogoutPrompt
+                ShowLogoutPrompt = true
             };
 
             //如果用户没有登录，那么直接显示注销页面
-            if (User?.Identity.IsAuthenticated != true)
+            if (!User.Identity.IsAuthenticated)
             {
                 output.ShowLogoutPrompt = false;
-                return output;
             }
-
-            var context = await _interaction.GetLogoutContextAsync(logoutId);
-            if (context?.ShowSignoutPrompt == false)
+            else
             {
-                //安全并且自动退出
-                output.ShowLogoutPrompt = false;
-                return output;
+                var context = await _interaction.GetLogoutContextAsync(logoutId);
+                //ShowSignoutPrompt显示注销提醒，防止其他恶意的页面自动退出用户登录的攻击
+                if (context?.ShowSignoutPrompt == false)
+                {
+                    //安全并且自动退出
+                    output.ShowLogoutPrompt = false;
+                }
             }
 
-            //显示注销提醒，防止其他恶意的页面自动退出用户登录的攻击
             return output;
         }
 
@@ -570,27 +577,29 @@ namespace IdentityServer.STS.Admin.Controllers
         private async Task<LoggedOutOutput> BuildLoggedOutModelAsync(string logoutId)
         {
             //获取退出登录上下文信息，包括应用名称，注销后重定向地址或者集成退出的iframe
-            var logoutContext = await _interaction.GetLogoutContextAsync(logoutId);
+            var context = await _interaction.GetLogoutContextAsync(logoutId);
 
             var output = new LoggedOutOutput
             {
-                AutomaticRedirectAfterSignOut = AccountOptions.AutomaticRedirectAfterSignOut,
-                PostLogoutRedirectUri = logoutContext?.PostLogoutRedirectUri,
-                ClientName = string.IsNullOrEmpty(logoutContext?.ClientName) ? logoutContext?.ClientId : logoutContext.ClientName,
-                SignOutIframeUrl = logoutContext?.SignOutIFrameUrl,
+                AutomaticRedirectAfterSignOut = false,
+                PostLogoutRedirectUri = context?.PostLogoutRedirectUri,
+                ClientName = string.IsNullOrEmpty(context?.ClientName) ? context?.ClientId : context.ClientName,
+                SignOutIframeUrl = context?.SignOutIFrameUrl,
                 LogoutId = logoutId
             };
 
+            //如果已经登录
             if (User?.Identity.IsAuthenticated == true)
             {
+                //获取登录提供器
                 var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
                 if (idp != null && idp != IdentityServerConstants.LocalIdentityProvider)
                 {
                     var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
                     if (providerSupportsSignOut)
                     {
-                        //如果没有当前注销上下文，我们需要创建一个从当前登录用户捕获必要信息的上下文
-                        //在我们注销之前，请重定向到外部 IdP 进行注销
+                        //如果没有当前注销上下文,我们需要创建一个从当前登录用户捕获必要信息的上下文
+                        //在我们注销之前,需重定向到外部 IdP 进行注销
                         output.LogoutId ??= await _interaction.CreateLogoutContextAsync();
                         output.ExternalAuthenticationScheme = idp;
                     }
@@ -601,13 +610,15 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        private async Task<LoginOutputModel> BuildLoginResultAsync(string returnUrl)
+        private async Task<LoginOutput> BuildLoginResultAsync(string returnUrl)
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+            var schemes = await _schemeProvider.GetAllSchemesAsync();
+
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
             {
                 var isLocal = context.IdP == IdentityServerConstants.LocalIdentityProvider;
-                var output = new LoginOutputModel
+                var output = new LoginOutput
                 {
                     EnableLocalLogin = isLocal,
                     ReturnUrl = returnUrl,
@@ -616,19 +627,16 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 if (!isLocal)
                 {
-                    output.ExternalProviders = new[]
-                    {
-                        new ExternalProvider
+                    output.ExternalProviders = schemes.Where(x => x.Name == context.IdP)
+                        .Select(x => new ExternalProvider
                         {
-                            AuthenticationScheme = context.IdP
-                        }
-                    };
+                            DisplayName = x.DisplayName ?? x.Name,
+                            AuthenticationScheme = x.Name
+                        });
                 }
 
                 return output;
             }
-
-            var schemes = await _schemeProvider.GetAllSchemesAsync();
 
             var providers = schemes
                 .Where(x => x.DisplayName != null)
@@ -646,6 +654,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     allowLocal = client.EnableLocalLogin;
 
+                    //过滤不允许的登录提供器
                     if (client.IdentityProviderRestrictions != null && client.IdentityProviderRestrictions.Any())
                     {
                         providers = providers.Where(provider => client.IdentityProviderRestrictions.Contains(provider.AuthenticationScheme));
@@ -653,16 +662,22 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            return new LoginOutputModel
+            return new LoginOutput
             {
-                AllowRememberLogin = AccountOptions.AllowRememberLogin,
-                EnableLocalLogin = allowLocal && AccountOptions.AllowLocalLogin,
+                EnableLocalLogin = allowLocal,
                 ReturnUrl = returnUrl,
                 Username = context?.LoginHint,
                 ExternalProviders = providers.ToArray()
             };
         }
 
+        /// <summary>
+        /// 使用双重验证登录
+        /// </summary>
+        /// <param name="rememberMe"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpGet("twoFactorAuthenticationUser")]
         public async Task<ApiResult<object>> LoginWith2Fa(bool rememberMe, string returnUrl = null)
@@ -683,6 +698,32 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 Route = DefineRoute.LoginWith2Fa,
                 Data = model
+            };
+        }
+
+
+        /// <summary>
+        /// 获取错误内容
+        /// </summary>
+        /// <param name="errorId"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("error")]
+        public async Task<ApiResult<object>> GetError(string errorId)
+        {
+            //获取错误的上下文
+            var message = await _interaction.GetErrorContextAsync(errorId);
+
+            //存在错误,在开发环境显示错误内容
+            if (message != null && !_environment.IsDevelopment())
+            {
+                message.ErrorDescription = null;
+            }
+
+            return new ApiResult<object>
+            {
+                Code = 200,
+                Data = message,
             };
         }
 
@@ -737,46 +778,22 @@ namespace IdentityServer.STS.Admin.Controllers
 
 
         /// <summary>
-        /// 获取错误内容
-        /// </summary>
-        /// <param name="errorId"></param>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpGet("error")]
-        public async Task<ApiResult<object>> GetError(string errorId)
-        {
-            //获取错误的上下文
-            var message = await _interaction.GetErrorContextAsync(errorId);
-
-            //存在错误,在开发环境显示错误内容
-            if (message != null && !_environment.IsDevelopment())
-            {
-                message.ErrorDescription = null;
-            }
-
-            return new ApiResult<object>
-            {
-                Code = 200,
-                Data = message,
-            };
-        }
-
-        /// <summary>
         /// 恢复码登录检查是否存在登录凭证
         /// </summary>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpGet("2fa/signInWithCode")]
-        public async Task LoginWithRecoveryCode(string returnUrl = null)
+        public async Task<string> LoginWithRecoveryCode()
         {
             //确保用户首先通过用户名和密码
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                throw new InvalidOperationException("用户尚未启用双重验证");
+                return "用户凭证失效";
             }
+
+            return null;
         }
 
 
@@ -788,31 +805,38 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpPost("2fa/signInWithCode")]
-        public async Task<ApiResult<object>> LoginWithRecoveryCode(LoginWithRecoveryCodeInput model)
+        public async Task<ApiResult<string>> LoginWithRecoveryCode(LoginWithRecoveryCodeInput model)
         {
+            var apiResult = new ApiResult<string>
+            {
+                Code = 200
+            };
+
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
-                throw new Exception("用户尚未开启双重验证");
-
-            var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
-
-            var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
-
-            if (result.Succeeded)
             {
-                return new ApiResult<object>()
+                apiResult.Msg = "用户凭证失效";
+            }
+            else
+            {
+                var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
+                var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+                if (result.Succeeded)
                 {
-                    Route = string.IsNullOrEmpty(model.ReturnUrl)
+                    apiResult.Route = string.IsNullOrEmpty(model.ReturnUrl)
                         ? DefineRoute.HomePage
-                        : DefineRoute.Redirect,
-                    Data = model.ReturnUrl,
-                };
+                        : DefineRoute.Redirect;
+
+                    apiResult.Data = model.ReturnUrl;
+                }
+
+                else
+                {
+                    apiResult.Msg = result.IsLockedOut ? "账号已被锁定" : "异常错误";
+                }
             }
 
-            if (result.IsLockedOut)
-                throw new Exception("账号已被锁定");
-
-            throw new Exception("异常错误");
+            return apiResult;
         }
 
         /// <summary>
@@ -824,13 +848,7 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpPost("password/email")]
         public async Task ForgotPassword(ForgotPasswordInput model)
         {
-            var user = model.Policy switch
-            {
-                LoginResolutionPolicyType.Email => await _userManager.FindByEmailAsync(model.Content),
-                LoginResolutionPolicyType.Username => await _userManager.FindByNameAsync(model.Content),
-                _ => throw new InvalidOperationException()
-            };
-
+            var user = await _userManager.FindByNameAsync(model.Content);
             if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
             {
                 // 不能透露用户不存在，只能提醒已发送邮件
@@ -870,8 +888,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             //不能透露用户不存在,默认完成
-            if (user == null)
-                return;
+            if (user == null) return;
 
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Code));
             var result = await _userManager.ResetPasswordAsync(user, code, model.Password);

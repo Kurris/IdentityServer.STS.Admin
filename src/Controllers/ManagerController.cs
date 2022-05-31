@@ -397,7 +397,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
 
-            return new ApiResult<bool>() {Data = hasPassword};
+            return new ApiResult<bool> {Data = hasPassword};
         }
 
         /// <summary>

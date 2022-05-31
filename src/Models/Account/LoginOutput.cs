@@ -5,17 +5,12 @@ using IdentityServer.STS.Admin.Enums;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class LoginOutputModel : LoginInputModel
+    public class LoginOutput : LoginInput
     {
-        public bool AllowRememberLogin { get; set; } = true;
         public bool EnableLocalLogin { get; set; } = true;
-
-        public LoginResolutionPolicyType LoginResolutionPolicy { get; set; } = LoginResolutionPolicyType.Username;
-
         public IEnumerable<ExternalProvider> ExternalProviders { get; set; } = Enumerable.Empty<ExternalProvider>();
         public IEnumerable<ExternalProvider> VisibleExternalProviders => ExternalProviders.Where(x => !string.IsNullOrWhiteSpace(x.DisplayName));
-
-        public bool IsExternalLoginOnly => EnableLocalLogin == false && ExternalProviders?.Count() == 1;
+        public bool IsExternalLoginOnly => !EnableLocalLogin && ExternalProviders?.Count() == 1;
         public string ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
     }
 }

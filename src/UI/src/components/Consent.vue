@@ -3,13 +3,9 @@
 		<div v-if="setting != null">
 			<div class="logo">
 				<el-avatar :src="setting.ClientLogoUrl" :size="70"></el-avatar>
-				<div v-for="n in 7" :key="'left' + n" class="dashed"
-					style="height: 2px; width: 4px; background-color: #ced5db">
-				</div>
+				<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
 				<i class="el-icon-success" style="font-size: 32px"></i>
-				<div v-for="n in 7" :key="'right' + n" class="dashed"
-					style="height: 2px; width: 4px; background-color: #ced5db">
-				</div>
+				<div v-for="n in 7" :key="'right' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
 				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="70"></el-avatar>
 				<!-- </template> -->
 			</div>
@@ -27,8 +23,7 @@
 						<span>来自于 <el-link type="primary">Kurris</el-link> </span>
 					</AuthorizeItem>
 
-					<AuthorizeItem title="用户私人的数据" :isDropdown="true" :scopeLength="scopeLength"
-						description="个人的信息(只读)或者其他应用级别的权限(读写)">
+					<AuthorizeItem title="用户私人的数据" :isDropdown="true" :scopeLength="scopeLength" description="个人的信息(只读)或者其他应用级别的权限(读写)">
 						<template slot="img">
 							<i class="el-icon-user" style="color: #555b65; font-size: 40px"></i>
 						</template>
@@ -43,7 +38,7 @@
 									</template>
 								</template>
 								<template v-if="setting.apiScopes">
-									<template v-for="item  in setting.apiScopes">
+									<template v-for="item in setting.apiScopes">
 										<div :key="item.displayName">
 											<ScopeItem :scope="item" />
 										</div>
@@ -225,11 +220,11 @@ export default {
 	border-bottom: none;
 }
 
->>>.el-collapse-item__header {
+>>> .el-collapse-item__header {
 	border-bottom: none;
 }
 
->>>.el-collapse-item__wrap {
+>>> .el-collapse-item__wrap {
 	border-bottom: none;
 }
 
@@ -248,7 +243,7 @@ export default {
 	align-items: center;
 }
 
-div.dashed+div.dashed {
+div.dashed + div.dashed {
 	margin-left: 1px;
 }
 
@@ -263,7 +258,7 @@ div.dashed+div.dashed {
 }
 
 .el-button.green {
-	background-color: #67a060;
+	background-color: #53a258;
 	color: white;
 }
 

@@ -1,8 +1,10 @@
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class LogoutOutputModel  :LogoutInput
+    public class LogoutOutput : LogoutInput
     {
-        public bool ShowLogoutPrompt { get; set; } = true;
-
+        /// <summary>
+        /// 是否显示退出提醒
+        /// </summary>
+        public bool ShowLogoutPrompt { get; set; }
     }
 }

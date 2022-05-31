@@ -7,7 +7,7 @@
 		<template v-if="$route.query.errorId"> ErrorId: {{ $route.query.errorId }} </template>
 
 		<div v-if="!isLocal || isLocal == 'False'">
-			<el-link type="primary" :href="returnUrl">重新登录</el-link>
+			<el-link type="primary" @click="reLogin()">重新登录</el-link>
 		</div>
 	</div>
 </template>
@@ -24,6 +24,16 @@ export default {
 			isLocal: this.$route.query.isLocal,
 			returnUrl: this.$route.query.returnUrl,
 		}
+	},
+	methods: {
+		reLogin() {
+			this.$router.push({
+				path: '/signIn',
+				params: {
+					returnUrl: this.returnUrl,
+				},
+			})
+		},
 	},
 	async mounted() {
 		if (!this.remoteError) {

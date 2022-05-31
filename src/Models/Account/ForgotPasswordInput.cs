@@ -8,9 +8,6 @@ namespace IdentityServer.STS.Admin.Models.Account
     /// </summary>
     public class ForgotPasswordInput
     {
-        [Required]
-        public LoginResolutionPolicyType Policy { get; set; }
-
         public string Content { get; set; }
     }
 }

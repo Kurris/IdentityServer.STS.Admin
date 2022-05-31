@@ -18,6 +18,7 @@ using IdentityServer.STS.Admin.Filters;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin
@@ -69,6 +70,15 @@ namespace IdentityServer.STS.Admin
 
             services.AddAspIdentity<IdentityDbContext, User, Role>(Configuration);
             services.AddIdentityServer4<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
+
+            //必须在AddIdentity之后使用
+            //配置identity约束
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+            });
 
             //配置本地登录cookie相关处理
             services.ConfigureApplicationCookie(options =>

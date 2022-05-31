@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class LoginInputModel
+    public class LoginInput
     {
         /// <summary>
         /// 用户名
@@ -25,10 +25,5 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// 跳转链接
         /// </summary>
         public string ReturnUrl { get; set; }
-
-        /// <summary>
-        /// 请求类型
-        /// </summary>
-        public string RequestType { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 <template>
-	<div class="panel" v-if="externalProviders.length > 0">
+	<div class="panel" v-if="show">
 		<div class="container">
 			<div class="slot">
 				<img src="../assets/login_left.svg" alt="" srcset="" />
@@ -9,25 +9,27 @@
 					<h1>登录</h1>
 					<div>没有帐号？<el-link type="success" @click="$router.push('/register')">点此注册</el-link></div>
 				</div>
-				<el-form>
-					<el-form-item>
-						<el-input type="text" v-model="form.userName" placeholder="Username" />
-					</el-form-item>
-					<el-form-item>
-						<el-input type="password" v-model="form.password" placeholder="Password" />
-					</el-form-item>
-					<el-form-item>
-						<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-						<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
-					</el-form-item>
-					<el-form-item>
-						<el-button style="width: 100%" type="success" @click="login()">登录</el-button>
-					</el-form-item>
-				</el-form>
+				<template>
+					<el-form>
+						<el-form-item>
+							<el-input type="text" v-model="form.userName" placeholder="Username" />
+						</el-form-item>
+						<el-form-item>
+							<el-input type="password" v-model="form.password" placeholder="Password" />
+						</el-form-item>
+						<el-form-item>
+							<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
+							<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
+						</el-form-item>
+						<el-form-item>
+							<el-button style="width: 100%" type="success" @click="login()">登录</el-button>
+						</el-form-item>
+					</el-form>
+				</template>
 
-				<div v-if="externalProviders != null && externalProviders.length > 0">
+				<div v-if="setting.externalProviders != null && setting.externalProviders.length > 0">
 					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
-					<template v-for="(item, i) in externalProviders">
+					<template v-for="(item, i) in setting.externalProviders">
 						<template v-if="item.displayName == 'GitHub'">
 							<div :key="i">
 								<img class="externalProvider" src="../assets/auth2logo/GitHub-Mark-32px.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
@@ -55,7 +57,8 @@ export default {
 				password: '',
 				remember: false,
 			},
-			externalProviders: [],
+			setting: null,
+			show: false,
 		}
 	},
 	methods: {
@@ -117,7 +120,17 @@ export default {
 	},
 	beforeMount() {
 		checkLogin({ returnUrl: this.$route.query.returnUrl }).then(res => {
-			this.externalProviders = res.data.externalProviders
+			console.log(res)
+			this.setting = res.data
+			if (this.setting.username) {
+				this.form.userName = this.setting.username
+			}
+
+			this.show = this.setting.enableLocalLogin
+			let provider = this.setting.externalProviders[0].authenticationScheme
+			if (!this.show && provider) {
+				this.externalLogin(provider)
+			}
 		})
 	},
 }
@@ -143,8 +156,12 @@ export default {
 	align-items: center;
 	background-color: #ffffff;
 }
+
 >>> .el-input__inner {
 	width: 300px !important;
+}
+.signin {
+	min-width: 300px;
 }
 
 .signin .title {
