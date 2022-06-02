@@ -29,7 +29,6 @@
 						</template>
 						<template slot="dropdown">
 							<div class="userData">
-								<span style="font-size: 10px; color: #91969b"> 勾选以下授权范围,以表示同意当前请求拥有的授权类型 </span>
 								<template v-if="setting.identityScopes">
 									<template v-for="item in setting.identityScopes">
 										<div :key="item.displayName">
@@ -61,7 +60,6 @@
 							</div>
 						</div>
 						<div>
-							<!-- <span style="font-weight: bold; font-size: 14px"></span> -->
 							<div style="font-size: 10px; color: #91969b; margin-top: 2px">
 								<el-checkbox v-model="setting.rememberConsent"> 允许记住授权操作</el-checkbox>
 							</div>
@@ -103,7 +101,9 @@
 				</div>
 			</div>
 
-			<div class="other">了解更多关于OAuth2.0</div>
+			<div class="other">
+				<el-link href="https://oauth.net/2/" :underline="false" icon="el-icon-question" target="_blank">了解更多关于OAuth2.0</el-link>
+			</div>
 		</div>
 	</div>
 </template>
@@ -127,6 +127,7 @@ export default {
 	methods: {
 		process(allow) {
 			let idScopes = this.setting.identityScopes.filter(x => x.checked)
+			let apiScopes = this.setting.apiScopes.filter(x => x.checked)
 
 			NProgress.start()
 			let url = 'http://localhost:5000/api/consent/setting/process'
@@ -141,6 +142,13 @@ export default {
 				const element = scopeNames[i]
 				document.write(`<input type=hidden name=scopesConsented value=${element}></input>`)
 			}
+
+			let apiScopeNames = apiScopes.map(x => x.value)
+			for (let i = 0; i < apiScopeNames.length; i++) {
+				const element = apiScopeNames[i]
+				document.write(`<input type=hidden name=scopesConsented value=${element}></input>`)
+			}
+
 			document.write('</form>')
 			document.form1.submit()
 		},

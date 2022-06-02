@@ -140,7 +140,6 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <param name="input"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         [HttpPost("externalLogin")]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {

@@ -1,9 +1,15 @@
 ﻿using System.Collections.Generic;
+using IdentityServer.STS.Admin.Entities;
 
 namespace IdentityServer.STS.Admin.Models.Consent
 {
     public class ConsentOutput : ConsentInput
     {
+        /// <summary>
+        /// 拥有者
+        /// </summary>
+        public User ClientOwner { get; set; }
+
         /// <summary>
         /// 应用名称
         /// </summary>
@@ -27,11 +33,11 @@ namespace IdentityServer.STS.Admin.Models.Consent
         /// <summary>
         /// 身份作用域
         /// </summary>
-        public IEnumerable<ScopeOutputModel> IdentityScopes { get; set; }
+        public IEnumerable<ScopeOutput> IdentityScopes { get; set; }
 
         /// <summary>
         /// api作用域
         /// </summary>
-        public IEnumerable<ScopeOutputModel> ApiScopes { get; set; }
+        public IEnumerable<ScopeOutput> ApiScopes { get; set; }
     }
 }

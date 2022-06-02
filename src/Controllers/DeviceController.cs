@@ -159,9 +159,9 @@ namespace IdentityServer.STS.Admin.Controllers
             return request != null ? CreateConsentOutputModel(userCode, model, request) : null;
         }
 
-        private DeviceAuthorizationOutput CreateConsentOutputModel(string userCode, DeviceAuthorizationInput model, DeviceFlowAuthorizationRequest request)
+        private static DeviceAuthorizationOutput CreateConsentOutputModel(string userCode, DeviceAuthorizationInput model, DeviceFlowAuthorizationRequest request)
         {
-            var vm = new DeviceAuthorizationOutput
+            var output = new DeviceAuthorizationOutput
             {
                 UserCode = userCode,
                 Description = model?.Description,
@@ -175,32 +175,32 @@ namespace IdentityServer.STS.Admin.Controllers
                 AllowRememberConsent = request.Client.AllowRememberConsent
             };
 
-            vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            output.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeModel(x, output.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
 
-            var apiScopes = new List<ScopeOutputModel>();
+            var apiScopes = new List<ScopeOutput>();
             foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
             {
                 var apiScope = request.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
                 if (apiScope != null)
                 {
-                    var scopeVm = CreateScopeOutputModel(parsedScope, apiScope, vm.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
+                    var scopeVm = CreateScopeOutputModel(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
                     apiScopes.Add(scopeVm);
                 }
             }
 
             if (request.ValidatedResources.Resources.OfflineAccess)
             {
-                apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
+                apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
             }
 
-            vm.ApiScopes = apiScopes;
+            output.ApiScopes = apiScopes;
 
-            return vm;
+            return output;
         }
 
-        private static ScopeOutputModel CreateScopeModel(IdentityResource identity, bool check)
+        private static ScopeOutput CreateScopeModel(IdentityResource identity, bool check)
         {
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = identity.Name,
                 DisplayName = identity.DisplayName ?? identity.Name,
@@ -211,9 +211,9 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private static ScopeOutputModel CreateScopeOutputModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+        private static ScopeOutput CreateScopeOutputModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
         {
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = parsedScopeValue.RawValue,
                 // todo: use the parsed scope value in the display?
@@ -225,9 +225,9 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private static ScopeOutputModel GetOfflineAccessScope(bool check)
+        private static ScopeOutput GetOfflineAccessScope(bool check)
         {
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess,
                 DisplayName = "离线访问",

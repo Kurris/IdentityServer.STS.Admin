@@ -7,7 +7,7 @@
 				<el-tooltip v-if="scope.description != null" :content="scope.description" placement="bottom" effect="light">
 					<i v-if="scope.emphasize" class="el-icon-info"></i>
 				</el-tooltip>
-				<template v-if="scope.required">(必须)</template>
+				<template v-if="scope.required"> (必需) </template>
 				<input v-if="scope.required" type="hidden" name="ScopesConsented" :value="scope.Value" />
 			</el-checkbox>
 		</div>

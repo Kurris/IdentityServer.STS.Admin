@@ -68,7 +68,7 @@ export default {
 	computed: {
 		dropdownHeight() {
 			if (this.dropdownStatus) {
-				return this.scopeLength * 50 + 10 + 'px'
+				return this.scopeLength * 40 + 'px'
 			} else {
 				return '0px'
 			}

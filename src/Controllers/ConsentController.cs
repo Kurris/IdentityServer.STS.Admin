@@ -67,7 +67,6 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 处理同意屏幕的处理
         /// </summary>
-        [ValidateAntiForgeryToken]
         [HttpPost("setting/process")]
         public async Task<IActionResult> GetSetting([FromForm] ConsentInput model)
         {
@@ -172,7 +171,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context != null)
             {
-                return CreateConsentViewModel(model, returnUrl, context);
+                return CreateConsentModel(model, returnUrl, context);
             }
 
             _logger.LogError($"No consent request matching request: {returnUrl}");
@@ -180,14 +179,14 @@ namespace IdentityServer.STS.Admin.Controllers
             return null;
         }
 
-        private ConsentOutput CreateConsentViewModel(ConsentInput model, string returnUrl,
+        private static ConsentOutput CreateConsentModel(ConsentInput input, string returnUrl,
             AuthorizationRequest context)
         {
-            var vm = new ConsentOutput
+            var output = new ConsentOutput
             {
-                RememberConsent = model?.RememberConsent ?? false,
-                ScopesConsented = model?.ScopesConsented ?? Enumerable.Empty<string>(),
-                Description = model?.Description,
+                RememberConsent = input?.RememberConsent ?? false,
+                ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
+                Description = input?.Description,
 
                 ReturnUrl = returnUrl,
 
@@ -197,32 +196,40 @@ namespace IdentityServer.STS.Admin.Controllers
                 AllowRememberConsent = context.Client.AllowRememberConsent
             };
 
-            vm.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, vm.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            output.IdentityScopes = context.ValidatedResources.Resources
+                .IdentityResources
+                .Select(x => CreateScopeModel(x, output.ScopesConsented.Contains(x.Name) || input == null));
 
-            var apiScopes = new List<ScopeOutputModel>();
+            var apiScopes = new List<ScopeOutput>();
             foreach (var parsedScope in context.ValidatedResources.ParsedScopes)
             {
                 var apiScope = context.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
                 if (apiScope != null)
                 {
-                    var scopeVm = CreateScopeViewModel(parsedScope, apiScope, vm.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
+                    var scopeVm = CreateScopeModel(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || input == null);
                     apiScopes.Add(scopeVm);
                 }
             }
 
             if (context.ValidatedResources.Resources.OfflineAccess)
             {
-                apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
+                apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || input == null));
             }
 
-            vm.ApiScopes = apiScopes;
+            output.ApiScopes = apiScopes;
 
-            return vm;
+            return output;
         }
 
-        private ScopeOutputModel CreateScopeViewModel(IdentityResource identity, bool check)
+        /// <summary>
+        /// 创建作用域模型
+        /// </summary>
+        /// <param name="identity"></param>
+        /// <param name="check"></param>
+        /// <returns></returns>
+        private static ScopeOutput CreateScopeModel(IdentityResource identity, bool check)
         {
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = identity.Name,
                 DisplayName = identity.DisplayName ?? identity.Name,
@@ -233,7 +240,14 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutputModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+        /// <summary>
+        /// 创建作用域模型
+        /// </summary>
+        /// <param name="parsedScopeValue"></param>
+        /// <param name="apiScope"></param>
+        /// <param name="check"></param>
+        /// <returns></returns>
+        private static ScopeOutput CreateScopeModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
         {
             var displayName = apiScope.DisplayName ?? apiScope.Name;
             if (!string.IsNullOrWhiteSpace(parsedScopeValue.ParsedParameter))
@@ -241,7 +255,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 displayName += ":" + parsedScopeValue.ParsedParameter;
             }
 
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = parsedScopeValue.RawValue,
                 DisplayName = displayName,
@@ -252,9 +266,14 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private ScopeOutputModel GetOfflineAccessScope(bool check)
+        /// <summary>
+        /// 获取离线访问作用域()
+        /// </summary>
+        /// <param name="check"></param>
+        /// <returns></returns>
+        private static ScopeOutput GetOfflineAccessScope(bool check)
         {
-            return new ScopeOutputModel
+            return new ScopeOutput
             {
                 Value = IdentityServerConstants.StandardScopes.OfflineAccess,
                 DisplayName = "离线访问",
