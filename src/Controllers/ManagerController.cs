@@ -453,6 +453,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return new ApiResult<object> {Data = model};
         }
 
+        [ValidateAntiForgeryToken]
         [HttpPost("linkLogin")]
         public async Task<IActionResult> LinkLogin([FromForm] LinkLoginsInputModel model)
         {

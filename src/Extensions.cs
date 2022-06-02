@@ -31,28 +31,29 @@ namespace IdentityServer.STS.Admin
                    && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
         }
 
-        public static bool IsLocal(this string returnUrl, string currentIp = "")
+        /// <summary>
+        /// 是否为本地路径
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static bool IsLocal(this string returnUrl, string content = "")
         {
             if (string.IsNullOrEmpty(returnUrl))
             {
                 return false;
             }
 
-            return returnUrl.Contains(currentIp, StringComparison.OrdinalIgnoreCase)
-                   || returnUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+            return returnUrl.Contains(content, StringComparison.OrdinalIgnoreCase)
                    || returnUrl.Contains(Authorize, StringComparison.OrdinalIgnoreCase)
                    || returnUrl.Contains(AuthorizeCallback, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static DateTime? ToLocalDateTime(this DateTime? dateTime)
-        {
-            return dateTime != null
-                ? dateTime.Value.Kind == DateTimeKind.Utc
-                    ? dateTime.Value.ToLocalTime()
-                    : dateTime.Value
-                : default;
-        }
-
+        /// <summary>
+        /// 时间转换成本地文化格式
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
         public static DateTime? ToLocalDateTime(this DateTimeOffset? dateTime)
         {
             return dateTime != null
@@ -62,6 +63,11 @@ namespace IdentityServer.STS.Admin
                 : default;
         }
 
+        /// <summary>
+        /// 获取url的query参数
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public static NameValueCollection ReadQueryStringAsNameValueCollection(this string url)
         {
             if (url != null)
@@ -69,7 +75,7 @@ namespace IdentityServer.STS.Admin
                 var idx = url.IndexOf('?');
                 if (idx >= 0)
                 {
-                    url = url.Substring(idx + 1);
+                    url = url[(idx + 1)..];
                 }
 
                 var query = QueryHelpers.ParseNullableQuery(url);
@@ -87,7 +93,7 @@ namespace IdentityServer.STS.Admin
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static bool IsLocalUrl(this string url)
+        public static bool IsMvcLocalUrl(this string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -104,12 +110,7 @@ namespace IdentityServer.STS.Admin
                 }
 
                 // url doesn't start with "//" or "/\"
-                if (url[1] != '/' && url[1] != '\\')
-                {
-                    return true;
-                }
-
-                return false;
+                return url[1] != '/' && url[1] != '\\';
             }
 
             // Allows "~/" or "~/foo" but not "~//" or "~/\".

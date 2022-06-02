@@ -140,6 +140,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <param name="input"></param>
         /// <returns></returns>
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         [HttpPost("externalLogin")]
         public IActionResult ExternalLogin([FromForm] ExternalLoginInput input)
         {
@@ -161,8 +162,8 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        [HttpGet("externalLoginCallback")]
         [AllowAnonymous]
+        [HttpGet("externalLoginCallback")]
         public async Task<IActionResult> ExternalLoginCallback(bool isLocal, string returnUrl)
         {
             if (!string.IsNullOrEmpty(returnUrl))
@@ -193,11 +194,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.RequiresTwoFactor)
             {
-                // return new ApiResult<object>
-                // {
-                //     Route = DefineRoute.LoginWith2Fa,
-                //     Data = returnUrl
-                // };
+                //todo 2fa
             }
 
             if (result.IsLockedOut)
@@ -262,14 +259,14 @@ namespace IdentityServer.STS.Admin.Controllers
                     {
                         return new ApiResult<object>
                         {
-                            Route = DefineRoute.Redirect,
-                            Data = input.ReturnUrl
+                            Route = DefineRoute.HomePage
                         };
                     }
 
                     return new ApiResult<object>
                     {
-                        Route = DefineRoute.HomePage
+                        Route = DefineRoute.Redirect,
+                        Data = input.ReturnUrl
                     };
                 }
             }
@@ -324,8 +321,14 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
-        [HttpPost("accout/{userId}/email/{code}/validation")]
+        /// <summary>
+        /// 确定/验证邮件地址
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="code"></param>
+        /// <exception cref="Exception"></exception>
         [AllowAnonymous]
+        [HttpPost("accout/{userId}/email/{code}/validation")]
         public async Task ConfirmEmail(string userId, string code)
         {
             if (userId == null || code == null)
@@ -349,14 +352,19 @@ namespace IdentityServer.STS.Admin.Controllers
             }
         }
 
-
+        /// <summary>
+        /// 登录
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ApiResult<object>> Login([FromBody] LoginInput request)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
-            //todo 租户处理
-            //var tenant = context?.Tenant;
+            var tenant = context?.Tenant;
+            _logger.LogInformation("current tenant is {Tenant}", tenant);
 
             //取消登录
 

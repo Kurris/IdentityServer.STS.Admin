@@ -67,6 +67,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 处理同意屏幕的处理
         /// </summary>
+        [ValidateAntiForgeryToken]
         [HttpPost("setting/process")]
         public async Task<IActionResult> GetSetting([FromForm] ConsentInput model)
         {

@@ -45,22 +45,17 @@ namespace IdentityServer.STS.Admin.Resolvers
             return null;
         }
 
+        /// <summary>
+        /// 是否为合法的重定向地址
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         public bool IsValidReturnUrl(string returnUrl)
         {
-            if (returnUrl.IsLocalUrl() || returnUrl.IsLocal())
+            if (returnUrl.IsMvcLocalUrl() || returnUrl.IsLocal())
             {
-                var index = returnUrl.IndexOf('?');
-                if (index >= 0)
-                {
-                    returnUrl = returnUrl.Substring(0, index);
-                }
-
-                if (returnUrl.EndsWith(Authorize, StringComparison.Ordinal) ||
-                    returnUrl.EndsWith(AuthorizeCallback, StringComparison.Ordinal))
-                {
-                    _logger.LogTrace("returnUrl is valid");
-                    return true;
-                }
+                _logger.LogTrace("returnUrl is valid");
+                return true;
             }
 
             _logger.LogTrace("returnUrl is not valid");
