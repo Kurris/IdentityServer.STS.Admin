@@ -119,7 +119,7 @@ export default {
         async process(btn) {
 
             NProgress.start()
-            let url = "http://localhost:5000/api/device"
+            let url = "http://192.168.1.4:5000/api/device"
 
             document.write("<form action=" + url + " method=post name=form1 style='display:none'>");
             document.write("<input type=hidden name=button value='" + btn + "'/>");

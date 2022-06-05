@@ -57,7 +57,7 @@ export default {
 	watch: {},
 	methods: {
 		linkExternalLogin(provider) {
-			let url = 'http://localhost:5000/api/manager/linkLogin'
+			let url = 'http://192.168.1.4:5000/api/manager/linkLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
