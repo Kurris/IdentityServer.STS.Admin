@@ -8,6 +8,9 @@
 		<Authors>IdentityServer.STS.Admin</Authors>
 		<Company>IdentityServer.STS.Admin</Company>
 		<Product>IdentityServer.STS.Admin</Product>
+		<UserSecretsId>d642621b-be66-4a9c-ba70-01d8ff3e6d82</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerfileContext>.</DockerfileContext>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,6 +35,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.7" />
 		<PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
