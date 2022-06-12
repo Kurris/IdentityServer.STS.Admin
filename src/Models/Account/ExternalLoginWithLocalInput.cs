@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class LoginInput
+    public class ExternalLoginWithLocalInput
     {
         /// <summary>
         /// 用户名
@@ -15,11 +15,6 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// </summary>
         [Required]
         public string Password { get; set; }
-
-        /// <summary>
-        /// 是否记住密码
-        /// </summary>
-        public bool RememberLogin { get; set; }
 
         /// <summary>
         /// 跳转链接

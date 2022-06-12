@@ -54,7 +54,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var model = new PersonalProfileAndClaims
             {
-                Username = user.UserName,
+                UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 IsEmailConfirmed = user.EmailConfirmed,

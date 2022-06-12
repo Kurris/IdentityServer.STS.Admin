@@ -4,7 +4,7 @@
 
 		<div class="form-group">
 			<label>用户名</label>
-			<el-input v-model="profile.username" disabled />
+			<el-input v-model="profile.userName" disabled />
 		</div>
 		<div class="form-group">
 			<label>Email</label>

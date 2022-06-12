@@ -31,7 +31,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             var pagination = await query.Select(user => new UserDto
             {
                 Id = user.Id,
-                Username = user.UserName,
+                UserName = user.UserName,
                 Email = user.Email,
                 IsConfirmEmail = user.EmailConfirmed,
                 Phone = user.PhoneNumber,
@@ -40,7 +40,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 LockoutExpire = user.LockoutEnd,
                 IsEnableTwoFactor = user.TwoFactorEnabled,
                 LoginFailCount = user.AccessFailedCount
-            }).ToPaginationBy(x => x.Username, input, false);
+            }).ToPaginationBy(x => x.UserName, input, false);
 
             return pagination;
         }
@@ -54,7 +54,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             return new UserDto
             {
                 Id = user.Id,
-                Username = user.UserName,
+                UserName = user.UserName,
                 Email = user.Email,
                 IsConfirmEmail = user.EmailConfirmed,
                 Phone = user.PhoneNumber,
@@ -75,7 +75,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             if (user == null)
                 throw new Exception("用户不存在");
 
-            user.UserName = dto.Username;
+            user.UserName = dto.UserName;
             user.Email = dto.Email;
             user.EmailConfirmed = dto.IsConfirmEmail;
             user.PhoneNumber = dto.Phone;
@@ -95,14 +95,14 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
             if (await ExistsUserAsync(new UserExistsIn
                 {
-                    Username = dto.Username,
+                    UserName = dto.UserName,
                     Email = dto.Email
                 }))
                 throw new Exception("已经存在相同的用户名称或者邮件地址");
 
             var user = new User
             {
-                UserName = dto.Username,
+                UserName = dto.UserName,
                 Email = dto.Email,
                 EmailConfirmed = dto.IsConfirmEmail,
                 PhoneNumber = dto.Phone,
@@ -119,10 +119,10 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task<bool> ExistsUserAsync(UserExistsIn dto)
         {
-            var username = dto.Username;
+            var userName = dto.UserName;
             var email = dto.Email;
 
-            var exist = await _identityDbContext.Users.AnyAsync(x => x.UserName == username || x.Email == email);
+            var exist = await _identityDbContext.Users.AnyAsync(x => x.UserName == userName || x.Email == email);
             return exist;
         }
 

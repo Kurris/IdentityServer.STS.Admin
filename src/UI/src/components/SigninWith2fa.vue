@@ -3,46 +3,37 @@
 		<div>
 			<div class="title">
 				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="65"></el-avatar>
-				<div style="margin-top: 40px;">
-					<h2>
-						双重身份验证
-					</h2>
+				<div style="margin-top: 40px">
+					<h2>双重身份验证</h2>
 				</div>
 			</div>
 
 			<div class="panel">
 				<div class="notice">
-					<div style="text-align: center;">
-						<i class="el-icon-mobile" style="font-size: 40px;color: #555b65;" />
+					<div style="text-align: center">
+						<i class="el-icon-mobile" style="font-size: 40px; color: #555b65" />
 					</div>
 
-					<span style="font-size: 13px;">验证码:</span>
-					<el-input v-model.number="model.twoFactorCode" maxlength="6"
-						style="margin-bottom: 20px;margin-top: 10px;" placeholder="6位验证码" autofocus />
+					<span style="font-size: 13px">验证码:</span>
+					<el-input v-model.number="model.twoFactorCode" maxlength="6" style="margin-bottom: 20px; margin-top: 10px" placeholder="6位验证码" autofocus />
 
 					<el-button class="green" @click="login">验证</el-button>
 
-					<p style="font-size: 13px;color: #636d74;">您的登录使用身份验证器应用程序进行保护,打开双重验证器应用(TOTP)查看您的验证码</p>
+					<p style="font-size: 13px; color: #636d74">您的登录使用身份验证器应用程序进行保护,打开双重验证器应用(TOTP)查看您的验证码</p>
 					<el-divider></el-divider>
 					<div>
-						<el-checkbox v-model="model.rememberMachine">
-							记住当前设备
-						</el-checkbox>
+						<el-checkbox v-model="model.rememberMachine"> 记住当前设备 </el-checkbox>
 					</div>
 				</div>
-
 			</div>
 
-			<div class="footer">
-				无法访问您的身份验证设备?<el-link type="primary" @click="goUseRecoveryCode">使用恢复码登录</el-link>
-			</div>
-
+			<div class="footer">无法访问您的身份验证设备?<el-link type="primary" @click="goUseRecoveryCode">使用恢复码登录</el-link></div>
 		</div>
 	</div>
 </template>
 
 <script>
-// 
+//
 import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
 
 import NProgress from 'nprogress'
@@ -52,12 +43,12 @@ export default {
 	data() {
 		return {
 			model: {},
+			withExternalLogin: this.$route.query.withExternalLogin,
 		}
 	},
-	computed: {},
-	watch: {},
 	methods: {
 		async login() {
+			this.model.withExternalLogin = this.withExternalLogin
 			let resp = await siginTwoFactorAuthenticationUser(this.model)
 			if (resp.route == 1) {
 				NProgress.start()
@@ -77,7 +68,7 @@ export default {
 			this.$router.push({
 				path: '/loginWithRecoveryCode',
 				query: {
-					returnUrl
+					returnUrl,
 				},
 			})
 		},
@@ -114,7 +105,6 @@ export default {
 
 .notice {
 	padding: 30px;
-
 }
 
 .el-button.green {

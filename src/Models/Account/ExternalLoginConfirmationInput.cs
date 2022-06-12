@@ -12,7 +12,15 @@ namespace IdentityServer.STS.Admin.Models.Account
         [EmailAddress]
         public string Email { get; set; }
 
-        public string LoginProvider { get; set; }
+
+        [Required(ErrorMessage = "密码不能为空")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "确认密码不能为空")]
+        [Compare(nameof(Password), ErrorMessage = "密码不一致")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; }
 
         public string ReturnUrl { get; set; }
     }

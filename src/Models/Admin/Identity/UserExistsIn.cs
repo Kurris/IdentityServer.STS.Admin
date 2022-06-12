@@ -4,7 +4,7 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
 {
     public class UserExistsIn
     {
-        public string Username { get; set; }
+        public string UserName { get; set; }
 
         public string Email { get; set; }
     }

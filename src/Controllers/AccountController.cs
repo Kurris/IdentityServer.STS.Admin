@@ -184,8 +184,8 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var obj = await GetIsAuthenticated();
                     var dynamicInfo = obj.Data as dynamic;
-                    var currentUserName = dynamicInfo.user.UserName;
-                    return Redirect($"{FrontendBaseUrl}/zone/{currentUserName}");
+                    var currentUsername = dynamicInfo.user.UserName;
+                    return Redirect($"{FrontendBaseUrl}/zone/{currentUsername}");
                 }
 
                 return Redirect(returnUrl);
@@ -230,8 +230,6 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpPost("externalRegister")]
         public async Task<ApiResult<object>> ExternalLoginConfirmation(ExternalLoginConfirmationInput input)
         {
-            input.ReturnUrl ??= "/home";
-
             //从外部登录提供器中获取用户的信息
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
@@ -245,7 +243,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 Email = input.Email
             };
 
-            var result = await _userManager.CreateAsync(user);
+            var result = await _userManager.CreateAsync(user, input.Password);
             if (result.Succeeded)
             {
                 //关联外部登录
@@ -273,6 +271,92 @@ namespace IdentityServer.STS.Admin.Controllers
             throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
 
+        /// <summary>
+        /// 外部登录使用本地账号登录
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [AllowAnonymous]
+        [HttpPost("externalLoginWithLocalLogin")]
+        public async Task<ApiResult<object>> ExternalLoginWithLocalLogin(ExternalLoginWithLocalInput input)
+        {
+            //从外部登录提供器中获取用户的信息
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                throw new Exception("外部登录关联已失效");
+            }
+
+            var user = await _userManager.FindByNameAsync(input.UserName);
+            if (user != null)
+            {
+                var signResult = await _signInManager.PasswordSignInAsync(user.UserName, input.Password, false, true);
+                //账号密码验证成功
+                if (signResult.Succeeded)
+                {
+                    await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
+                    var loginResult = await _userManager.AddLoginAsync(user, info);
+
+                    if (loginResult.Succeeded)
+                    {
+                        if (input.ReturnUrl.IsLocal())
+                        {
+                            return new ApiResult<object>
+                            {
+                                Route = DefineRoute.Redirect,
+                                Data = input.ReturnUrl,
+                            };
+                        }
+
+                        return new ApiResult<object>
+                        {
+                            Route = DefineRoute.HomePage
+                        };
+                    }
+
+                    throw new Exception("非法的重定向地址");
+                }
+
+                if (signResult.RequiresTwoFactor)
+                {
+                    return new ApiResult<object>
+                    {
+                        Route = DefineRoute.LoginWith2Fa,
+                        Data = new
+                        {
+                            rememberLogin = false,
+                            returnUrl = input.ReturnUrl,
+                            withExternalLogin = true
+                        }
+                    };
+                }
+
+                if (signResult.IsLockedOut)
+                {
+                    throw new Exception("账号已被锁定");
+                }
+            }
+
+            throw new Exception("账号或者密码错误");
+        }
+
+        /// <summary>
+        /// 检查外部登录
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        [AllowAnonymous]
+        [HttpGet("externalRegister")]
+        public async Task ExternalLoginConfirmation()
+        {
+            //从外部登录提供器中获取用户的信息
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                throw new Exception("外部登录关联已失效");
+            }
+        }
+
 
         /// <summary>
         /// 注册账号
@@ -298,7 +382,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                var dic = new Dictionary<string, string>()
+                var dic = new Dictionary<string, string>
                 {
                     ["userId"] = user.Id.ToString(),
                     ["code"] = code
@@ -359,7 +443,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ApiResult<object>> Login([FromBody] LoginInput request)
+        public async Task<ApiResult<object>> Login(LoginInput request)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
             var tenant = context?.Tenant;
@@ -404,7 +488,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
             #endregion
 
-            var user = await _userManager.FindByNameAsync(request.Username);
+            var user = await _userManager.FindByNameAsync(request.UserName);
             if (user != null)
             {
                 var signResult = await _signInManager.PasswordSignInAsync(
@@ -453,7 +537,7 @@ namespace IdentityServer.STS.Admin.Controllers
                         };
                     }
 
-                    throw new Exception("invalid return URL");
+                    throw new Exception("非法的重定向地址");
                 }
 
                 if (signResult.RequiresTwoFactor)
@@ -475,9 +559,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
             }
 
-            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.Username, "错误的凭证",
-                clientId: context?.Client.ClientId));
-
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "错误的凭证", clientId: context?.Client.ClientId));
             throw new Exception("账号或者密码错误");
         }
 
@@ -629,7 +711,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     EnableLocalLogin = isLocal,
                     ReturnUrl = returnUrl,
-                    Username = context.LoginHint,
+                    UserName = context.LoginHint,
                 };
 
                 if (!isLocal)
@@ -673,7 +755,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 EnableLocalLogin = allowLocal,
                 ReturnUrl = returnUrl,
-                Username = context?.LoginHint,
+                UserName = context?.LoginHint,
                 ExternalProviders = providers.ToArray()
             };
         }
@@ -743,7 +825,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpPost("twoFactorAuthenticationUser/signIn")]
-        public async Task<ApiResult<object>> LoginWith2Fa(LoginWith2faInput input)
+        public async Task<ApiResult<object>> LoginWith2Fa(LoginWith2FaInput input)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
@@ -756,11 +838,29 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.Succeeded)
             {
-                return new ApiResult<object>
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+
+                var loginResult = await _userManager.AddLoginAsync(user, info);
+
+                if (loginResult.Succeeded)
                 {
-                    Route = string.IsNullOrEmpty(input.ReturnUrl) ? DefineRoute.HomePage : DefineRoute.Redirect,
-                    Data = input.ReturnUrl,
-                };
+                    if (input.ReturnUrl.IsLocal())
+                    {
+                        return new ApiResult<object>
+                        {
+                            Route = DefineRoute.Redirect,
+                            Data = input.ReturnUrl,
+                        };
+                    }
+
+                    return new ApiResult<object>
+                    {
+                        Route = DefineRoute.Redirect,
+                        Data = input.ReturnUrl,
+                    };
+                }
+
+                throw new Exception("非法的重定向地址");
             }
 
             //正常情况下在登录后就会提醒被锁定

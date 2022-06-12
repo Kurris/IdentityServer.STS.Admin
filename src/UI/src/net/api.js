@@ -26,11 +26,18 @@ export const siginTwoFactorAuthenticationUser = data => {
 	})
 }
 
-export const checkTwoFactorAuthenticationUser = data => {
+export const checkTwoFactorAuthenticationUser = () => {
 	return http({
 		url: 'api/account/twoFactorAuthenticationUser',
-		params: data,
 		method: 'get',
+	})
+}
+
+export const externalLoginWithLocalLogin = data => {
+	return http({
+		url: 'api/account/externalLoginWithLocalLogin',
+		method: 'post',
+		data: data,
 	})
 }
 
@@ -104,6 +111,12 @@ export const externalRegister = data => {
 		url: 'api/account/externalRegister',
 		method: 'post',
 		data: data,
+	})
+}
+export const checkExternalRegister = () => {
+	return http({
+		url: 'api/account/externalRegister',
+		method: 'get',
 	})
 }
 

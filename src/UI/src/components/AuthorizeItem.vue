@@ -1,6 +1,6 @@
 <template>
 	<div id="authorizeItem">
-		<div class="content">
+		<div :class="{ content: true, dropdown: isDropdown }" @click="dropdown">
 			<div class="left">
 				<div class="icon">
 					<slot name="img"></slot>
@@ -17,7 +17,7 @@
 				</div>
 			</div>
 
-			<div class="dropdown" v-if="isDropdown" @click="dropdown">
+			<div class="dropdown" v-if="isDropdown">
 				<template v-if="dropdownStatus">
 					<i class="el-icon-arrow-up"></i>
 				</template>
@@ -62,7 +62,9 @@ export default {
 	},
 	methods: {
 		dropdown() {
-			this.dropdownStatus = !this.dropdownStatus
+			if (this.isDropdown) {
+				this.dropdownStatus = !this.dropdownStatus
+			}
 		},
 	},
 	computed: {

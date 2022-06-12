@@ -1,32 +1,37 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Principal;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
     /// <summary>
-    /// 2faµÇÂ¼Èë²Î
+    /// 2faç™»å½•å…¥å‚
     /// </summary>
-    public class LoginWith2faInput
+    public class LoginWith2FaInput
     {
         /// <summary>
-        /// Ë«ÖØÑéÖ¤Âë
+        /// åŒé‡éªŒè¯ç 
         /// </summary>
         [Required]
         public string TwoFactorCode { get; set; }
 
-
         /// <summary>
-        /// ¼Ç×¡µ±Ç°Éè±¸
+        /// æ˜¯å¦è®°ä½æœºå™¨
         /// </summary>
         public bool RememberMachine { get; set; }
 
         /// <summary>
-        /// ¼Ç×¡ÎÒ(À´Ô´µÇÂ¼½çÃæ)
+        /// æ˜¯å¦è®°ä½æˆ‘
         /// </summary>
         public bool RememberMe { get; set; }
 
         /// <summary>
-        /// ÖØ¶¨ÏòµØÖ·
+        /// é‡å®šå‘åœ°å€
         /// </summary>
         public string ReturnUrl { get; set; }
+
+        /// <summary>
+        /// æ˜¯å¦å…³è”å¤–éƒ¨ç™»å½•
+        /// </summary>
+        public bool WithExternalLogin { get; set; }
     }
 }

@@ -4,7 +4,7 @@ namespace IdentityServer.STS.Admin.Models.Manager
 {
     public class PersonalProfileAndClaims
     {
-        public string Username { get; set; }
+        public string UserName { get; set; }
 
         public bool IsEmailConfirmed { get; set; }
 

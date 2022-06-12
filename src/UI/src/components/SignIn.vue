@@ -64,11 +64,11 @@ export default {
 	methods: {
 		async login() {
 			const returnUrl = this.$route.query.returnUrl
-			const username = this.form.userName
+			const userName = this.form.userName
 			const password = this.form.password
 
 			let response = await signIn({
-				username,
+				userName,
 				password,
 				returnUrl,
 				rememberLogin: this.form.remember,
@@ -103,7 +103,7 @@ export default {
 				isLocal = true
 			}
 			NProgress.start()
-			let url = 'http://192.168.1.4:5000/api/account/externalLogin'
+			let url = 'http://localhost:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
@@ -122,8 +122,8 @@ export default {
 		checkLogin({ returnUrl: this.$route.query.returnUrl }).then(res => {
 			console.log(res)
 			this.setting = res.data
-			if (this.setting.username) {
-				this.form.userName = this.setting.username
+			if (this.setting.userName) {
+				this.form.userName = this.setting.userName
 			}
 
 			this.show = this.setting.enableLocalLogin

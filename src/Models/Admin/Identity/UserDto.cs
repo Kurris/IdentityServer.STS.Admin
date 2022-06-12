@@ -9,7 +9,7 @@ namespace IdentityServer.STS.Admin.Models.Admin.Identity
         public int Id { get; set; }
 
         [Required(ErrorMessage = "用户名不能为空")]
-        public string Username { get; set; }
+        public string UserName { get; set; }
 
         [EmailAddress(ErrorMessage = "错误的邮件格式")]
         [Required(ErrorMessage = "用户邮件地址不能为空")]
