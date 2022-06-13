@@ -777,7 +777,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
                 throw new InvalidOperationException("无法加载双因素身份验证用户");
 
-            var model = new LoginWith2faOutput
+            var model = new LoginWith2FaOutput
             {
                 ReturnUrl = returnUrl,
                 RememberMe = rememberMe
@@ -840,19 +840,11 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 var info = await _signInManager.GetExternalLoginInfoAsync();
 
+                await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
                 var loginResult = await _userManager.AddLoginAsync(user, info);
 
                 if (loginResult.Succeeded)
                 {
-                    if (input.ReturnUrl.IsLocal())
-                    {
-                        return new ApiResult<object>
-                        {
-                            Route = DefineRoute.Redirect,
-                            Data = input.ReturnUrl,
-                        };
-                    }
-
                     return new ApiResult<object>
                     {
                         Route = DefineRoute.Redirect,

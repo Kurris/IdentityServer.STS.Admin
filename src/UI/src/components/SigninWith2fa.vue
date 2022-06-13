@@ -15,7 +15,7 @@
 					</div>
 
 					<span style="font-size: 13px">验证码:</span>
-					<el-input v-model.number="model.twoFactorCode" maxlength="6" style="margin-bottom: 20px; margin-top: 10px" placeholder="6位验证码" autofocus />
+					<el-input v-model="model.twoFactorCode" maxlength="6" style="margin-bottom: 20px; margin-top: 10px" placeholder="6位验证码" autofocus />
 
 					<el-button class="green" @click="login">验证</el-button>
 
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-//
 import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
 
 import NProgress from 'nprogress'
@@ -42,18 +41,22 @@ export default {
 	components: {},
 	data() {
 		return {
-			model: {},
-			withExternalLogin: this.$route.query.withExternalLogin,
+			model: {
+				twoFactorCode: '',
+				rememberMachine: false,
+				returnUrl: this.$route.query.returnUrl,
+				rememberMe: this.$route.query.rememberMe,
+				withExternalLogin: this.$route.query.withExternalLogin,
+			},
 		}
 	},
 	methods: {
 		async login() {
-			this.model.withExternalLogin = this.withExternalLogin
-			let resp = await siginTwoFactorAuthenticationUser(this.model)
-			if (resp.route == 1) {
+			let res = await siginTwoFactorAuthenticationUser(this.model)
+			if (res.route == 1) {
 				NProgress.start()
-				window.location.href = resp.data
-			} else if (resp.route == 2) {
+				window.location.href = res.data
+			} else if (res.route == 2) {
 				let res = await getLoginStatus()
 				let userName = res.data.user.userName
 				console.log(userName)
@@ -65,6 +68,7 @@ export default {
 		async goUseRecoveryCode() {
 			let returnUrl = this.$route.query.returnUrl
 
+			//恢复码登录,禁止记住当前机器,记住我
 			this.$router.push({
 				path: '/loginWithRecoveryCode',
 				query: {
@@ -74,11 +78,7 @@ export default {
 		},
 	},
 	async beforeMount() {
-		let res = await checkTwoFactorAuthenticationUser({
-			rememberMe: this.$route.query.rememberMe,
-			returnUrl: this.$route.query.returnUrl,
-		})
-		this.model = res.data
+		await checkTwoFactorAuthenticationUser()
 	},
 }
 </script>
