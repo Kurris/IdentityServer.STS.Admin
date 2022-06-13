@@ -9,7 +9,8 @@
 				$route.path != '/signinWith2fa' &&
 				$route.path != '/consent' &&
 				$route.path != '/loginWithRecoveryCode' &&
-				$route.path != '/externalLoginConfirmation'
+				$route.path != '/externalLoginConfirmation' &&
+				$route.path != '/register'
 			"
 		>
 			<div class="left">

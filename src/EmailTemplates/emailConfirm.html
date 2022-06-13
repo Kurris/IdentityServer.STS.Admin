@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户验证</title>
+</head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #f7f8fa;
+    }
+
+    .panel {
+        font-size: 15.5px;
+        color: #757f8c;
+        height: 65vh;
+    }
+
+    .innerPanel {
+        width: 650px;
+        height: 450px;
+        background-color: white;
+        border: 1ps solid #ded5d6;
+        box-shadow: 1px 2px 3px 2px #d9d9d9;
+    }
+
+    .btn {
+        position: relative;
+        width: 100px;
+        height: 35px;
+        margin-top: 50px;
+        margin-bottom: 50px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 1px 2px 3px 2px #d9d9d9;
+        color: white;
+        background-color: #53a258;
+        left: 50%;
+        transform: translate(-50%);
+    }
+
+    .btn:hover {
+        cursor: pointer;
+    }
+
+</style>
+
+<body>
+<div class="container">
+    <div class="panel">
+        <div style="height:2px;background-color: #49a1f8;margin-top: 20px; "></div>
+        <div class="innerPanel">
+            <div style="padding: 20px;">
+                <h1 style="color:black">验证您的邮箱</h1>
+                <p style="margin-top:20px; ">
+                    尊敬的<strong style="color:black">$user</strong>, 您好:
+                </p>
+                <p style="margin-top:10px; ">
+                    感谢您在ligy.identity注册!在您使用认证服务之前,我们需要确认邮件的拥有者是您,点击以下按钮验证您的邮件地址:
+                </p>
+            </div>
+            <a href="$url">
+                <button class="btn">
+                    验证邮件
+                </button>
+            </a>
+            <div>
+                <div style="height:3px;border-top:1px solid #b5b7b9;margin-top: 80px;margin: 20px;">
+                </div>
+            </div>
+            <p style="font-size:10px ;margin-left: 20px;">
+                这是系统邮件,请勿回复
+            </p>
+            <p style="font-size:10px ;margin-left: 20px;">
+                需要帮助?联系我们的支持团队或者邮件我们到<a
+                    href="mailto:ligy.97@foxmail.com?subject=需要支持&body=邮件内容">ligy.97@foxmail.com</a>
+            </p>
+        </div>
+    </div>
+    <div style="color: #757f8c;font-size: 12px;margin-top: -40px;margin-bottom: 50px;">
+        send by ligy.identity
+        <div>
+            ©️copyright by LIGY
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

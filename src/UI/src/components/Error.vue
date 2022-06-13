@@ -35,8 +35,8 @@ export default {
 			})
 		},
 	},
-	async mounted() {
-		if (!this.remoteError) {
+	async beforeMount() {
+		if (!this.error && !this.remoteError) {
 			this.error = await getError({ errorId: this.$route.query.errorId })
 		}
 	},

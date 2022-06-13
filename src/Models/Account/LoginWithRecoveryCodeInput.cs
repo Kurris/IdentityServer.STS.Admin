@@ -18,5 +18,11 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// 重定向地址
         /// </summary>
         public string ReturnUrl { get; set; }
+
+
+        /// <summary>
+        /// 是否关联外部登录
+        /// </summary>
+        public bool WithExternalLogin { get; set; }
     }
 }

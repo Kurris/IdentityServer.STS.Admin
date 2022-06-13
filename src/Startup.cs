@@ -40,7 +40,7 @@ namespace IdentityServer.STS.Admin
         {
             services.AddCors(setup =>
             {
-                setup.AddDefaultPolicy(policy =>
+                setup.AddPolicy("idCors", policy =>
                 {
                     policy.SetIsOriginAllowed(x => true)
                         .AllowAnyHeader()
@@ -78,6 +78,10 @@ namespace IdentityServer.STS.Admin
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = true;
                 options.Password.RequireUppercase = true;
+
+                options.User.RequireUniqueEmail = true;
+
+                options.SignIn.RequireConfirmedEmail = true;
             });
 
             //配置本地登录cookie相关处理
@@ -144,6 +148,9 @@ namespace IdentityServer.STS.Admin
 
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
 
+            services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
+            services.AddSingleton<EmailGenerateService>();
+
             //admin service registered
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IRoleService, RoleService>();
@@ -159,6 +166,7 @@ namespace IdentityServer.STS.Admin
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors("idCors");
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             // if (env.IsDevelopment())
@@ -166,7 +174,6 @@ namespace IdentityServer.STS.Admin
             //     app.UseDeveloperExceptionPage();
             // }
 
-            app.UseCors();
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
 

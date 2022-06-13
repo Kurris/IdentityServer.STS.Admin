@@ -2,7 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class RegisterInputModel
+    /// <summary>
+    /// 注册入参
+    /// </summary>
+    public class RegisterInput
     {
         [Required]
         public string UserName { get; set; }
@@ -16,7 +19,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("Password")]
+        [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; }
 
         public string ReturnUrl { get; set; }

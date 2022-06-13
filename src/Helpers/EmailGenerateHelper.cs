@@ -1,0 +1,26 @@
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+
+namespace IdentityServer.STS.Admin.Helpers
+{
+    public class EmailGenerateService
+    {
+        private readonly IWebHostEnvironment _environment;
+        private readonly string _confirmEmailTemplate = "emailConfirm.html";
+        private const string EmailTemplates = "EmailTemplates";
+
+        public EmailGenerateService(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
+
+        public async Task<string> GetEmailConfirmHtml(string userName, string confirmUrl)
+        {
+            var path = Path.Combine(_environment.ContentRootPath, EmailTemplates, _confirmEmailTemplate);
+            var content = await File.ReadAllTextAsync(path);
+            return content.Replace("$user", userName).Replace("$url", confirmUrl);
+        }
+    }
+}

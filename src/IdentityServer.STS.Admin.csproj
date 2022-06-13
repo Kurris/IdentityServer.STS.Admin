@@ -46,5 +46,9 @@
 	  <Content Update="appsettings.Development.json">
 	    <DependentUpon>appsettings.json</DependentUpon>
 	  </Content>
+	  <Content Include="EmailTemplates\emailConfirm.html">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <None Remove="emailTemplate.html" />
 	</ItemGroup>
 </Project>
