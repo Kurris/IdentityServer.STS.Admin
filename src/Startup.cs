@@ -166,9 +166,9 @@ namespace IdentityServer.STS.Admin
             //     app.UseDeveloperExceptionPage();
             // }
 
+            app.UseCors();
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
-            app.UseCors();
 
             app.UseIdentityServer();
 

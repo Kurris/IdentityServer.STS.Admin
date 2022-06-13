@@ -193,7 +193,18 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.RequiresTwoFactor)
             {
-                //todo 2fa
+                var ps = new Dictionary<string, string>
+                {
+                    ["rememberMe"] = "false",
+                    ["returnUrl"] = returnUrl
+                };
+
+                using (var content = new FormUrlEncodedContent(ps))
+                {
+                    var url = $"{FrontendBaseUrl}/signinWith2fa?{await content.ReadAsStringAsync()}";
+                    _logger.LogInformation("2fa Redirect url is :{url} ", url);
+                    return Redirect(url);
+                }
             }
 
             if (result.IsLockedOut)
