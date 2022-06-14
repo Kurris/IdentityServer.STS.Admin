@@ -168,7 +168,6 @@ namespace IdentityServer.STS.Admin
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors("idCors");
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             // if (env.IsDevelopment())
@@ -178,7 +177,7 @@ namespace IdentityServer.STS.Admin
 
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
-
+            app.UseCors("idCors");
             app.UseIdentityServer();
 
             app.UseRouting();

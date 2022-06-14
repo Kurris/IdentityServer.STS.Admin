@@ -400,6 +400,11 @@ namespace IdentityServer.STS.Admin.Controllers
                 throw new Exception("账号已被锁定");
             }
 
+            if (result.IsNotAllowed)
+            {
+                throw new Exception("账号不允许登录");
+            }
+
             // 如果用户没有账号，请求用户创建
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
             var userName = info.Principal.Identity.Name;

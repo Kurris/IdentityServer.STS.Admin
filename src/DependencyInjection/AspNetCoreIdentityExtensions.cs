@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Web;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Resolvers;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -85,6 +86,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 {
                     options.ClientId = "3217031503";
                     options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
+                    options.ClaimActions.MapJsonKey("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "email");
                 });
 
             services.AddAuthorization(options =>

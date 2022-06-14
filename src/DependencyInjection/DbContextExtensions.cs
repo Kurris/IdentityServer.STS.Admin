@@ -42,9 +42,12 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     builder.MigrationsAssembly(migrationsAssembly);
                     builder.EnableRetryOnFailure();
                 });
+
+#if DEBUG
                 options.EnableSensitiveDataLogging();
                 var loggerFactory = provider.GetService<ILoggerFactory>();
                 options.UseLoggerFactory(loggerFactory);
+#endif
             });
 
             //ids 配置操作

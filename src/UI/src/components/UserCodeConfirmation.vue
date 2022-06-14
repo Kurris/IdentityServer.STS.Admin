@@ -134,7 +134,7 @@ export default {
 			userCode: this.$route.query.userCode,
 		})
 		this.model = res.data
-	}, //生命周期 - 挂载之前
+	},
 }
 </script>
 
