@@ -1,14 +1,15 @@
 <template>
 	<div id="error">
-		<h3>错误消息:</h3>
-		<span>
-			{{ error || remoteError }}
-		</span>
+		<span> </span>
 		<template v-if="$route.query.errorId"> ErrorId: {{ $route.query.errorId }} </template>
 
-		<div v-if="!isLocal || isLocal == 'False'">
-			<el-link type="primary" @click="reLogin()">重新登录</el-link>
-		</div>
+		<el-result icon="error" title="错误提示" :subTitle="subTitle">
+			<template slot="extra">
+				<a :href="returnUrl">
+					<el-button type="primary" size="medium">返回</el-button>
+				</a>
+			</template>
+		</el-result>
 	</div>
 </template>
 
@@ -19,20 +20,14 @@ export default {
 	components: {},
 	data() {
 		return {
-			error: null,
+			error: this.$route.query.error,
 			remoteError: this.$route.query.remoteError,
-			isLocal: this.$route.query.isLocal,
 			returnUrl: this.$route.query.returnUrl,
 		}
 	},
-	methods: {
-		reLogin() {
-			this.$router.push({
-				path: '/signIn',
-				params: {
-					returnUrl: this.returnUrl,
-				},
-			})
+	computed: {
+		subTitle() {
+			return this.error || this.remoteError
 		},
 	},
 	async beforeMount() {

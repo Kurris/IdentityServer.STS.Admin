@@ -7,7 +7,7 @@
 			<div class="signin">
 				<div class="title">
 					<h1>登录</h1>
-					<div>没有帐号？<el-link type="success" @click="$router.push('/register')">点此注册</el-link></div>
+					<div>没有帐号？<el-link type="success" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
 				</div>
 				<template>
 					<el-form>
@@ -19,23 +19,30 @@
 						</el-form-item>
 						<el-form-item>
 							<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-							<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')">忘记密码?</el-link>
+							<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
 						</el-form-item>
 						<el-form-item>
-							<el-button style="width: 100%" type="success" @click="login()">登录</el-button>
+							<el-button style="width: 100%" type="success" @click="login()" :loading="loginLoading">登录</el-button>
 						</el-form-item>
 					</el-form>
 				</template>
 
 				<div v-if="setting.externalProviders != null && setting.externalProviders.length > 0">
 					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
-					<template v-for="(item, i) in setting.externalProviders">
-						<template v-if="item.displayName == 'GitHub'">
-							<div :key="i">
-								<img class="externalProvider" src="../assets/auth2logo/GitHub-Mark-32px.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
-							</div>
+					<div class="externalLogins">
+						<template v-for="(item, i) in setting.externalProviders">
+							<template v-if="item.displayName == 'GitHub'">
+								<div :key="i">
+									<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
+								</div>
+							</template>
+							<template v-else-if="item.displayName == 'Weibo'">
+								<div :key="i">
+									<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png" @click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
+								</div>
+							</template>
 						</template>
-					</template>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -59,6 +66,7 @@ export default {
 			},
 			setting: null,
 			show: false,
+			loginLoading: false,
 		}
 	},
 	methods: {
@@ -67,12 +75,15 @@ export default {
 			const userName = this.form.userName
 			const password = this.form.password
 
+			this.loginLoading = true
 			let response = await signIn({
 				userName,
 				password,
 				returnUrl,
 				rememberLogin: this.form.remember,
 				requestType: 'login',
+			}).finally(() => {
+				this.loginLoading = false
 			})
 
 			if (response.route == 2) {
@@ -103,7 +114,7 @@ export default {
 				isLocal = true
 			}
 			NProgress.start()
-			let url = 'http://localhost:5000/api/account/externalLogin'
+			let url = 'http://101.35.47.169:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
@@ -152,7 +163,7 @@ export default {
 	width: 1000px;
 	box-shadow: 10px 1px 50px 21px #d9d9d9;
 	display: flex;
-	justify-content: space-around;
+	justify-content: center;
 	align-items: center;
 	background-color: #ffffff;
 }
@@ -179,5 +190,11 @@ export default {
 
 img.externalProvider:hover {
 	cursor: pointer;
+}
+
+.externalLogins {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
 }
 </style>

@@ -146,6 +146,8 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
+            services.AddDataProtection();
+
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
 
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));

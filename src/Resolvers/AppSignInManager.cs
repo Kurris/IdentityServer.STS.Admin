@@ -11,16 +11,16 @@ using Microsoft.Extensions.Options;
 
 namespace IdentityServer.STS.Admin.Resolvers
 {
-    public class ApplicationSignInManager<TUser> : SignInManager<TUser>
+    public class AppSignInManager<TUser> : SignInManager<TUser>
         where TUser : class
     {
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public ApplicationSignInManager(UserManager<TUser> userManager,
+        public AppSignInManager(UserManager<TUser> userManager,
             IHttpContextAccessor contextAccessor,
             IUserClaimsPrincipalFactory<TUser> claimsFactory,
             IOptions<IdentityOptions> optionsAccessor,
-            ILogger<ApplicationSignInManager<TUser>> logger,
+            ILogger<AppSignInManager<TUser>> logger,
             IAuthenticationSchemeProvider schemes,
             IUserConfirmation<TUser> confirmation) : base(userManager, contextAccessor,
                 claimsFactory, optionsAccessor, logger, schemes, confirmation)

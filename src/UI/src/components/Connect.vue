@@ -1,7 +1,7 @@
 <template>
 	<div class="connect">
 		<div class="logo">
-			<img src="../assets/auth2logo/GitHub-Mark-64px.png" :size="70" />
+			<img src="../assets/auth2logo/GitHub-64.png" />
 			<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
 			<i class="el-icon-success" style="font-size: 32px"></i>
 			<div v-for="n in 7" :key="'right' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>

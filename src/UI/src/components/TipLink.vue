@@ -1,0 +1,30 @@
+<template>
+	<div>
+		<div style="font-size: 14px">
+			<span>{{ tipText }}</span>
+			<el-link :type="type" :underline="false" style="padding-bottom: 3px" :href="href">{{ hrefText }}</el-link>
+		</div>
+	</div>
+</template>
+<script>
+export default {
+	props: {
+		type: {
+			type: String,
+			default: 'primary',
+		},
+		tipText: {
+			required: true,
+			type: String,
+		},
+		href: {
+			required: true,
+			type: String,
+		},
+		hrefText: {
+			required: true,
+			type: String,
+		},
+	},
+}
+</script>

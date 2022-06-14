@@ -23,6 +23,7 @@ using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using System.Web;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -34,6 +35,7 @@ namespace IdentityServer.STS.Admin.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
+        private const double ExpiredTime = 1;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
         private readonly SignInManager<User> _signInManager;
@@ -44,6 +46,7 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly EmailGenerateService _emailGenerateService;
+        private readonly ITimeLimitedDataProtector _timeLimitedDataProtector;
         private readonly ILogger<AccountController> _logger;
 
 
@@ -57,6 +60,7 @@ namespace IdentityServer.STS.Admin.Controllers
             , EmailService emailService
             , IConfiguration configuration
             , EmailGenerateService emailGenerateService
+            , IDataProtectionProvider protectionProvider
             , ILogger<AccountController> logger)
         {
             _interaction = interaction;
@@ -69,6 +73,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _emailService = emailService;
             _configuration = configuration;
             _emailGenerateService = emailGenerateService;
+            _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
             _logger = logger;
         }
 
@@ -149,7 +154,10 @@ namespace IdentityServer.STS.Admin.Controllers
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
             var tenant = context?.Tenant;
-            _logger.LogInformation("current tenant is {Tenant}", tenant);
+            if (!string.IsNullOrEmpty(tenant))
+            {
+                _logger.LogInformation("current tenant is {Tenant}", tenant);
+            }
 
             //取消登录
 
@@ -259,9 +267,15 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     throw new Exception("账号已被锁定");
                 }
+
+                //邮件地址/手机号/账号
+                if (signResult.IsNotAllowed)
+                {
+                    throw new Exception("账号不允许登录");
+                }
             }
 
-            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "错误的凭证", clientId: context?.Client.ClientId));
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "账号登录失败", clientId: context?.Client.ClientId));
             throw new Exception("账号或者密码错误");
         }
 
@@ -308,17 +322,22 @@ namespace IdentityServer.STS.Admin.Controllers
             if (result.Succeeded)
             {
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                code = _timeLimitedDataProtector.Protect(code, TimeSpan.FromMinutes(ExpiredTime));
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
                 var callbackUrl = BackendBaseUrl + Url.Action("ConfirmEmail", new
                 {
                     userId = user.Id.ToString(),
                     code
                 });
-                var content = await _emailGenerateService.GetEmailConfirmHtml(user.UserName, callbackUrl);
+
+                var content = await _emailGenerateService.GetEmailConfirmHtml(user.UserName, callbackUrl, ExpiredTime.ToString());
                 await _emailService.SendEmailAsync("验证邮箱用户", content, new[] {new MailboxAddress(model.UserName, model.Email)});
             }
             else
             {
+                //DuplicateUserName
+                //DuplicateEmail
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
             }
         }
@@ -704,7 +723,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <param name="code"></param>
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
-        [HttpGet("accout/{userId}/email/{code}/validation")]
+        [HttpGet("validation/{userId}/email/{code}")]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
             var redirectUrl = $"{FrontendBaseUrl}/error?error=";
@@ -716,25 +735,39 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
                 return Redirect(redirectUrl + "验证失败");
 
+            if (await _userManager.IsEmailConfirmedAsync(user))
+                return Redirect(redirectUrl + "验证失败");
+
+            try
+            {
+                code = _timeLimitedDataProtector.Unprotect(code);
+            }
+            catch
+            {
+                code = string.Empty;
+            }
+
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
 
-            return !result.Succeeded
-                ? Redirect(redirectUrl + result.Errors.Select(x => x.Description))
-                : Redirect($"{FrontendBaseUrl}/signIn");
+            return result.Succeeded
+                ? Redirect($"{FrontendBaseUrl}/successed?title=您已成功验证邮件&returnUrl='/signIn'")
+                : Redirect(redirectUrl + "邮件验证已过期,请重新发送邮件进行验证");
         }
 
 
         /// <summary>
         /// 忘记密码，发送邮件验证
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <exception cref="InvalidOperationException"></exception>
         [AllowAnonymous]
         [HttpPost("password/email")]
-        public async Task ForgotPassword(ForgotPasswordInput model)
+        public async Task ForgotPassword(ForgotPasswordInput input)
         {
-            var user = await _userManager.FindByNameAsync(model.Content);
+            var user = await _userManager.FindByNameAsync(input.Content) ?? await _userManager.FindByEmailAsync(input.Content);
+
             if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
             {
                 // 不能透露用户不存在，只能提醒已发送邮件
@@ -748,7 +781,6 @@ namespace IdentityServer.STS.Admin.Controllers
             //url query
             var dic = new Dictionary<string, string>
             {
-                ["userId"] = user.Id.ToString(),
                 ["code"] = code,
                 ["email"] = user.Email,
             };
@@ -758,26 +790,29 @@ namespace IdentityServer.STS.Admin.Controllers
                 var queries = await content.ReadAsStringAsync();
                 //前端地址
                 var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
-                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
+                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[]
+                {
+                    new MailboxAddress(user.UserName, user.Email)
+                });
             }
         }
 
         /// <summary>
         /// 通过邮件重置密码
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpPut("password/email/found")]
-        public async Task ResetPasswordFromEmailSide(ResetPasswordInput model)
+        public async Task ResetPasswordFromEmailSide(ResetPasswordInput input)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(input.Email);
 
             //不能透露用户不存在,默认完成
             if (user == null) return;
 
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Code));
-            var result = await _userManager.ResetPasswordAsync(user, code, model.Password);
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(input.Code));
+            var result = await _userManager.ResetPasswordAsync(user, code, input.Password);
 
             if (!result.Succeeded)
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));

@@ -10,7 +10,8 @@
 				$route.path != '/consent' &&
 				$route.path != '/loginWithRecoveryCode' &&
 				$route.path != '/externalLoginConfirmation' &&
-				$route.path != '/register'
+				$route.path != '/register' &&
+				$route.path != '/forgotPassword'
 			"
 		>
 			<div class="left">

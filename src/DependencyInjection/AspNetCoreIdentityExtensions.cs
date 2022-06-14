@@ -28,7 +28,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             where TRole : class
         {
             services.AddSingleton<IdentityOptions>() //默认配置
-                .AddScoped<ApplicationSignInManager<TUser>>() //用户登录管理器
+                .AddScoped<AppSignInManager<TUser>>() //用户登录管理器
                 .AddIdentity<TUser, TRole>() //用户,角色
                 .AddEntityFrameworkStores<TIdentityDbContext>() //aspnetcore user 操作
                 .AddDefaultTokenProviders(); //token生成，验证提供器
@@ -80,6 +80,11 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                             context.Response.Redirect($"{frontendBaseUrl}/error?remoteError={context.Failure.Message}");
                         }
                     };
+                })
+                .AddWeibo(options =>
+                {
+                    options.ClientId = "3217031503";
+                    options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
                 });
 
             services.AddAuthorization(options =>

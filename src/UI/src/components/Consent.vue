@@ -130,7 +130,7 @@ export default {
 			let apiScopes = this.setting.apiScopes.filter(x => x.checked)
 
 			NProgress.start()
-			let url = 'http://localhost:5000/api/consent/setting/process'
+			let url = 'http://101.35.47.169:5000/api/consent/setting/process'
 
 			document.write(`<form action=${url}  method=post name=form1 style='display:none'>`)
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)
