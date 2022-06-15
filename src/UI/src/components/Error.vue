@@ -22,7 +22,7 @@ export default {
 		return {
 			error: this.$route.query.error,
 			remoteError: this.$route.query.remoteError,
-			returnUrl: this.$route.query.returnUrl,
+			returnUrl: this.$route.query.returnUrl || '/signIn',
 		}
 	},
 	computed: {

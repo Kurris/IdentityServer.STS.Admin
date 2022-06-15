@@ -22,6 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AspNet.Security.OAuth.Discord" Version="3.1.7" />
 		<PackageReference Include="AspNet.Security.OAuth.GitHub" Version="3.1.7" />
 		<PackageReference Include="AspNet.Security.OAuth.Weibo" Version="3.1.7" />
 		<PackageReference Include="IdentityServer4" Version="4.1.2" />

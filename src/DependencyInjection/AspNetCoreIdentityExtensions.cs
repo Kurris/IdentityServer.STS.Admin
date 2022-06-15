@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Resolvers;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -56,37 +58,24 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     options.Scope.Add("user:email");
                     options.Scope.Add("read:user");
 
-                    options.SaveTokens = true;
-                    options.ReturnUrlParameter = "returnUrl";
-
-                    options.Events.OnRemoteFailure = async context =>
-                    {
-                        if (context.Properties != null)
-                        {
-                            var p = context.Properties.RedirectUri.IndexOf('?');
-                            var l = context.Properties.RedirectUri.Length;
-                            var kv = HttpUtility.ParseQueryString(context.Properties.RedirectUri.Substring(p + 1, l - p - 1));
-
-                            var query = new FormUrlEncodedContent(new Dictionary<string, string>
-                            {
-                                ["isLocal"] = kv.Get("isLocal"),
-                                ["remoteError"] = context.Failure.Message,
-                                ["returnUrl"] = kv.Get("returnUrl"),
-                            });
-
-                            context.Response.Redirect($"{frontendBaseUrl}/error?{await query.ReadAsStringAsync()}");
-                        }
-                        else
-                        {
-                            context.Response.Redirect($"{frontendBaseUrl}/error?remoteError={context.Failure.Message}");
-                        }
-                    };
+                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
                 })
                 .AddWeibo(options =>
                 {
                     options.ClientId = "3217031503";
                     options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
-                    options.ClaimActions.MapJsonKey("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "email");
+
+                    options.SaveTokens = true;
+                    options.ReturnUrlParameter = "returnUrl";
+
+                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
+                })
+                .AddDiscord(options =>
+                {
+                    options.ClientId = "986458746777657364";
+                    options.ClientSecret = "BwPpzFswPvYqrM1OSHjVgD_PX0VliCMI";
+
+                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
                 });
 
             services.AddAuthorization(options =>
@@ -97,6 +86,46 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                         .RequireAuthenticatedUser();
                 });
             });
+        }
+
+        /// <summary>
+        /// 远程处理异常
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="frontendBaseUrl"></param>
+        private static OAuthOptions SetOnRemoteFailure(this OAuthOptions options, string frontendBaseUrl)
+        {
+            options.Events.OnRemoteFailure = async context =>
+            {
+                if (context.Properties != null)
+                {
+                    var p = context.Properties.RedirectUri.IndexOf('?');
+                    var l = context.Properties.RedirectUri.Length;
+                    var kv = HttpUtility.ParseQueryString(context.Properties.RedirectUri.Substring(p + 1, l - p - 1));
+
+                    var query = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        ["remoteError"] = context.Failure.Message,
+                        ["returnUrl"] = kv.Get("returnUrl"),
+                    });
+
+                    context.Response.Redirect($"{frontendBaseUrl}/error?{await query.ReadAsStringAsync()}");
+                }
+                else
+                {
+                    context.Response.Redirect($"{frontendBaseUrl}/error?remoteError={context.Failure.Message}");
+                }
+            };
+
+            return options;
+        }
+
+
+        private static OAuthOptions WithDefaultSetting(this OAuthOptions options)
+        {
+            options.SaveTokens = true;
+            options.ReturnUrlParameter = "returnUrl";
+            return options;
         }
     }
 }

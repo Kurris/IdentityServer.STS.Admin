@@ -41,6 +41,11 @@
 									<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png" @click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
 								</div>
 							</template>
+							<template v-else-if="item.displayName == 'Discord'">
+								<div :key="i">
+									<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
+								</div>
+							</template>
 						</template>
 					</div>
 				</div>
@@ -161,7 +166,7 @@ export default {
 .container {
 	height: 500px;
 	width: 1000px;
-	box-shadow: 10px 1px 50px 21px #d9d9d9;
+	box-shadow: 1px 1px 1px 1px #d9d9d9;
 	display: flex;
 	justify-content: center;
 	align-items: center;
