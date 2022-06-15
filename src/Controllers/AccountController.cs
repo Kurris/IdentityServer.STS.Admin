@@ -362,7 +362,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return Redirect($"{FrontendBaseUrl}/signIn");
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/signIn");
             }
 
             // 如果用户已登录，请使用此外部登录提供程序登录用户。
@@ -374,10 +374,10 @@ namespace IdentityServer.STS.Admin.Controllers
                     var obj = await GetIsAuthenticated();
                     var dynamicInfo = obj.Data as dynamic;
                     var currentUsername = dynamicInfo.user.UserName;
-                    return Redirect($"{FrontendBaseUrl}/zone/{currentUsername}");
+                    return await RedirectHelper.Go($"{FrontendBaseUrl}/zone/{currentUsername}");
                 }
 
-                return Redirect(returnUrl);
+                return await RedirectHelper.Go(returnUrl);
             }
 
             if (result.RequiresTwoFactor)
@@ -388,41 +388,36 @@ namespace IdentityServer.STS.Admin.Controllers
                     ["returnUrl"] = returnUrl
                 };
 
-                using (var content = new FormUrlEncodedContent(ps))
-                {
-                    var url = $"{FrontendBaseUrl}/signinWith2fa?{await content.ReadAsStringAsync()}";
-                    _logger.LogInformation("2fa Redirect url is :{Url} ", url);
-                    return Redirect(url);
-                }
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/signinWith2fa", ps);
             }
 
             if (result.IsLockedOut)
             {
-                return Redirect($"{FrontendBaseUrl}/error?error=账号已被锁定");
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/error", new Dictionary<string, string>
+                {
+                    ["error"] = "账号已被锁定"
+                });
             }
 
             if (result.IsNotAllowed)
             {
-                return Redirect($"{FrontendBaseUrl}/error?error=账号不允许登录");
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/error", new Dictionary<string, string>
+                {
+                    ["error"] = "账号不允许登录"
+                });
             }
 
             // 如果用户没有账号，请求用户创建
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
             var userName = info.Principal.Identity.Name;
 
-            var urlParams = new Dictionary<string, string>
+            return await RedirectHelper.Go($"{FrontendBaseUrl}/externalLoginConfirmation", new Dictionary<string, string>
             {
                 ["email"] = email,
                 ["userName"] = userName,
                 ["returnUrl"] = returnUrl,
                 ["loginProvider"] = info.LoginProvider
-            };
-
-            using (var urlEncodedContent = new FormUrlEncodedContent(urlParams))
-            {
-                var urlParamsString = await urlEncodedContent.ReadAsStringAsync();
-                return Redirect($"{FrontendBaseUrl}/externalLoginConfirmation" + "?" + urlParamsString);
-            }
+            });
         }
 
         /// <summary>
@@ -732,30 +727,40 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("validation/{userId}/email/{code}")]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
-            var redirectUrl = $"{FrontendBaseUrl}/error?error=";
-            _logger.LogInformation("redirectUrl:{redirectUrl}", redirectUrl);
+            var redirectErrorUrl = $"{FrontendBaseUrl}/error";
 
             if (userId == null || code == null)
             {
-                _logger.LogInformation("userId and core mybe empty or null: userId-{userId} code-{code}", userId, code);
-                return Redirect(redirectUrl + "验证失败");
+                _logger.LogInformation("userId and core mybe empty or null: userId-{UserId} code-{Code}", userId, code);
+                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
+                {
+                    ["error"] = "验证失败"
+                });
             }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                _logger.LogInformation("user id : {id}  not exists", userId);
-                return Redirect(redirectUrl + "验证失败");
+                _logger.LogInformation("user id : {Id}  not exists", userId);
+                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
+                {
+                    ["error"] = "验证失败"
+                });
             }
 
             if (await _userManager.IsEmailConfirmedAsync(user))
             {
-                _logger.LogInformation("user id : {id}  already confirmed email", userId);
-                return Redirect(redirectUrl + "验证失败");
+                _logger.LogInformation("user id : {Id}  already confirmed email", userId);
+                return await RedirectHelper.
+                    Go(redirectErrorUrl, new Dictionary<string, string>
+                {
+                    ["error"] = "验证失败"
+                });
             }
 
             try
             {
+                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
                 code = _timeLimitedDataProtector.Unprotect(code);
             }
             catch
@@ -763,14 +768,21 @@ namespace IdentityServer.STS.Admin.Controllers
                 code = string.Empty;
             }
 
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            _logger.LogInformation("confirm email result is : {result}", JsonConvert.SerializeObject(result));
+            _logger.LogInformation("confirm email result is : {Result}", JsonConvert.SerializeObject(result));
 
-            return result.Succeeded
-                ? Redirect($"{FrontendBaseUrl}/successed?title=您已成功验证邮件&returnUrl='/signIn'")
-                : Redirect(redirectUrl + "邮件验证已过期请重新发送邮件进行验证");
+            var rtnUrl = result.Succeeded
+                ? await RedirectHelper.Get($"{FrontendBaseUrl}/successed", new Dictionary<string, string>()
+                {
+                    ["title"] = "您已成功验证邮件",
+                    ["returnUrl"] = "/signIn"
+                })
+                : await RedirectHelper.Get(redirectErrorUrl, new Dictionary<string, string>
+                {
+                    ["error"] = "邮件验证已过期请,重新发送邮件进行验证"
+                });
+
+            return await RedirectHelper.Go(rtnUrl);
         }
 
 
