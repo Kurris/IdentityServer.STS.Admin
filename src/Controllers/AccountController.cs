@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using Newtonsoft.Json;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -35,7 +36,7 @@ namespace IdentityServer.STS.Admin.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private const double ExpiredTime = 1;
+        private const double ExpiredTime = 30;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
         private readonly SignInManager<User> _signInManager;
@@ -732,16 +733,26 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
             var redirectUrl = $"{FrontendBaseUrl}/error?error=";
+            _logger.LogInformation("redirectUrl:{redirectUrl}", redirectUrl);
 
             if (userId == null || code == null)
+            {
+                _logger.LogInformation("userId and core mybe empty or null: userId-{userId} code-{code}", userId, code);
                 return Redirect(redirectUrl + "验证失败");
+            }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
+            {
+                _logger.LogInformation("user id : {id}  not exists", userId);
                 return Redirect(redirectUrl + "验证失败");
+            }
 
             if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                _logger.LogInformation("user id : {id}  already confirmed email", userId);
                 return Redirect(redirectUrl + "验证失败");
+            }
 
             try
             {
@@ -755,10 +766,11 @@ namespace IdentityServer.STS.Admin.Controllers
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
 
             var result = await _userManager.ConfirmEmailAsync(user, code);
+            _logger.LogInformation("confirm email result is : {result}", JsonConvert.SerializeObject(result));
 
             return result.Succeeded
                 ? Redirect($"{FrontendBaseUrl}/successed?title=您已成功验证邮件&returnUrl='/signIn'")
-                : Redirect(redirectUrl + "邮件验证已过期,请重新发送邮件进行验证");
+                : Redirect(redirectUrl + "邮件验证已过期请重新发送邮件进行验证");
         }
 
 
