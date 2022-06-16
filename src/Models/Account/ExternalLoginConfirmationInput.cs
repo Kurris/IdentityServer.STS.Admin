@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.STS.Admin.Models.Account
 {
-    public class ExternalLoginConfirmationInput
+    public class ExternalLoginConfirmationInput : IValidatableObject
     {
         [Required]
         [RegularExpression(@"^[a-zA-Z0-9_@\-\.\+]+$")]
@@ -12,16 +13,44 @@ namespace IdentityServer.STS.Admin.Models.Account
         [EmailAddress]
         public string Email { get; set; }
 
+        /// <summary>
+        /// 密码注册
+        /// </summary>
+        public bool UsePassword { get; set; }
 
-        [Required(ErrorMessage = "密码不能为空")]
-        [DataType(DataType.Password)]
+        /// <summary>
+        /// 密码
+        /// </summary>
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "确认密码不能为空")]
-        [Compare(nameof(Password), ErrorMessage = "密码不一致")]
-        [DataType(DataType.Password)]
+        /// <summary>
+        /// 确认密码
+        /// </summary>
         public string ConfirmPassword { get; set; }
 
+        /// <summary>
+        /// 重定向url
+        /// </summary>
         public string ReturnUrl { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var results = new List<ValidationResult>();
+
+            if (UsePassword)
+            {
+                if (string.IsNullOrEmpty(Password))
+                {
+                    results.Add(new ValidationResult("密码不能为空", new[] {nameof(Password)}));
+                }
+
+                if (Password != ConfirmPassword)
+                {
+                    results.Add(new ValidationResult("密码不一致", new[] {nameof(ConfirmPassword)}));
+                }
+            }
+
+            return results;
+        }
     }
 }

@@ -434,7 +434,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                throw new Exception("外部登录关联已失效");
+                throw new Exception("外部登录已失效,请重新登录");
             }
 
             var user = new User
@@ -443,7 +443,10 @@ namespace IdentityServer.STS.Admin.Controllers
                 Email = input.Email
             };
 
-            var result = await _userManager.CreateAsync(user, input.Password);
+            var result = input.UsePassword
+                ? await _userManager.CreateAsync(user, input.Password)
+                : await _userManager.CreateAsync(user);
+
             if (result.Succeeded)
             {
                 //关联外部登录
@@ -553,7 +556,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                throw new Exception("外部登录关联已失效");
+                throw new Exception("外部登录已失效,请重新登录");
             }
         }
 
@@ -623,27 +626,16 @@ namespace IdentityServer.STS.Admin.Controllers
                     };
                 }
 
-                throw new Exception("非法的重定向地址");
+                throw new Exception(string.Join(",", loginResult.Errors.Select(x => x.Description)));
             }
 
             //正常情况下在登录后就会提醒被锁定
             if (result.IsLockedOut)
             {
-                return new ApiResult<object>
-                {
-                    Code = 0,
-                    Route = DefineRoute.LoginWith2Fa,
-                    Data = input,
-                    Msg = "账号已被锁定",
-                };
+                throw new Exception("账号已被锁定");
             }
 
-            return new ApiResult<object>
-            {
-                Route = DefineRoute.LoginWith2Fa,
-                Data = input,
-                Msg = "验证码无效"
-            };
+            throw new Exception("验证码无效");
         }
 
 
@@ -751,8 +743,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (await _userManager.IsEmailConfirmedAsync(user))
             {
                 _logger.LogInformation("user id : {Id}  already confirmed email", userId);
-                return await RedirectHelper.
-                    Go(redirectErrorUrl, new Dictionary<string, string>
+                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
                 {
                     ["error"] = "验证失败"
                 });

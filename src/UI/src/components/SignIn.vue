@@ -12,10 +12,10 @@
 				<template>
 					<el-form>
 						<el-form-item>
-							<el-input type="text" v-model="form.userName" placeholder="Username" />
+							<el-input type="text" v-model="form.userName" placeholder="用户名/账号" />
 						</el-form-item>
 						<el-form-item>
-							<el-input type="password" v-model="form.password" placeholder="Password" />
+							<el-input type="password" v-model="form.password" placeholder="密码" />
 						</el-form-item>
 						<el-form-item>
 							<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
@@ -48,7 +48,7 @@
 							</template>
 							<template v-else-if="item.displayName == 'Alipay'">
 								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.png" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
+									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
 								</div>
 							</template>
 						</template>

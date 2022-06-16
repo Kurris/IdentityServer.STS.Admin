@@ -1,7 +1,7 @@
 <template>
-	<div id="externalLoginConfirmation">
+	<div id="externalLoginConfirmation" v-if="loginProvider">
 		<div v-if="isLogin" class="container">
-			<Connect />
+			<Connect :loginProvider="loginProvider" />
 			<span style="margin-top: 20px; margin-bottom: 20px">您已经通过{{ loginProvider }}授权,完成登录即可完成账号绑定</span>
 			<el-form ref="form" :model="form">
 				<el-form-item>
@@ -17,7 +17,7 @@
 			<span style="font-size: 14px"> 没有账号? <el-link type="primary" :underline="false" style="padding-bottom: 3px" @click="switchType">注册</el-link> </span>
 		</div>
 		<div v-else class="container">
-			<Connect />
+			<Connect :loginProvider="loginProvider" />
 			<span style="margin-top: 20px; margin-bottom: 20px">您已经通过{{ loginProvider }}授权,完善以下信息即可完成账号绑定</span>
 			<el-form ref="form" :model="form">
 				<el-form-item>
@@ -72,6 +72,7 @@ export default {
 	methods: {
 		async externalRegister() {
 			await externalRegister({
+				usePassword: true,
 				email: this.form.email,
 				userName: this.form.userName,
 				returnUrl: this.returnUrl,
@@ -93,7 +94,7 @@ export default {
 				returnUrl: this.returnUrl,
 				password: this.form.password,
 			})
-			console.log(res)
+
 			if (res.route == 1) {
 				window.location.href = res.data
 			} else if (res.route == 4) {
