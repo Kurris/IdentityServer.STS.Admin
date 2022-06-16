@@ -35,29 +35,30 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             var migrationsAssembly = "IdentityServer.STS.Admin";
 
             //aspnet core identity 用户操作
-            services.AddDbContext<TIdentityDbContext>((provider, options) =>
+            services.AddDbContext<TIdentityDbContext>(options =>
             {
-                options.UseMySql(identityConnectionString, builder =>
+                options.UseMySql(identityConnectionString, MySqlServerVersion.LatestSupportedServerVersion, builder =>
                 {
                     builder.MigrationsAssembly(migrationsAssembly);
                     builder.EnableRetryOnFailure();
                 });
 
-#if DEBUG
-                options.EnableSensitiveDataLogging();
-                var loggerFactory = provider.GetService<ILoggerFactory>();
-                options.UseLoggerFactory(loggerFactory);
-#endif
+                // options.EnableSensitiveDataLogging();
+                // var loggerFactory = provider.GetService<ILoggerFactory>();
+                // options.UseLoggerFactory(loggerFactory);
             });
 
             //ids 配置操作
-            services.AddConfigurationDbContext<TConfigurationDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(configurationConnectionString, sql => sql.MigrationsAssembly(migrationsAssembly)));
+            services.AddConfigurationDbContext<TConfigurationDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(configurationConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
+                builder => builder.MigrationsAssembly(migrationsAssembly)));
 
             //ids 持久化授权操作
-            services.AddOperationalDbContext<TPersistedGrantDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(persistedGrantsConnectionString, sql => sql.MigrationsAssembly(migrationsAssembly)));
+            services.AddOperationalDbContext<TPersistedGrantDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(persistedGrantsConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
+                builder => builder.MigrationsAssembly(migrationsAssembly)));
 
             //数据保护
-            services.AddDbContext<TDataProtectionDbContext>(options => options.UseMySql(dataProtectionConnectionString, optionsSql => optionsSql.MigrationsAssembly(migrationsAssembly)));
+            services.AddDbContext<TDataProtectionDbContext>(options => options.UseMySql(dataProtectionConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
+                builder => builder.MigrationsAssembly(migrationsAssembly)));
         }
     }
 }

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using IdentityServer.STS.Admin.DependencyInjection;
 using IdentityServer.STS.Admin.Models;
 using Newtonsoft.Json;
@@ -38,6 +37,7 @@ namespace IdentityServer.STS.Admin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //跨域处理
             services.AddCors(setup =>
             {
                 setup.AddPolicy("idCors", policy =>
@@ -49,12 +49,14 @@ namespace IdentityServer.STS.Admin
                 });
             });
 
+            //mvc filters
             services.AddMvc(options =>
             {
                 options.Filters.Add<ExceptionFilter>();
                 options.Filters.Add<ModelValidateFilter>();
             });
 
+            //序列化/格式化/循环引用
             services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -62,7 +64,7 @@ namespace IdentityServer.STS.Admin
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            //数据访问层,非ids4操作
+            //数据访问层
             services.RegisterDbContexts<IdentityDbContext
                 , IdsConfigurationDbContext
                 , IdsPersistedGrantDbContext

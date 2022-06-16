@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Web;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Resolvers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -47,36 +45,11 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
             });
 
-            var frontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
-
             services.AddAuthentication()
-                .AddGitHub(options =>
-                {
-                    options.ClientId = "6aced974f4ac1536ff1d";
-                    options.ClientSecret = "a9cca44681973f866de814371ee81c70959f651a";
-
-                    options.Scope.Add("user:email");
-                    options.Scope.Add("read:user");
-
-                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
-                })
-                .AddWeibo(options =>
-                {
-                    options.ClientId = "3217031503";
-                    options.ClientSecret = "4b03e98edacf79eaeb75ec131699f52a";
-
-                    options.SaveTokens = true;
-                    options.ReturnUrlParameter = "returnUrl";
-
-                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
-                })
-                .AddDiscord(options =>
-                {
-                    options.ClientId = "986458746777657364";
-                    options.ClientSecret = "BwPpzFswPvYqrM1OSHjVgD_PX0VliCMI";
-
-                    options.SetOnRemoteFailure(frontendBaseUrl).WithDefaultSetting();
-                });
+                .AddGitHub(options => options.SetDefaultSetting(configuration, "GitHub"))
+                .AddWeibo(options => options.SetDefaultSetting(configuration, "Weibo"))
+                .AddDiscord(options => options.SetDefaultSetting(configuration, "Discord"))
+                .AddAlipay(options => options.SetDefaultSetting(configuration, "Alipay"));
 
             services.AddAuthorization(options =>
             {
@@ -89,12 +62,22 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         }
 
         /// <summary>
-        /// 远程处理异常
+        /// 默认处理
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="frontendBaseUrl"></param>
-        private static OAuthOptions SetOnRemoteFailure(this OAuthOptions options, string frontendBaseUrl)
+        /// <param name="configuration"></param>
+        /// <param name="scheme"></param>
+        // ReSharper disable once UnusedMethodReturnValue.Local
+        private static OAuthOptions SetDefaultSetting(this OAuthOptions options, IConfiguration configuration, string scheme)
         {
+            var frontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
+
+            options.ClientId = configuration.GetSection($"OAuth:{scheme}:ClientId").Value;
+            options.ClientSecret = configuration.GetSection($"OAuth:{scheme}:ClientSecret").Value;
+
+            options.SaveTokens = true;
+            options.ReturnUrlParameter = "returnUrl";
+
             options.Events.OnRemoteFailure = async context =>
             {
                 if (context.Properties != null)
@@ -117,14 +100,6 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 }
             };
 
-            return options;
-        }
-
-
-        private static OAuthOptions WithDefaultSetting(this OAuthOptions options)
-        {
-            options.SaveTokens = true;
-            options.ReturnUrlParameter = "returnUrl";
             return options;
         }
     }

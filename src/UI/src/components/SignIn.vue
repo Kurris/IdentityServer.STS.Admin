@@ -46,6 +46,11 @@
 									<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
 								</div>
 							</template>
+							<template v-else-if="item.displayName == 'Alipay'">
+								<div :key="i">
+									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.png" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
+								</div>
+							</template>
 						</template>
 					</div>
 				</div>
