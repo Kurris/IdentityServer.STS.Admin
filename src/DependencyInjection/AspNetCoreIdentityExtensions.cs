@@ -47,7 +47,11 @@ namespace IdentityServer.STS.Admin.DependencyInjection
 
             services.AddAuthentication()
                 .AddGitHub(options => options.SetDefaultSetting(configuration, "GitHub"))
-                .AddWeibo(options => options.SetDefaultSetting(configuration, "Weibo"))
+                .AddWeibo(options =>
+                {
+                    options.SetDefaultSetting(configuration, "Weibo");
+                    options.Scope.Remove("email");
+                })
                 .AddDiscord(options => options.SetDefaultSetting(configuration, "Discord"))
                 .AddAlipay(options => options.SetDefaultSetting(configuration, "Alipay"));
 
