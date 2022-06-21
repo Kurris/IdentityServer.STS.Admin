@@ -12,7 +12,7 @@ namespace IdentityServer.STS.Admin.Constants
         /// 密钥类型
         /// </summary>
         public static List<string> SecretTypes =>
-            new List<string>
+            new()
             {
                 "SharedSecret",
                 "X509Thumbprint",
@@ -66,7 +66,7 @@ namespace IdentityServer.STS.Admin.Constants
         /// 签名算法
         /// </summary>
         public static List<string> SigningAlgorithms =>
-            new List<string>
+            new()
             {
                 "RS256",
                 "RS384",
@@ -85,7 +85,7 @@ namespace IdentityServer.STS.Admin.Constants
         public static IEnumerable<SelectItem<string, string>> ProtocolTypes =>
             new List<SelectItem<string, string>>
             {
-                new SelectItem<string, string>("oidc", "OpenID Connect")
+                new("oidc", "OpenID Connect")
             };
     }
 }

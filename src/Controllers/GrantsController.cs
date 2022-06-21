@@ -34,12 +34,15 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// 查询用户所有授权
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("grants")]
-        public async Task<ApiResult<IEnumerable<GrantOutputModel>>> GetGrants()
+        public async Task<ApiResult<IEnumerable<GrantOutput>>> GetGrants()
         {
             var grants = await _interaction.GetAllUserGrantsAsync();
-            
-            var list = new List<GrantOutputModel>();
+            var list = new List<GrantOutput>();
             foreach (var grant in grants)
             {
                 var client = await _client.FindClientByIdAsync(grant.ClientId);
@@ -47,7 +50,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var resources = await _resource.FindResourcesByScopeAsync(grant.Scopes);
 
-                    var item = new GrantOutputModel()
+                    var item = new GrantOutput
                     {
                         ClientId = client.ClientId,
                         ClientName = client.ClientName ?? client.ClientId,
@@ -55,19 +58,26 @@ namespace IdentityServer.STS.Admin.Controllers
                         ClientUrl = client.ClientUri,
                         Description = grant.Description,
                         Created = grant.CreationTime.ToLocalTime(),
-                        Expires = grant.Expiration.HasValue ? grant.Expiration.Value.ToLocalTime() : default,
-                        IdentityGrantNames = resources.IdentityResources.Select(x => x.DisplayName ?? x.Name).ToArray(),
-                        ApiGrantNames = resources.ApiScopes.Select(x => x.DisplayName ?? x.Name).ToArray()
+                        Expires = grant.Expiration?.ToLocalTime() ?? default,
+                        IdentityGrantNames = resources.IdentityResources.Select(x => x.DisplayName ?? x.Name),
+                        ApiGrantNames = resources.ApiScopes.Select(x => resources.ApiResources.FirstOrDefault(resource => resource.Scopes.Contains(x.Name)).DisplayName + ":" + x.DisplayName)
                     };
 
                     list.Add(item);
                 }
             }
 
-            return new ApiResult<IEnumerable<GrantOutputModel>>(){Data = list};
+            return new ApiResult<IEnumerable<GrantOutput>>
+            {
+                Data = list
+            };
         }
 
 
+        /// <summary>
+        /// 移除授权
+        /// </summary>
+        /// <param name="clientId"></param>
         [HttpDelete("client/{clientId}")]
         public async Task Revoke(string clientId)
         {

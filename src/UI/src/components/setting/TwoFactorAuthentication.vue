@@ -1,14 +1,14 @@
 <template>
-	<div id="twoFactorAuthentication">
+	<div id="twoFactorAuthentication" v-loading="isLoading">
+		<div class="flex">
+			<b style="font-size: 30px">双重身份验证(2FA)</b>
+			<template v-if="setting != null">
+				<el-button v-if="setting.is2FaEnabled" type="danger" @click="enable2Fa(false)">停用2FA</el-button>
+				<el-button v-else type="success" @click="enable2Fa(true)">启用</el-button>
+			</template>
+		</div>
+		<el-divider></el-divider>
 		<div v-if="setting != null">
-			<div class="flex">
-				<b style="font-size: 30px">双重身份验证(2FA)</b>
-				<template>
-					<el-button v-if="setting.is2FaEnabled" type="danger" @click="enable2Fa(false)">停用2FA</el-button>
-					<el-button v-else type="success" @click="enable2Fa(true)">启用</el-button>
-				</template>
-			</div>
-			<el-divider></el-divider>
 			<template v-if="setting.is2FaEnabled">
 				<el-card shadow="hover" v-if="setting.isMachineRemembered">
 					<div class="flex">
@@ -74,6 +74,7 @@ export default {
 			setting: null,
 			authenticatorVisible: false,
 			recoveryCodes: [],
+			isLoading: false,
 		}
 	},
 	computed: {},
@@ -135,7 +136,10 @@ export default {
 				.catch(() => {})
 		},
 		async refresh() {
-			let res = await getTwofactorSetting()
+			this.isLoading = true
+			let res = await getTwofactorSetting().finally(() => {
+				this.isLoading = false
+			})
 			this.setting = res.data
 		},
 	},

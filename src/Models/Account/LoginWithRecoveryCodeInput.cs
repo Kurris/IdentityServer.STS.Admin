@@ -10,8 +10,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// <summary>
         /// 恢复码
         /// </summary>
-        [Required]
-        [DataType(DataType.Text)]
+        [Required(ErrorMessage = "恢复码不能为空")]
         public string RecoveryCode { get; set; }
 
         /// <summary>

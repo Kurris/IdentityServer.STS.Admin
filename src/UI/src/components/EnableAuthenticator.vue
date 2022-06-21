@@ -31,7 +31,7 @@
 					<template slot="title">
 						<span> 扫描完二维码或输入上述密钥后，您的双因素身份验证应用程序将为您提供唯一的代码。 在下面的确认框中输入代码 </span>
 						<p>
-							<el-input v-model="setting.code" maxlength="6" @keyup.enter.native="verify" placeholder="身份验证码" autofocus />
+							<el-input v-focus v-model="setting.code" maxlength="6" @keyup.enter.native="verify" placeholder="身份验证码" />
 						</p>
 					</template>
 				</el-step>

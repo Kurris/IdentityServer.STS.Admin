@@ -23,7 +23,7 @@ namespace IdentityServer.STS.Admin.Resolvers
             ILogger<AppSignInManager<TUser>> logger,
             IAuthenticationSchemeProvider schemes,
             IUserConfirmation<TUser> confirmation) : base(userManager, contextAccessor,
-                claimsFactory, optionsAccessor, logger, schemes, confirmation)
+            claimsFactory, optionsAccessor, logger, schemes, confirmation)
         {
             _contextAccessor = contextAccessor;
         }
@@ -32,7 +32,7 @@ namespace IdentityServer.STS.Admin.Resolvers
         {
             var claims = additionalClaims.ToList();
 
-            var externalResult = await _contextAccessor.HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            var externalResult = await _contextAccessor?.HttpContext?.AuthenticateAsync(IdentityConstants.ExternalScheme);
             if (externalResult != null && externalResult.Succeeded)
             {
                 var sid = externalResult.Principal.Claims.FirstOrDefault(x => x.Type == JwtClaimTypes.SessionId);
@@ -44,10 +44,13 @@ namespace IdentityServer.STS.Admin.Resolvers
                 if (authenticationProperties != null)
                 {
                     // if the external provider issued an id_token, we'll keep it for sign out
-                    var idToken = externalResult.Properties.GetTokenValue("id_token");
+                    var idToken = externalResult.Properties?.GetTokenValue("id_token");
                     if (idToken != null)
                     {
-                        authenticationProperties.StoreTokens(new[] { new AuthenticationToken { Name = "id_token", Value = idToken } });
+                        authenticationProperties.StoreTokens(new[]
+                        {
+                            new AuthenticationToken {Name = "id_token", Value = idToken}
+                        });
                     }
                 }
 

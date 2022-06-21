@@ -1,36 +1,29 @@
 <template>
 	<div id="setting">
-		<el-menu default-active="/setting/profile" router active-text-color="#24292f" text-color="#afafbe">
-			<!-- <el-menu-item index="4">
-				<i class="el-icon-setting"></i>
-				<span slot="title">账号</span>
-			</el-menu-item> -->
+		<el-menu :default-active="activeRoute" router text-color="black">
 			<el-menu-item index="/setting/profile">
-				<i class="el-icon-setting"></i>
-				<span slot="title">个人概要</span>
+				<i class="el-icon-user"></i>
+				<span slot="title">Profile</span>
 			</el-menu-item>
-			<!-- <el-menu-item index="4">
-				<i class="el-icon-setting"></i>
-				<span slot="title">通知</span>
-			</el-menu-item> -->
 			<el-menu-item-group>
-				<template slot="title">访问</template>
-				<!-- <el-menu-item index="4">
-					<i class="el-icon-setting"></i>
-					<span slot="title">邮件</span>
-				</el-menu-item> -->
+				<template slot="title">
+					<el-divider></el-divider>
+					<span>访问</span>
+				</template>
 				<el-menu-item index="/setting/security">
-					<i class="el-icon-setting"></i>
-					<span slot="title">Password and authentication</span>
+					<i class="el-icon-key"></i>
+					<span slot="title">Password and Authentication</span>
 				</el-menu-item>
-				<!-- <el-menu-item index="4">
-					<i class="el-icon-setting"></i>
-					<span slot="title">机构</span>
+			</el-menu-item-group>
+			<el-menu-item-group>
+				<template slot="title">
+					<el-divider></el-divider>
+					<span>集成</span>
+				</template>
+				<el-menu-item index="/grants">
+					<i class="el-icon-mobile-phone"></i>
+					<span slot="title">OAuth Apps</span>
 				</el-menu-item>
-				<el-menu-item index="4">
-					<i class="el-icon-setting"></i>
-					<span slot="title">黑名单</span>
-				</el-menu-item> -->
 			</el-menu-item-group>
 			<el-menu-item index="/setting/development">
 				<i class="el-icon-setting"></i>
@@ -44,7 +37,22 @@
 </template>
 
 <script>
-export default {}
+export default {
+	data() {
+		return {
+			activeRoute: '/setting/profile',
+		}
+	},
+	// watch: {
+	// 	$route(val) {
+	// 		console.log(val)
+	// 	},
+	// },
+	beforeMount() {
+		console.log(this.$route)
+		this.activeRoute = this.$route.path
+	},
+}
 </script>
 <style scoped>
 #setting {
@@ -59,5 +67,21 @@ export default {}
 
 .el-menu {
 	border-right: unset;
+}
+
+.el-menu-item {
+	border-radius: 5px;
+	height: 40px;
+	line-height: 40px;
+}
+
+.el-menu-item.is-active {
+	border-left: 4px solid #005cc5;
+	background-color: #eef5fe;
+}
+
+.el-divider {
+	margin: 0;
+	margin-bottom: 10px;
 }
 </style>

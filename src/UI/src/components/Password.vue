@@ -1,10 +1,10 @@
 <template>
-	<div id="password">
+	<div id="password" v-loading="isLoading">
+		<div>
+			<b style="font-size: 30px">密码(Password)</b>
+		</div>
+		<el-divider></el-divider>
 		<div v-if="hasPassword != null">
-			<div>
-				<b style="font-size: 30px">密码(Password)</b>
-			</div>
-			<el-divider></el-divider>
 			<el-card shadow="hover">
 				<el-form ref="form" :form="form">
 					<el-form-item :label="hasPassword ? '旧密码' : ''">
@@ -70,7 +70,10 @@ export default {
 			await this.refresh()
 		},
 		async refresh() {
-			let res = await checkPassword()
+			this.isLoading = true
+			let res = await checkPassword().finally(() => {
+				this.isLoading = false
+			})
 			this.hasPassword = res.data
 		},
 	},

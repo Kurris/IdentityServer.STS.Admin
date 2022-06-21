@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IdentityServer.STS.Admin.Models.Manager
 {
-    public class GrantOutputModel
+    public class GrantOutput
     {
         public string ClientId { get; set; }
         public string ClientName { get; set; }

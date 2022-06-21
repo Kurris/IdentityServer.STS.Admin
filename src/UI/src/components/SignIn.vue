@@ -1,7 +1,8 @@
 <template>
 	<div class="panel" v-if="show">
-		<div class="container">
-			<div class="slot">
+		<img class="bg" src="https://www.rancher.cn/imgs/footer-background.svg" alt="" srcset="" />
+		<div :class="{ container_mobile: !slotVisible, container: slotVisible }">
+			<div class="slot" v-if="slotVisible">
 				<img src="../assets/login_left.svg" alt="" srcset="" />
 			</div>
 			<div class="signin">
@@ -12,17 +13,17 @@
 				<template>
 					<el-form>
 						<el-form-item>
-							<el-input type="text" v-model="form.userName" placeholder="用户名/账号" />
+							<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" />
 						</el-form-item>
 						<el-form-item>
-							<el-input type="password" v-model="form.password" placeholder="密码" />
+							<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" />
 						</el-form-item>
 						<el-form-item>
 							<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
 							<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
 						</el-form-item>
 						<el-form-item>
-							<el-button style="width: 100%" type="success" @click="login()" :loading="loginLoading">登录</el-button>
+							<el-button style="width: 100%" type="success" @click="login" :loading="loginLoading">登录</el-button>
 						</el-form-item>
 					</el-form>
 				</template>
@@ -77,6 +78,8 @@ export default {
 			setting: null,
 			show: false,
 			loginLoading: false,
+			clientWidth: document.body.clientWidth,
+			slotVisible: false,
 		}
 	},
 	methods: {
@@ -99,7 +102,7 @@ export default {
 			if (response.route == 2) {
 				let res = await getLoginStatus()
 				let userName = res.data.user.userName
-				console.log(userName)
+
 				this.$router.push({
 					path: '/zone/' + userName,
 				})
@@ -134,8 +137,16 @@ export default {
 		},
 	},
 	beforeMount() {
+		let that = this
+		window.onresize = () => {
+			return (() => {
+				window.clientWidth = document.body.clientWidth
+				that.clientWidth = window.clientWidth
+			})()
+		}
+		this.slotVisible = !(this.clientWidth < 620)
+
 		checkLogin({ returnUrl: this.$route.query.returnUrl }).then(res => {
-			console.log(res)
 			this.setting = res.data
 			if (this.setting.userName) {
 				this.form.userName = this.setting.userName
@@ -148,6 +159,11 @@ export default {
 			}
 		})
 	},
+	watch: {
+		clientWidth(newVal) {
+			this.slotVisible = !(newVal < 620)
+		},
+	},
 }
 </script>
 
@@ -159,7 +175,6 @@ export default {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	/* background-image: url(https://www.rancher.cn/imgs/footer-background.svg); */
 }
 
 .container {
@@ -170,6 +185,13 @@ export default {
 	justify-content: center;
 	align-items: center;
 	background-color: #ffffff;
+}
+
+.container_mobile {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 150px;
 }
 
 >>> .el-input__inner {
@@ -200,5 +222,16 @@ img.externalProvider:hover {
 	display: flex;
 	align-items: center;
 	justify-content: space-around;
+}
+
+img.bg {
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	bottom: 0;
+	/* -ms-transform: scale(0.5);
+	-webkit-transform: scale(0.5);
+	-o-transform: scale(0.5);
+	-moz-transform: scale(0.5); */
 }
 </style>
