@@ -31,7 +31,12 @@
 					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
 					<div class="externalLogins">
 						<template v-for="(item, i) in setting.externalProviders">
-							<template v-if="item.displayName == 'GitHub'">
+							<template v-if="item.displayName == 'Alipay'">
+								<div :key="i">
+									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
+								</div>
+							</template>
+							<template v-else-if="item.displayName == 'GitHub'">
 								<div :key="i">
 									<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
 								</div>
@@ -44,11 +49,6 @@
 							<template v-else-if="item.displayName == 'Discord'">
 								<div :key="i">
 									<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
-								</div>
-							</template>
-							<template v-else-if="item.displayName == 'Alipay'">
-								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
 								</div>
 							</template>
 						</template>
@@ -116,20 +116,14 @@ export default {
 			}
 		},
 		async externalLogin(provider) {
-			let returnUrl = this.$route.query.returnUrl
+			let returnUrl = this.$route.query.returnUrl || ''
 
-			let isLocal = false
-			if (returnUrl === undefined) {
-				returnUrl = location.protocol + '//' + location.host
-				isLocal = true
-			}
 			NProgress.start()
 			let url = 'http://101.35.47.169:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
 			document.write("<input type=hidden name=returnUrl value='" + returnUrl + "'/>")
-			document.write("<input type=hidden name=isLocal value='" + isLocal + "'/>")
 			document.write('</form>')
 
 			try {
@@ -165,13 +159,13 @@ export default {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
+	/* background-image: url(https://www.rancher.cn/imgs/footer-background.svg); */
 }
 
 .container {
 	height: 500px;
 	width: 1000px;
-	box-shadow: 1px 1px 1px 1px #d9d9d9;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	display: flex;
 	justify-content: center;
 	align-items: center;

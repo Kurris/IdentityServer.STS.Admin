@@ -168,14 +168,14 @@ export const forget2faClient = () => {
 //
 export const resetAuthenticator = () => {
 	return http({
-		url: 'api/manager/setting/2fa/authenticator/new',
-		method: 'delete',
+		url: 'api/manager/setting/2fa/authenticator/reset',
+		method: 'put',
 	})
 }
-export const diable2fa = () => {
+export const enable2Fa = data => {
 	return http({
-		url: 'api/manager/setting/2fa',
-		method: 'delete',
+		url: `api/manager/setting/2fa/${data.enable}`,
+		method: 'put',
 	})
 }
 
@@ -279,7 +279,6 @@ export const forgetPasswordAndSendEmail = data => {
 		data: data,
 	})
 }
-
 
 export const resetPassword = data => {
 	return http({

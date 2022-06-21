@@ -15,9 +15,17 @@
 					</div>
 
 					<span style="font-size: 13px">验证码:</span>
-					<el-input v-model="model.twoFactorCode" maxlength="6" style="margin-bottom: 20px; margin-top: 10px" placeholder="6位验证码" autofocus />
+					<el-input
+						ref="input"
+						v-model="model.twoFactorCode"
+						maxlength="6"
+						style="margin-bottom: 20px; margin-top: 10px"
+						placeholder="请输入6位验证码"
+						autofocus
+						@keyup.enter.native="login"
+					/>
 
-					<el-button class="green" @click="login">验证</el-button>
+					<el-button :loading="isLoading" class="green" @click="login">验证</el-button>
 
 					<p style="font-size: 13px; color: #636d74">您的登录使用身份验证器应用程序进行保护,打开双重验证器应用(TOTP)查看您的验证码</p>
 					<el-divider></el-divider>
@@ -34,7 +42,6 @@
 
 <script>
 import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
-
 import NProgress from 'nprogress'
 
 export default {
@@ -48,18 +55,23 @@ export default {
 				rememberMe: this.$route.query.rememberMe,
 				withExternalLogin: this.$route.query.withExternalLogin,
 			},
+			isLoading: false,
 		}
 	},
 	methods: {
 		async login() {
-			let res = await siginTwoFactorAuthenticationUser(this.model)
+			this.isLoading = true
+			let res = await siginTwoFactorAuthenticationUser(this.model).finally(() => {
+				this.isLoading = false
+				this.$refs['input'].focus()
+			})
+
 			if (res.route == 1) {
 				NProgress.start()
 				window.location.href = res.data
 			} else if (res.route == 2) {
-				let res = await getLoginStatus()
-				let userName = res.data.user.userName
-				console.log(userName)
+				let statusResult = await getLoginStatus()
+				let userName = statusResult.data.user.userName
 				this.$router.push({
 					path: '/zone/' + userName,
 				})
@@ -67,7 +79,6 @@ export default {
 		},
 		async goUseRecoveryCode() {
 			let returnUrl = this.$route.query.returnUrl
-
 			//恢复码登录,禁止记住当前机器,记住我
 			this.$router.push({
 				path: '/loginWithRecoveryCode',

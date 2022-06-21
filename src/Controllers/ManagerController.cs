@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Entities;
+using IdentityServer.STS.Admin.Filters;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Manager;
@@ -17,6 +19,7 @@ using Newtonsoft.Json;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
+    [UserExists]
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -26,7 +29,6 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<ManagerController> _logger;
         private readonly UrlEncoder _urlEncoder;
-        private readonly IConfiguration _configuration;
 
         public ManagerController(UserManager<User> userManager
             , SignInManager<User> signInManager
@@ -38,12 +40,16 @@ namespace IdentityServer.STS.Admin.Controllers
             _signInManager = signInManager;
             _logger = logger;
             _urlEncoder = urlEncoder;
-            _configuration = configuration;
+
+            FrontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
         }
 
-        private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
+        private string FrontendBaseUrl { get; }
 
-
+        /// <summary>
+        /// 获取个人信息
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("profile")]
         public async Task<ApiResult<PersonalProfileAndClaims>> GetPersonalProfileAndClaims()
         {
@@ -74,15 +80,15 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-
+        /// <summary>
+        /// 保存个人信息
+        /// </summary>
+        /// <param name="model"></param>
+        /// <exception cref="ApplicationException"></exception>
         [HttpPost("profile")]
         public async Task SavePersonalProfile(PersonalProfileAndClaims model)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception();
-            }
 
             var email = user.Email;
             if (model.Email != email)
@@ -107,14 +113,15 @@ namespace IdentityServer.STS.Admin.Controllers
             await UpdateUserClaimsAsync(model, user);
         }
 
-
+        /// <summary>
+        /// 删除个人信息
+        /// </summary>
+        /// <param name="model"></param>
+        /// <exception cref="Exception"></exception>
         [HttpDelete("profile")]
         public async Task DeletePersonalData(DeletePersonalDataInputModel model)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-            }
 
             var requirePassword = await _userManager.HasPasswordAsync(user);
             if (requirePassword)
@@ -128,20 +135,20 @@ namespace IdentityServer.STS.Admin.Controllers
             var result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
-                throw new Exception();
+                throw new Exception("删除用户信息");
             }
 
             await _signInManager.SignOutAsync();
         }
 
+        /// <summary>
+        /// 下载个人信息
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("profile/download")]
         public async Task<FileContentResult> DownloadPersonalData()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var personalDataProps = typeof(User).GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
             var personalData = personalDataProps.ToDictionary(p => p.Name, p => p.GetValue(user)?.ToString() ?? "null");
@@ -189,27 +196,32 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
 
+        /// <summary>
+        /// 获取身份验证器信息
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("setting/2fa/authenticator")]
-        public async Task<ApiResult<EnableAuthenticatorModel>> EnableAuthenticator()
+        public async Task<ApiResult<AuthenticatorOutput>> EnableAuthenticator()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
-            var model = new EnableAuthenticatorModel();
-            await LoadSharedKeyAndQrCodeUriAsync(user, model);
+            var output = await LoadSharedKeyAndQrCodeUriAsync(user);
 
-            return new ApiResult<EnableAuthenticatorModel>
+            return new ApiResult<AuthenticatorOutput>
             {
-                Data = model
+                Data = output
             };
         }
 
 
+        /// <summary>
+        /// 验证2fa code
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [HttpPost("setting/2fa/authenticator/verify")]
-        public async Task<ApiResult<object>> EnableAuthenticator(EnableAuthenticatorModel model)
+        public async Task<IEnumerable<string>> VerifyAuthenticatorCode(AuthenticatorOutput model)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -220,27 +232,9 @@ namespace IdentityServer.STS.Admin.Controllers
             if (!await _userManager.VerifyTwoFactorTokenAsync(user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode))
                 throw new Exception("验证码无效");
 
-            await _userManager.SetTwoFactorEnabledAsync(user, true);
-
             _logger.LogInformation("User id: {0} is enable 2Fa", user.Id);
 
-            //如果恢复码个数为0
-            if (await _userManager.CountRecoveryCodesAsync(user) == 0)
-            {
-                var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-
-                //展示恢复码
-                return new ApiResult<object>
-                {
-                    Route = DefineRoute.RecoveryCodes,
-                    Data = recoveryCodes
-                };
-            }
-
-            return new ApiResult<object>
-            {
-                Route = DefineRoute.TwoFactorAuthentication
-            };
+            return await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 12);
         }
 
 
@@ -248,49 +242,33 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 加载二维码和share key
         /// </summary>
         /// <param name="user"></param>
-        /// <param name="model"></param>
-        private async Task LoadSharedKeyAndQrCodeUriAsync(User user, EnableAuthenticatorModel model)
+        private async Task<AuthenticatorOutput> LoadSharedKeyAndQrCodeUriAsync(User user)
         {
             var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
             if (string.IsNullOrEmpty(unformattedKey))
             {
+                //重置验证器key
                 await _userManager.ResetAuthenticatorKeyAsync(user);
+                //获取key
                 unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
             }
 
             var authenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-            model.SharedKey = FormatKey(unformattedKey);
-            model.AuthenticatorUri = string.Format(
-                authenticatorUriFormat,
-                _urlEncoder.Encode("Ligy.IdentityServer4.STS.Admin"),
-                _urlEncoder.Encode(user.Email),
-                unformattedKey);
+            var result = new AuthenticatorOutput
+            {
+                Code = null,
+                SharedKey = FormatKey(unformattedKey),
+                AuthenticatorUri = string.Format(
+                    authenticatorUriFormat,
+                    _urlEncoder.Encode("Ligy.IdentityServer4.STS.Admin"),
+                    _urlEncoder.Encode(user.Email),
+                    unformattedKey)
+            };
+
+            return result;
         }
 
-        /// <summary>
-        /// 格式化key
-        /// </summary>
-        /// <param name="unformattedKey"></param>
-        /// <returns></returns>
-        private static string FormatKey(string unformattedKey)
-        {
-            var result = new StringBuilder();
-            var currentPosition = 0;
-
-            while (currentPosition + 4 < unformattedKey.Length)
-            {
-                result.Append(unformattedKey.Substring(currentPosition, 4)).Append(" ");
-                currentPosition += 4;
-            }
-
-            if (currentPosition < unformattedKey.Length)
-            {
-                result.Append(unformattedKey.Substring(currentPosition));
-            }
-
-            return result.ToString().ToLowerInvariant();
-        }
 
         /// <summary>
         /// 获取双重验证信息
@@ -301,10 +279,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<TwoFactorAuthenticationOutput>> GetTwoFactorAuthentication()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var model = new TwoFactorAuthenticationOutput
             {
@@ -320,64 +294,58 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-
+        /// <summary>
+        /// 2fa忘记当前设置
+        /// </summary>
         [HttpDelete("setting/2fa/client")]
         public async Task ForgetTwoFactorClient()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
-
             await _signInManager.ForgetTwoFactorClientAsync();
         }
 
-        [HttpDelete("setting/2fa")]
-        public async Task Disable2Fa()
+        /// <summary>
+        /// 设置用户双重验证是否开启
+        /// </summary>
+        /// <param name="enable"></param>
+        [HttpPut("setting/2fa/{enable:bool}")]
+        public async Task Enable2Fa(bool enable)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
-
-            await _userManager.SetTwoFactorEnabledAsync(user, false);
+            await _userManager.SetTwoFactorEnabledAsync(user, enable);
         }
 
-
+        /// <summary>
+        /// 获取新的恢复码
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [HttpGet("setting/2fa/recoveryCodes")]
-        public async Task<ApiResult<object>> GenerateRecoveryCodes()
+        public async Task<ApiResult<IEnumerable<string>>> GenerateRecoveryCodes()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             if (!user.TwoFactorEnabled)
             {
+                throw new Exception("尚未开启双重验证,无法生成恢复码");
             }
 
-            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-            return new ApiResult<object> {Data = recoveryCodes};
+            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 12);
+            return new ApiResult<IEnumerable<string>> {Data = recoveryCodes};
         }
 
 
-        [HttpDelete("setting/2fa/authenticator/new")]
-        public async Task<ApiResult<object>> ResetAuthenticator()
+        /// <summary>
+        /// 重置双重验证器
+        /// </summary>
+        [HttpPut("setting/2fa/authenticator/reset")]
+        public async Task ResetAuthenticator()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
+            //停用
             await _userManager.SetTwoFactorEnabledAsync(user, false);
+            //重置
             await _userManager.ResetAuthenticatorKeyAsync(user);
-            //_logger.LogInformation(_localizer["SuccessResetAuthenticationKey", user.Id]);
-
-            return new ApiResult<object>();
         }
 
 
@@ -390,10 +358,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<bool>> CheckPassword()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var hasPassword = await _userManager.HasPasswordAsync(user);
 
@@ -407,17 +371,13 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         [HttpPost("password")]
-        public async Task SavePassword(SavePasswordInputModel model)
+        public async Task SavePassword(SavePasswordInput model)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                throw new Exception("用户不存在");
 
-            IdentityResult result;
-            if (string.IsNullOrEmpty(model.OldPassword))
-                result = await _userManager.AddPasswordAsync(user, model.NewPassword);
-            else
-                result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+            var result = string.IsNullOrEmpty(model.OldPassword)
+                ? await _userManager.AddPasswordAsync(user, model.NewPassword)
+                : await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
 
             if (!result.Succeeded)
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
@@ -434,10 +394,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<object>> ExternalLogins()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var model = new ExternalLoginsOutput
             {
@@ -453,38 +409,50 @@ namespace IdentityServer.STS.Admin.Controllers
             return new ApiResult<object> {Data = model};
         }
 
+        /// <summary>
+        /// 关联外部登录
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("linkLogin")]
-        public async Task<IActionResult> LinkLogin([FromForm] LinkLoginsInputModel model)
+        public async Task<IActionResult> LinkLogin([FromForm] LinkLoginsInput model)
         {
-            // Clear the existing external cookie to ensure a clean login process
+            //清除当前存在的外部登录cookie,确保登录无误
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            //
-            var redirectUrl = "http://localhost:5000" + Url.Action(nameof(LinkLoginCallback));
+            var redirectUrl = FrontendBaseUrl + Url.Action(nameof(LinkLoginCallback));
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(model.Provider, redirectUrl, _userManager.GetUserId(User));
 
-            return new ChallengeResult(model.Provider, properties);
+            return Challenge(properties, model.Provider);
         }
 
+
+        /// <summary>
+        /// 关联登录callback
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         [HttpGet("linkLoginCallback")]
         public async Task<IActionResult> LinkLoginCallback()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var info = await _signInManager.GetExternalLoginInfoAsync(user.Id.ToString());
             if (info == null)
             {
-                throw new Exception("错误的外部登录");
+                return await RedirectHelper.Error(new Dictionary<string, string>()
+                {
+                    ["error"] = "外部关联已失效,请重新操作"
+                });
             }
 
             var result = await _userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
-                throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
+                return await RedirectHelper.Error(new Dictionary<string, string>()
+                {
+                    ["error"] = string.Join(",", result.Errors.Select(x => x.Description))
+                });
             }
 
             //清除当前存在的外部登录cookie,确保登录无误
@@ -503,18 +471,42 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task RemoveLogin(RemoveExternalLoginInput input)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                throw new Exception("用户不存在");
-            }
 
             var result = await _userManager.RemoveLoginAsync(user, input.LoginProvider, input.ProviderKey);
             if (!result.Succeeded)
             {
-                throw new Exception("移除外部登录失败");
+                var error = string.Join(",", result.Errors.Select(x => x.Description));
+                throw new Exception("移除外部登录失败:" + error);
             }
 
             await _signInManager.RefreshSignInAsync(user);
+        }
+
+        /*================================================帮助方法================================================*/
+
+
+        /// <summary>
+        /// 格式化key
+        /// </summary>
+        /// <param name="unformattedKey"></param>
+        /// <returns></returns>
+        private static string FormatKey(string unformattedKey)
+        {
+            var result = new StringBuilder();
+            var currentPosition = 0;
+
+            while (currentPosition + 4 < unformattedKey.Length)
+            {
+                result.Append(unformattedKey.Substring(currentPosition, 4)).Append(' ');
+                currentPosition += 4;
+            }
+
+            if (currentPosition < unformattedKey.Length)
+            {
+                result.Append(unformattedKey[currentPosition..]);
+            }
+
+            return result.ToString().ToLowerInvariant();
         }
     }
 }

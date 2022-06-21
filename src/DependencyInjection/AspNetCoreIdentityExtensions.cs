@@ -30,7 +30,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         {
             services.AddSingleton<IdentityOptions>() //默认配置
                 .AddScoped<AppSignInManager<TUser>>() //用户登录管理器
-                .AddIdentity<TUser, TRole>() //用户,角色
+                .AddIdentity<TUser, TRole>().AddErrorDescriber<CustomIdentityErrorDescriber>() //用户,角色
                 .AddEntityFrameworkStores<TIdentityDbContext>() //aspnetcore user 操作
                 .AddDefaultTokenProviders(); //token生成，验证提供器
 
@@ -43,6 +43,19 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                     AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
                 options.OnDeleteCookie = cookieContext =>
                     AuthenticationHelpers.CheckSameSite(cookieContext.Context, cookieContext.CookieOptions);
+            });
+
+            //必须在AddIdentity之后使用
+            //配置identity约束
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = true; //数字
+                options.Password.RequireLowercase = true; //小写字母
+                options.Password.RequireUppercase = false; //大写
+                options.Password.RequireNonAlphanumeric = false; //非数字字母
+
+                options.User.RequireUniqueEmail = false; //邮件是否唯一
             });
 
             services.AddAuthentication()

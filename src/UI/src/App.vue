@@ -1,6 +1,5 @@
 <template>
 	<div id="app">
-		<!--  -->
 		<div
 			id="header"
 			v-if="
@@ -14,7 +13,7 @@
 				$route.path != '/forgotPassword'
 			"
 		>
-			<div class="left">
+			<div class="headerLeft">
 				<a href="http://docs.identityserver.io/en/latest/" title="跳转到identityserver4 document">
 					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
 				</a>
@@ -22,9 +21,8 @@
 				<el-link style="color: white; margin-left: 10px" href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
 				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
 			</div>
-			<div class="right">
+			<div class="headerRight">
 				<template v-if="status.isLogin">
-					<el-badge is-dot><i class="el-icon-bell bell"></i></el-badge>
 					<el-dropdown trigger="click" @command="handleCommand" style="margin-left: 30px">
 						<span class="el-dropdown-link">
 							<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="20" />
@@ -51,7 +49,6 @@
 				</template>
 			</div>
 		</div>
-
 		<router-view />
 	</div>
 </template>
@@ -96,9 +93,7 @@ export default {
 	},
 	async beforeMount() {
 		let res = await getLoginStatus()
-		if (res != null) {
-			this.status = res.data
-		}
+		this.status = res.data
 	},
 }
 </script>
@@ -128,13 +123,13 @@ body {
 	border-bottom: 0.5px;
 }
 
-.left {
+.headerLeft {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
-.right {
+.headerRight {
 	display: flex;
 	justify-content: center;
 	align-items: center;

@@ -4,20 +4,7 @@
 		<template v-else>
 			<template v-if="isCurrentUser">
 				<div class="container">
-					<el-card style="width: 500px; text-align: center" shadow="never">
-						<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="250" />
-					</el-card>
-					<el-card style="width: 800px" shadow="never">
-						<el-tabs v-model="activeName">
-							<el-tab-pane label="更新内容" name="first">
-								<el-timeline>
-									<el-timeline-item v-for="(activity, index) in activities" :key="index" :timestamp="activity.timestamp">
-										{{ activity.content }}
-									</el-timeline-item>
-								</el-timeline>
-							</el-tab-pane>
-						</el-tabs>
-					</el-card>
+					<h1>{{ user.userName }}的个人空间</h1>
 				</div>
 			</template>
 		</template>
@@ -81,21 +68,6 @@ export default {
 			user: null,
 			userName: this.$route.params.userName,
 			isCurrentUser: this.$route.params.userName != undefined,
-			activeName: 'first',
-			activities: [
-				{
-					content: '活动按期开始',
-					timestamp: '2018-04-15',
-				},
-				{
-					content: '通过审核',
-					timestamp: '2018-04-13',
-				},
-				{
-					content: '创建成功',
-					timestamp: '2018-04-11',
-				},
-			],
 		}
 	},
 	components: {},
@@ -114,13 +86,10 @@ export default {
 }
 </script>
 <style scoped>
-.el-card {
-	width: auto;
-}
-
 .container {
 	display: flex;
-	justify-content: space-around;
-	padding: 50px 50px 0 50px;
+	justify-content: center;
+	align-items: center;
+	height: 80vh;
 }
 </style>

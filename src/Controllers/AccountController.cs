@@ -160,46 +160,8 @@ namespace IdentityServer.STS.Admin.Controllers
                 _logger.LogInformation("current tenant is {Tenant}", tenant);
             }
 
-            //取消登录
+            var user = await _userManager.FindByNameAsync(request.UserName) ?? await _userManager.FindByEmailAsync(request.UserName);
 
-            #region cancel login
-
-            // if (request.RequestType != "login")
-            // {
-            //     if (context != null)
-            //     {
-            //         //如果用户取消，发送一个取消认证的结果到ids，甚至可以说这个客户端没有请求"许可";
-            //         //并且返回一个令牌 取消 OIDC的错误结果到客户端; 
-            //         await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
-            //
-            //         //如果GetAuthorizationContextAsync不是返回null值，那么这个返回地址就是可用的
-            //         if (context.IsNativeClient())
-            //         {
-            //             //本地客户端的话,这个会让终端用户有更好的交互体验
-            //             return new ApiResult<object>
-            //             {
-            //                 Route = DefineRoute.LoadingPage,
-            //                 Data = request.ReturnUrl,
-            //             };
-            //         }
-            //
-            //         return new ApiResult<object>
-            //         {
-            //             Route = DefineRoute.Redirect,
-            //             Data = request.ReturnUrl,
-            //         };
-            //     }
-            //
-            //     //返回主页
-            //     return new ApiResult<object>
-            //     {
-            //         Route = DefineRoute.HomePage,
-            //     };
-            // }
-
-            #endregion
-
-            var user = await _userManager.FindByNameAsync(request.UserName);
             if (user != null)
             {
                 var signResult = await _signInManager.PasswordSignInAsync(
@@ -269,7 +231,6 @@ namespace IdentityServer.STS.Admin.Controllers
                     throw new Exception("账号已被锁定");
                 }
 
-                //邮件地址/手机号/账号
                 if (signResult.IsNotAllowed)
                 {
                     throw new Exception("账号不允许登录");
@@ -346,13 +307,12 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 外部登录回调
         /// </summary>
-        /// <param name="isLocal"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpGet("externalLoginCallback")]
-        public async Task<IActionResult> ExternalLoginCallback(bool isLocal, string returnUrl)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl)
         {
             if (!string.IsNullOrEmpty(returnUrl))
             {
@@ -365,19 +325,17 @@ namespace IdentityServer.STS.Admin.Controllers
                 return await RedirectHelper.Go($"{FrontendBaseUrl}/signIn");
             }
 
-            // 如果用户已登录，请使用此外部登录提供程序登录用户。
+            // 使用当前外部登录关联的本地用户
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
             if (result.Succeeded)
             {
-                if (isLocal)
+                if (!string.IsNullOrEmpty(returnUrl))
                 {
-                    var obj = await GetIsAuthenticated();
-                    var dynamicInfo = obj.Data as dynamic;
-                    var currentUsername = dynamicInfo.user.UserName;
-                    return await RedirectHelper.Go($"{FrontendBaseUrl}/zone/{currentUsername}");
+                    return await RedirectHelper.Go(returnUrl);
                 }
 
-                return await RedirectHelper.Go(returnUrl);
+                //重定向个人空间
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/zone/{await _userManager.GetUserAsync(User)}");
             }
 
             if (result.RequiresTwoFactor)
@@ -399,21 +357,17 @@ namespace IdentityServer.STS.Admin.Controllers
                 });
             }
 
-            if (result.IsNotAllowed)
-            {
-                return await RedirectHelper.Go($"{FrontendBaseUrl}/error", new Dictionary<string, string>
-                {
-                    ["error"] = "账号不允许登录"
-                });
-            }
-
             // 如果用户没有账号，请求用户创建
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            var userName = info.Principal.Identity.Name;
+
+            //不使用外部登录的name,避免在本地系统中出现重复
+            // var userName = info.Principal.Identity.Name;
+            var userName = Guid.NewGuid().ToString().Replace("-", "");
 
             return await RedirectHelper.Go($"{FrontendBaseUrl}/externalLoginConfirmation", new Dictionary<string, string>
             {
                 ["email"] = email,
+                [""] = "true",
                 ["userName"] = userName,
                 ["returnUrl"] = returnUrl,
                 ["loginProvider"] = info.LoginProvider
@@ -539,6 +493,11 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     throw new Exception("账号已被锁定");
                 }
+
+                if (signResult.IsNotAllowed)
+                {
+                    throw new Exception("账号不允许登录");
+                }
             }
 
             throw new Exception("账号或者密码错误");
@@ -612,21 +571,29 @@ namespace IdentityServer.STS.Admin.Controllers
 
             if (result.Succeeded)
             {
-                var info = await _signInManager.GetExternalLoginInfoAsync();
-
-                await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
-                var loginResult = await _userManager.AddLoginAsync(user, info);
-
-                if (loginResult.Succeeded)
+                //外部登录进行关联处理
+                if (input.WithExternalLogin)
                 {
-                    return new ApiResult<object>
+                    var info = await _signInManager.GetExternalLoginInfoAsync();
+
+                    await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
+                    var loginResult = await _userManager.AddLoginAsync(user, info);
+
+                    if (!loginResult.Succeeded)
                     {
-                        Route = DefineRoute.Redirect,
-                        Data = input.ReturnUrl,
-                    };
+                        throw new Exception(string.Join(",", loginResult.Errors.Select(x => x.Description)));
+                    }
                 }
 
-                throw new Exception(string.Join(",", loginResult.Errors.Select(x => x.Description)));
+                var route = string.IsNullOrEmpty(input.ReturnUrl)
+                    ? DefineRoute.HomePage
+                    : DefineRoute.Redirect;
+
+                return new ApiResult<object>
+                {
+                    Route = route,
+                    Data = input.ReturnUrl
+                };
             }
 
             //正常情况下在登录后就会提醒被锁定
@@ -719,12 +686,10 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpGet("validation/{userId}/email/{code}")]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
-            var redirectErrorUrl = $"{FrontendBaseUrl}/error";
-
             if (userId == null || code == null)
             {
                 _logger.LogInformation("userId and core mybe empty or null: userId-{UserId} code-{Code}", userId, code);
-                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
+                return await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = "验证失败"
                 });
@@ -734,7 +699,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (user == null)
             {
                 _logger.LogInformation("user id : {Id}  not exists", userId);
-                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
+                return await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = "验证失败"
                 });
@@ -743,7 +708,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (await _userManager.IsEmailConfirmedAsync(user))
             {
                 _logger.LogInformation("user id : {Id}  already confirmed email", userId);
-                return await RedirectHelper.Go(redirectErrorUrl, new Dictionary<string, string>
+                return await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = "验证失败"
                 });
@@ -762,18 +727,16 @@ namespace IdentityServer.STS.Admin.Controllers
             var result = await _userManager.ConfirmEmailAsync(user, code);
             _logger.LogInformation("confirm email result is : {Result}", JsonConvert.SerializeObject(result));
 
-            var rtnUrl = result.Succeeded
-                ? await RedirectHelper.Get($"{FrontendBaseUrl}/successed", new Dictionary<string, string>()
+            return result.Succeeded
+                ? await RedirectHelper.Success(new Dictionary<string, string>()
                 {
                     ["title"] = "您已成功验证邮件",
                     ["returnUrl"] = "/signIn"
                 })
-                : await RedirectHelper.Get(redirectErrorUrl, new Dictionary<string, string>
+                : await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = "邮件验证已过期请,重新发送邮件进行验证"
                 });
-
-            return await RedirectHelper.Go(rtnUrl);
         }
 
 
@@ -844,18 +807,16 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpGet("logout")]
-        public async Task<ApiResult<object>> Logout(string logoutId)
+        public async Task<ApiResult<LogoutOutput>> Logout(string logoutId)
         {
-            //处理如何显示退出登录提醒界面
             var output = await BuildLogoutModelAsync(logoutId);
-
             if (!output.ShowLogoutPrompt)
             {
                 //如果注销请求已从身份服务器正确进行身份验证，则不需要显示提示，只需直接将用户注销即可。
-                return await Logout(output);
+                output = (await Logout(output)).Data;
             }
 
-            return new ApiResult<object>
+            return new ApiResult<LogoutOutput>
             {
                 Route = DefineRoute.LoginOut,
                 Data = output
@@ -867,10 +828,11 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("loggedOut")]
-        public async Task<ApiResult<object>> Logout(LogoutInput model)
+        public async Task<ApiResult<LoggedOutOutput>> Logout(LogoutInput model)
         {
             var output = await BuildLoggedOutModelAsync(model.LogoutId);
 
+            //存在登录凭证
             if (User?.Identity.IsAuthenticated == true)
             {
                 //删除本地cookie
@@ -881,22 +843,22 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             //检查是否需要在上游的认证中心触发注销
-            if (output.TriggerExternalSignOut)
-            {
-                //身份认证服务器的前端需要使用表单提交的方式请求当前路由
-                //方法返回值需要返回IActionResult才能让浏览器302重定向
-                //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这
-                //这里处理完成的单点登出处理
-                //var url = "当前方法路由的地址";
+            // if (output.TriggerExternalSignOut)
+            // {
+            //身份认证服务器的前端需要使用表单提交的方式请求当前路由
+            //方法返回值需要返回IActionResult才能让浏览器302重定向
+            //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这
+            //这里处理完成的单点登出处理
+            //var url = "当前方法路由的地址";
 
-                //触发到第三方登录来退出
-                // SignOut(new AuthenticationProperties
-                // {
-                //     RedirectUri = url
-                // }, output.ExternalAuthenticationScheme);
-            }
+            //触发到第三方登录来退出
+            // SignOut(new AuthenticationProperties
+            // {
+            //     RedirectUri = url
+            // }, output.ExternalAuthenticationScheme);
+            // }
 
-            return new ApiResult<object>
+            return new ApiResult<LoggedOutOutput>
             {
                 Route = DefineRoute.LoggedOut,
                 Data = output,
@@ -945,7 +907,6 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var output = new LoggedOutOutput
             {
-                AutomaticRedirectAfterSignOut = false,
                 PostLogoutRedirectUri = context?.PostLogoutRedirectUri,
                 ClientName = string.IsNullOrEmpty(context?.ClientName) ? context?.ClientId : context.ClientName,
                 SignOutIframeUrl = context?.SignOutIFrameUrl,
@@ -957,7 +918,7 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 //获取登录提供器
                 var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
-                if (idp != null && idp != IdentityServerConstants.LocalIdentityProvider)
+                if (!string.IsNullOrEmpty(idp) && idp != IdentityServerConstants.LocalIdentityProvider)
                 {
                     var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
                     if (providerSupportsSignOut)
@@ -1036,7 +997,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 EnableLocalLogin = allowLocal,
                 ReturnUrl = returnUrl,
                 UserName = context?.LoginHint,
-                ExternalProviders = providers.ToArray()
+                ExternalProviders = providers.OrderBy(x => x.AuthenticationScheme)
             };
         }
 
@@ -1051,7 +1012,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var output = new LogoutOutput
             {
                 LogoutId = logoutId,
-                ShowLogoutPrompt = true
+                ShowLogoutPrompt = true //显示提醒
             };
 
             //如果用户没有登录，那么直接显示注销页面
@@ -1062,7 +1023,7 @@ namespace IdentityServer.STS.Admin.Controllers
             else
             {
                 var context = await _interaction.GetLogoutContextAsync(logoutId);
-                //ShowSignoutPrompt显示注销提醒，防止其他恶意的页面自动退出用户登录的攻击
+                //防止其他恶意的页面自动退出用户登录的攻击
                 if (context?.ShowSignoutPrompt == false)
                 {
                     //安全并且自动退出

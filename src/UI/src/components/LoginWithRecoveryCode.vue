@@ -15,16 +15,15 @@
 					</div>
 
 					<span style="font-size: 13px">恢复码:</span>
-					<el-input v-model="code" style="margin-bottom: 20px; margin-top: 10px" placeholder="请输入恢复码" autofocus />
-
-					<el-button class="green" @click="login">恢复码验证</el-button>
+					<el-input ref="input" maxlength="8" v-model="code" style="margin-bottom: 20px; margin-top: 10px" placeholder="请输入恢复码" autofocus @keyup.enter.native="login" />
+					<el-button class="green" @click="login" :loading="isLoading">恢复码验证</el-button>
 
 					<p style="font-size: 13px; color: #636d74">您已请求使用恢复码登录,当您无法访问双重验证器所在的设备,输入一组恢复码来验证您的身份。</p>
 					<el-divider></el-divider>
 				</div>
 			</div>
 
-			<div class="footer">账号已被锁定?<el-link type="primary" @click="loginWithCode()">尝试恢复您的账号</el-link></div>
+			<div class="footer">账号已被锁定?<el-link type="primary">尝试恢复您的账号</el-link></div>
 		</div>
 	</div>
 </template>
@@ -38,14 +37,20 @@ export default {
 	data() {
 		return {
 			code: '',
+			isLoading: false,
 		}
 	},
 	methods: {
 		async login() {
+			this.isLoading = true
 			let res = await signInWithCode({
 				recoveryCode: this.code,
 				returnUrl: this.$route.query.returnUrl,
+			}).finally(() => {
+				this.$refs['input'].focus()
+				this.isLoading = false
 			})
+
 			if (res.route == 1) {
 				NProgress.start()
 				window.location.href = res.data

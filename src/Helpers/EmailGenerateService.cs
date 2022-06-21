@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace IdentityServer.STS.Admin.Helpers
 {
+    /// <summary>
+    /// 邮件html生成
+    /// </summary>
     public class EmailGenerateService
     {
         private readonly IWebHostEnvironment _environment;

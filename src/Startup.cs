@@ -37,12 +37,16 @@ namespace IdentityServer.STS.Admin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var frontendBaseUrl = Configuration.GetSection("FrontendBaseUrl").Value;
+
+            services.AddDataProtection();
+
             //跨域处理
             services.AddCors(setup =>
             {
                 setup.AddPolicy("idCors", policy =>
                 {
-                    policy.SetIsOriginAllowed(x => true)
+                    policy.SetIsOriginAllowed(_ => true)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -73,20 +77,8 @@ namespace IdentityServer.STS.Admin
             services.AddAspIdentity<IdentityDbContext, User, Role>(Configuration);
             services.AddIdentityServer4<IdsConfigurationDbContext, IdsPersistedGrantDbContext, User>(Configuration);
 
-            //必须在AddIdentity之后使用
-            //配置identity约束
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.Password.RequiredLength = 6;
-                options.Password.RequireDigit = true;
-                options.Password.RequireUppercase = true;
-
-                options.User.RequireUniqueEmail = true;
-
-                options.SignIn.RequireConfirmedEmail = true;
-            });
-
             //配置本地登录cookie相关处理
+            //还没有这个配置会在401/403跳转到框架默认的路由,但这是mvc的处理,api模式写入结果json到response,最后由前端拦截处理,交互
             services.ConfigureApplicationCookie(options =>
             {
                 //本地登录30天cookie
@@ -100,7 +92,7 @@ namespace IdentityServer.STS.Admin
                     {
                         Code = 302,
                         Msg = "登录失败",
-                        Data = $"{Configuration.GetSection("FrontendBaseUrl").Value}/signIn"
+                        Data = $"{frontendBaseUrl}/signIn"
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -123,7 +115,7 @@ namespace IdentityServer.STS.Admin
                     {
                         Code = 403,
                         Msg = "无权访问",
-                        Data = $"{Configuration.GetSection("FrontendBaseUrl").Value}/accessDenied"
+                        Data = $"{frontendBaseUrl}/accessDenied"
                     }, new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -137,7 +129,7 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
-            //IdentityServer4 Cors
+            //IdentityServer4 Cors,在框架cors之后处理
             services.AddSingleton<ICorsPolicyService>(provider =>
             {
                 var logger = provider.GetService<ILogger<DefaultCorsPolicyService>>();
@@ -147,8 +139,6 @@ namespace IdentityServer.STS.Admin
                     AllowAll = false
                 };
             });
-
-            services.AddDataProtection();
 
             services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
 
@@ -165,21 +155,19 @@ namespace IdentityServer.STS.Admin
             services.AddTransient<IApiResourceService, ApiResourceService>();
             services.AddTransient<IApiScopeService, ApiScopeService>();
             services.AddTransient<IClientService, ClientService>();
+
+            RedirectHelper.Initialize(frontendBaseUrl, "/successed", "/error");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors("idCors");
             app.UseMiddleware<GlobalExceptionMiddleware>();
-
-            // if (env.IsDevelopment())
-            // {
-            //     app.UseDeveloperExceptionPage();
-            // }
 
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
-            app.UseCors("idCors");
+
             app.UseIdentityServer();
 
             app.UseRouting();

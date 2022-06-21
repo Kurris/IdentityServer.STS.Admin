@@ -34,6 +34,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
 
             services.AddIdentityServer(options =>
                 {
+                    options.IssuerUri = "ligy.identity";
                     options.Events.RaiseErrorEvents = true;
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;
@@ -66,10 +67,9 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 })
                 .AddConfigurationStore<TConfigurationDbContext>()
                 .AddOperationalStore<TPersistedGrantDbContext>()
-                .AddAspNetIdentity<TUserIdentity>() //添加aspnetcore user
-                .AddCustomSigningCredential(configuration) //证书
-                .AddCustomValidationKey(configuration) //密钥
-                .AddProfileService<UserProfile>()
+                .AddAspNetIdentity<TUserIdentity>().AddProfileService<UserProfile>() //添加aspnetcore user,用于id4管理用户
+                .AddCustomSigningCredential(configuration) //签名
+                .AddCustomValidationKey(configuration) //验签
                 .AddExtensionGrantValidator<DelegationGrantValidator>(); //自定义授权模式
         }
 
@@ -147,7 +147,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             {
                 if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificateThumbprint))
                 {
-                    //  throw new Exception(SigningCertificateThumbprintNotFound);
+                    throw new Exception("证书没有定义");
                 }
 
                 StoreLocation storeLocation;
@@ -179,7 +179,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, certificateConfiguration.SigningCertificateThumbprint, validOnly);
                 if (certCollection.Count == 0)
                 {
-                    // throw new Exception(CertificateNotFound);
+                    throw new Exception("找不到证书");
                 }
 
                 var certificate = certCollection[0];

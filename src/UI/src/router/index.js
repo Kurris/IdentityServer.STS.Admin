@@ -13,9 +13,7 @@ const externalLoginConfirmation = () => import('../components/ExternalLoginConfi
 const consent = () => import('../components/Consent.vue')
 const error = () => import('../components/Error.vue')
 const signinWith2fa = () => import('../components/SigninWith2fa.vue')
-const enableAuthenticator = () => import('../components/EnableAuthenticator.vue')
 const twoFactorAuthentication = () => import('../components/setting/TwoFactorAuthentication.vue')
-const showRecoveryCodes = () => import('../components/ShowRecoveryCodes.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/Grants.vue')
 const password = () => import('../components/Password.vue')
@@ -30,6 +28,8 @@ const userCodeCapture = () => import('../components/UserCodeCapture.vue')
 const userCodeConfirmation = () => import('../components/UserCodeConfirmation.vue')
 const successed = () => import('../components/Successed.vue')
 const setting = () => import('../components/Setting.vue')
+const development = () => import('../components/setting/Development.vue')
+const security = () => import('../components/setting/Security.vue')
 
 vue.use(vueRouter)
 
@@ -53,12 +53,24 @@ const routes = [
 		component: setting,
 		children: [
 			{
+				path: '',
+				redirect: '/setting/profile',
+			},
+			{
+				path: 'security',
+				component: security,
+			},
+			{
 				path: 'twoFactorAuthentication',
 				component: twoFactorAuthentication,
 			},
 			{
 				path: 'profile',
 				component: profile,
+			},
+			{
+				path: 'development',
+				component: development,
 			},
 		],
 	},
@@ -94,15 +106,6 @@ const routes = [
 	{
 		path: '/signinWith2fa',
 		component: signinWith2fa,
-	},
-	{
-		path: '/enableAuthenticator',
-		component: enableAuthenticator,
-	},
-
-	{
-		path: '/showRecoveryCodes',
-		component: showRecoveryCodes,
 	},
 	{
 		path: '/loginWithRecoveryCode',

@@ -1,8 +1,11 @@
 <template>
 	<div id="logout">
 		<template v-if="$route.query.logoutId == null">
-			是否要注销登录?
-			<el-button type="primary" @click="yes">是</el-button>
+			<h1>是否要注销登录?</h1>
+			<div>
+				<el-button type="warning" @click="yes">注销</el-button>
+				<el-button @click="$router.back()">取消</el-button>
+			</div>
 		</template>
 	</div>
 </template>
@@ -11,21 +14,21 @@
 import { loggedOut } from '../net/api.js'
 
 export default {
-	components: {},
-	data() {
-		return {}
-	},
-	computed: {},
-	watch: {},
 	methods: {
 		async yes() {
 			let logoutId = this.$route.query.logoutId
 
+			// res.data.postLogoutRedirectUri
 			let res = await loggedOut({ logoutId })
 			if (res.route == 10) {
 				this.$router.push({
 					path: '/loggedOut',
-					query: res.data,
+					query: {
+						postLogoutRedirectUri: res.data.postLogoutRedirectUri,
+						signOutIframeUrl: res.data.signOutIframeUrl,
+						automaticRedirectAfterSignOut: res.data.automaticRedirectAfterSignOut,
+						clientName: res.data.clientName,
+					},
 				})
 			}
 		},
@@ -35,4 +38,11 @@ export default {
 	},
 }
 </script>
-<style scoped></style>
+<style scoped>
+#logout {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+</style>

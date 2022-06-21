@@ -3,7 +3,7 @@ namespace IdentityServer.STS.Admin.Models.Account
     /// <summary>
     /// 退出登录返回值
     /// </summary>
-    public class LoggedOutOutput
+    public class LoggedOutOutput : LogoutOutput
     {
         /// <summary>
         /// 注销后重定向地址
@@ -23,12 +23,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// <summary>
         /// 注销后是否自动重定向
         /// </summary>
-        public bool AutomaticRedirectAfterSignOut { get; set; }
-
-        /// <summary>
-        /// 退出登录标识
-        /// </summary>
-        public string LogoutId { get; set; }
+        public bool AutomaticRedirectAfterSignOut { get; set; } = false;
 
         /// <summary>
         /// 触发外部登录退出

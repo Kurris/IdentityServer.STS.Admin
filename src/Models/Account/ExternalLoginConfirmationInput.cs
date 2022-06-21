@@ -6,7 +6,7 @@ namespace IdentityServer.STS.Admin.Models.Account
     public class ExternalLoginConfirmationInput : IValidatableObject
     {
         [Required]
-        [RegularExpression(@"^[a-zA-Z0-9_@\-\.\+]+$")]
+        [RegularExpression(@"^[a-zA-Z0-9_@\-\.\+]+$", ErrorMessage = "用户名只支持数字,字母和@-.+的组合")]
         public string UserName { get; set; }
 
         [Required]
@@ -43,10 +43,20 @@ namespace IdentityServer.STS.Admin.Models.Account
                 {
                     results.Add(new ValidationResult("密码不能为空", new[] {nameof(Password)}));
                 }
-
-                if (Password != ConfirmPassword)
+                else
                 {
-                    results.Add(new ValidationResult("密码不一致", new[] {nameof(ConfirmPassword)}));
+                    //see IdentityOptions
+                    if (Password.Length < 6)
+                    {
+                        results.Add(new ValidationResult("密码长度需要大于等于6", new[] {nameof(Password)}));
+                    }
+                    else
+                    {
+                        if (Password != ConfirmPassword)
+                        {
+                            results.Add(new ValidationResult("密码不一致", new[] {nameof(ConfirmPassword)}));
+                        }
+                    }
                 }
             }
 
