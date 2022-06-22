@@ -37,10 +37,10 @@
 								</template>
 							</p>
 						</div>
-						<div style="display: flex; justify-content: space-around">
+						<p style="display: flex; justify-content: space-around">
 							<el-button style="width: 40%" type="danger" @click="deleteById(grant.clientId, grant.clientName)">撤销访问授权</el-button>
-							<el-button style="width: 40%" type="warning">报告滥用</el-button>
-						</div>
+							<el-button style="width: 40%" type="warning">报告滥用行为</el-button>
+						</p>
 					</template>
 				</AuthorizeItem>
 				<el-divider class="bottom" :key="grant.clientId"></el-divider>

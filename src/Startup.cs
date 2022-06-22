@@ -144,6 +144,7 @@ namespace IdentityServer.STS.Admin
 
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
             services.AddSingleton<EmailGenerateService>();
+            services.AddScoped<ReferenceTokenTools>();
 
             //admin service registered
             services.AddTransient<IUserService, UserService>();

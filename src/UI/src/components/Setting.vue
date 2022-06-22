@@ -20,7 +20,7 @@
 					<el-divider></el-divider>
 					<span>集成</span>
 				</template>
-				<el-menu-item index="/grants">
+				<el-menu-item index="/setting/grants">
 					<i class="el-icon-mobile-phone"></i>
 					<span slot="title">OAuth Apps</span>
 				</el-menu-item>

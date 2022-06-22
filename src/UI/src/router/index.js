@@ -73,7 +73,7 @@ const routes = [
 				component: development,
 			},
 			{
-				path: '/grants',
+				path: 'grants',
 				component: grants,
 			},
 		],

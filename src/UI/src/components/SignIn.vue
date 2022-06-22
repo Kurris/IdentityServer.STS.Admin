@@ -122,7 +122,7 @@ export default {
 			let returnUrl = this.$route.query.returnUrl || ''
 
 			NProgress.start()
-			let url = 'http://101.35.47.169:5000/api/account/externalLogin'
+			let url = 'http://localhost:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")

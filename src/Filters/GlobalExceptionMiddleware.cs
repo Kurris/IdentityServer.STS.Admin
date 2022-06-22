@@ -30,23 +30,26 @@ namespace IdentityServer.STS.Admin.Filters
             }
             catch (Exception ex)
             {
-                if (!context.Response.HasStarted && context.Response.StatusCode != 302)
+                if (ex.Source != "IdentityServer4")
                 {
-                    string msg = ex.GetBaseException().Message;
-
-                    context.Response.StatusCode = 200;
-                    byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                    if (!context.Response.HasStarted && context.Response.StatusCode != 302)
                     {
-                        Code = 500,
-                        Msg = msg
-                    }, new JsonSerializerSettings
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    }));
+                        string msg = ex.GetBaseException().Message;
 
-                    context.Response.ContentType = "application/json";
-                    context.Response.ContentLength = content.Length;
-                    await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
+                        context.Response.StatusCode = 200;
+                        byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
+                        {
+                            Code = 500,
+                            Msg = msg
+                        }, new JsonSerializerSettings
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        }));
+
+                        context.Response.ContentType = "application/json";
+                        context.Response.ContentLength = content.Length;
+                        await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
+                    }
                 }
             }
         }

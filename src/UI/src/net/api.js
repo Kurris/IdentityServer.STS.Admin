@@ -295,3 +295,26 @@ export const getUserGetUserCodeConfirmationModel = data => {
 		params: data,
 	})
 }
+
+export const createPAT = data => {
+	return http({
+		url: 'api/pat',
+		method: 'post',
+		data: data,
+	})
+}
+
+export const getAllPats = data => {
+	return http({
+		url: 'api/pat/all',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const removePat = data => {
+	return http({
+		url: `api/pat/${data.key}`,
+		method: 'delete',
+	})
+}
