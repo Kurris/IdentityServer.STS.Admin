@@ -8,8 +8,10 @@ using IdentityServer.STS.Admin.Models.Pat;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Stores;
+using IdentityServer4.Stores.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -30,7 +32,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 创建person access token
         /// </summary>
-        /// <param name="expiration"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost]
         public async Task<string> CreatePat(PatInput input)
@@ -76,24 +78,31 @@ namespace IdentityServer.STS.Admin.Controllers
                 Type = "reference_token"
             });
 
-            return grants.Select(x => new PatOutput
+            return grants.Select(x =>
             {
-                Key = x.Key,
-                Description = x.Description,
-                CreateTime = x.CreationTime.AddHours(8),
-                ExpiredTime = x.Expiration?.AddHours(8),
-            });
+                var token = JsonConvert.DeserializeObject<Token>(x.Data, new ClaimConverter());
+                var createTime = token.CreationTime.ToLocalTime();
+                var expiredTime = createTime.AddSeconds(token.Lifetime);
+
+                return new PatOutput
+                {
+                    Key = x.Key,
+                    Description = x.Description,
+                    CreateTime = createTime,
+                    ExpiredTime = expiredTime
+                };
+            }).OrderByDescending(x => x.CreateTime);
         }
 
 
         /// <summary>
         /// 删除
         /// </summary>
-        /// <param name="key"></param>
-        [HttpDelete("{key}")]
-        public async Task Delete(string key)
+        /// <param name="input"></param>
+        [HttpDelete]
+        public async Task Delete(PatDeleteIInput input)
         {
-            await _persistedGrantStore.RemoveAsync(key);
+            await _persistedGrantStore.RemoveAsync(input.Key);
         }
     }
 }

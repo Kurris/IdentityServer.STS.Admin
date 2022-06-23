@@ -314,7 +314,8 @@ export const getAllPats = data => {
 
 export const removePat = data => {
 	return http({
-		url: `api/pat/${data.key}`,
+		url: 'api/pat',
 		method: 'delete',
+		data: data,
 	})
 }
