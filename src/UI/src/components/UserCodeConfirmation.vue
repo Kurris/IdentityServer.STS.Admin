@@ -75,8 +75,8 @@
 
 			<div class="row ml-4 mr-4">
 				<div class="col-sm-9 mt-3">
-					<el-button type="primary" autofocus @click="process('yes')">许可</el-button>
-					<el-button type="warning" @click="process('no')">不许可</el-button>
+					<el-button type="primary" autofocus @click="process(true)">许可</el-button>
+					<el-button type="warning" @click="process(false)">不许可</el-button>
 				</div>
 
 				<div class="col-sm-3 mt-3">
@@ -109,12 +109,12 @@ export default {
 	computed: {},
 	watch: {},
 	methods: {
-		async process(btn) {
+		async process(allow) {
 			NProgress.start()
 			let url = 'http://localhost:5000/api/device'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
-			document.write("<input type=hidden name=button value='" + btn + "'/>")
+			document.write(`<input type=hidden name=allow value=${allow}></input>`)
 			document.write("<input type=hidden name=rememberConsent value='" + this.model.rememberConsent + "'/>")
 			document.write("<input type=hidden name=userCode value='" + this.$route.query.userCode + "'/>")
 

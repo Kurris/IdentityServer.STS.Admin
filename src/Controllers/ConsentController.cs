@@ -68,20 +68,12 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 处理同意屏幕的处理
         /// </summary>
         [HttpPost("setting/process")]
-        public async Task<IActionResult> GetSetting([FromForm] ConsentInput model)
+        public async Task<IActionResult> GetSetting([FromForm] ConsentInput input)
         {
-            var result = await ProcessConsent(model);
+            var result = await ProcessConsent(input);
 
             if (result.IsRedirect)
             {
-                var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-                if (context?.IsNativeClient() == true)
-                {
-                    // The client is native, so this change in how to
-                    // return the response is for better UX for the end user.
-                    // return this.LoadingPage("Redirect", result.RedirectUri);
-                }
-
                 return Redirect(result.RedirectUri);
             }
 
@@ -90,50 +82,44 @@ namespace IdentityServer.STS.Admin.Controllers
                 throw new Exception(result.ValidationError);
             }
 
-            if (result.ShowView)
-            {
-                //return Redirect();
-                //return View("Index", result.ConsentModel);
-            }
-
-            return Redirect($"{FrontendBaseUrl}/signin?returnUrl={HttpUtility.UrlEncode(model.ReturnUrl)}");
+            return Redirect($"{FrontendBaseUrl}/signin?returnUrl={HttpUtility.UrlEncode(input.ReturnUrl)}");
         }
 
 
         /// <summary>
         /// 处理同意屏幕
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        private async Task<ProcessConsentResult> ProcessConsent(ConsentInput model)
+        private async Task<ProcessConsentResult> ProcessConsent(ConsentInput input)
         {
             var result = new ProcessConsentResult();
 
             //验证重定向url是否正确
-            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            var context = await _interaction.GetAuthorizationContextAsync(input.ReturnUrl);
             if (context == null) return result;
 
             ConsentResponse grantedConsent = null;
 
             //不允许授权，返回标准的"access_denied"响应
-            if (!model.Allow)
+            if (!input.Allow)
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
                 await _eventService.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
             }
             //验证数据合法性
-            else if (model.Allow)
+            else if (input.Allow)
             {
-                // if the user consented to some scope, build the response model
-                if (model.ScopesConsented != null && model.ScopesConsented.Any())
+                //存在授权域
+                if (input.ScopesConsented != null && input.ScopesConsented.Any())
                 {
-                    var scopes = model.ScopesConsented;
+                    var scopes = input.ScopesConsented;
 
                     grantedConsent = new ConsentResponse
                     {
-                        RememberConsent = model.RememberConsent,
+                        RememberConsent = input.RememberConsent,
                         ScopesValuesConsented = scopes.ToArray(),
-                        Description = model.Description
+                        Description = input.Description
                     };
 
                     await _eventService.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
@@ -154,13 +140,13 @@ namespace IdentityServer.STS.Admin.Controllers
                 await _interaction.GrantConsentAsync(context, grantedConsent);
 
                 //指示可以重定向回授权终结点 
-                result.RedirectUri = model.ReturnUrl;
+                result.RedirectUri = input.ReturnUrl;
                 result.Client = context.Client;
             }
             else
             {
                 //重新展示同意屏幕
-                result.ConsentModel = await BuildConsentModelAsync(model.ReturnUrl, model);
+                result.ConsentModel = await BuildConsentModelAsync(input.ReturnUrl, input);
             }
 
             return result;

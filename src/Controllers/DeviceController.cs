@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Consent;
 using IdentityServer.STS.Admin.Models.Device;
@@ -70,60 +71,76 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 设备授权回调处理
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="Exception"></exception>
         [HttpPost]
-        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInput model)
+        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInput input)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (input == null) throw new ArgumentNullException(nameof(input));
 
-            var result = await ProcessConsent(model);
+            var result = await ProcessConsent(input);
             if (result.HasValidationError)
             {
-                throw new Exception(result.ValidationError);
+                return await RedirectHelper.Error(new Dictionary<string, string>()
+                {
+                    ["error"] = result.ValidationError
+                });
             }
 
-            return Redirect($"{FrontendBaseUrl}/successed");
+            if (input.Allow)
+            {
+                return await RedirectHelper.Success(new Dictionary<string, string>()
+                {
+                    ["title"] = "您已经成功授权"
+                });
+            }
+            else
+            {
+                return await RedirectHelper.Error(new Dictionary<string, string>()
+                {
+                    ["error"] = "您对" + result.Client.ClientName + "的授权已拒绝"
+                });
+            }
         }
 
         /// <summary>
         /// 处理同意屏幕
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInput model)
+        private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInput input)
         {
             var result = new ProcessConsentResult();
 
-            var request = await _interaction.GetAuthorizationContextAsync(model.UserCode);
-            if (request == null) return result;
+            var context = await _interaction.GetAuthorizationContextAsync(input.UserCode);
+            if (context == null) return result;
 
             ConsentResponse grantedConsent = null;
 
             //返回标准的access_denied响应
-            if (!model.Allow)
+            if (!input.Allow)
             {
                 grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
-                await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues));
+                await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
             }
             //验证数据
-            else if (model.Allow)
+            else if (input.Allow)
             {
                 // if the user consented to some scope, build the response model
-                if (model.ScopesConsented != null && model.ScopesConsented.Any())
+                if (input.ScopesConsented != null && input.ScopesConsented.Any())
                 {
-                    var scopes = model.ScopesConsented;
+                    var scopes = input.ScopesConsented;
 
                     grantedConsent = new ConsentResponse
                     {
-                        RememberConsent = model.RememberConsent,
+                        RememberConsent = input.RememberConsent,
                         ScopesValuesConsented = scopes.ToArray(),
-                        Description = model.Description
+                        Description = input.Description
                     };
 
-                    await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), request.Client.ClientId, request.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
+                    await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
                 }
                 else
                 {
@@ -138,16 +155,11 @@ namespace IdentityServer.STS.Admin.Controllers
             if (grantedConsent != null)
             {
                 // 将同意结果传达回身份服务器
-                await _interaction.HandleRequestAsync(model.UserCode, grantedConsent);
+                await _interaction.HandleRequestAsync(input.UserCode, grantedConsent);
 
                 //指示可以重定向回授权终结点
-                result.RedirectUri = model.ReturnUrl;
-                result.Client = request.Client;
-            }
-            else
-            {
-                // we need to redisplay the consent UI
-                result.ConsentModel = await BuildOutputModelAsync(model.UserCode, model);
+                result.RedirectUri = input.ReturnUrl;
+                result.Client = context.Client;
             }
 
             return result;
@@ -175,7 +187,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 AllowRememberConsent = request.Client.AllowRememberConsent
             };
 
-            output.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeModel(x, output.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            output.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
 
             var apiScopes = new List<ScopeOutput>();
             foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
@@ -183,11 +195,12 @@ namespace IdentityServer.STS.Admin.Controllers
                 var apiScope = request.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
                 if (apiScope != null)
                 {
-                    var scopeVm = CreateScopeOutputModel(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
+                    var scopeVm = CreateScopeOutput(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
                     apiScopes.Add(scopeVm);
                 }
             }
 
+            //添加refresh token
             if (request.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
@@ -198,7 +211,7 @@ namespace IdentityServer.STS.Admin.Controllers
             return output;
         }
 
-        private static ScopeOutput CreateScopeModel(IdentityResource identity, bool check)
+        private static ScopeOutput CreateScope(IdentityResource identity, bool check)
         {
             return new ScopeOutput
             {
@@ -211,7 +224,7 @@ namespace IdentityServer.STS.Admin.Controllers
             };
         }
 
-        private static ScopeOutput CreateScopeOutputModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+        private static ScopeOutput CreateScopeOutput(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
         {
             return new ScopeOutput
             {
