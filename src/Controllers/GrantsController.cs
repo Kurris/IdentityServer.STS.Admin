@@ -42,6 +42,9 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<IEnumerable<GrantOutput>>> GetGrants()
         {
             var grants = await _interaction.GetAllUserGrantsAsync();
+            //不显示ref client
+            grants = grants.Where(x => x.ClientId != "reference");
+
             var list = new List<GrantOutput>();
             foreach (var grant in grants)
             {
