@@ -6,7 +6,7 @@
 		</div>
 		<el-divider></el-divider>
 		<p>
-			<el-alert show-icon title="如何使用?" description="curl -i -H 'Authorization:Bearer YourToken' http://localhost:5001/api/weatherForecast"></el-alert>
+			<el-alert show-icon title="如何使用?" description="curl -i -H 'Authorization:Bearer YourToken' http://host:port/api/weatherForecast"></el-alert>
 		</p>
 		<div v-loading="isLoading">
 			<div>
