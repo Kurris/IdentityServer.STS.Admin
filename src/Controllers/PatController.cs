@@ -80,8 +80,8 @@ namespace IdentityServer.STS.Admin.Controllers
             {
                 Key = x.Key,
                 Description = x.Description,
-                CreateTime = x.CreationTime,
-                ExpiredTime = x.Expiration,
+                CreateTime = x.CreationTime.ToLocalTime(),
+                ExpiredTime = x.Expiration?.ToLocalTime(),
             });
         }
 
