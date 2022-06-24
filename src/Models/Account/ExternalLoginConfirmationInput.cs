@@ -5,12 +5,12 @@ namespace IdentityServer.STS.Admin.Models.Account
 {
     public class ExternalLoginConfirmationInput : IValidatableObject
     {
-        [Required]
+        [Required(ErrorMessage = "用户名不能为空")]
         [RegularExpression(@"^[a-zA-Z0-9_@\-\.\+]+$", ErrorMessage = "用户名只支持数字,字母和@-.+的组合")]
         public string UserName { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "邮件不能为空")]
+        [EmailAddress(ErrorMessage = "邮件格式不正确")]
         public string Email { get; set; }
 
         /// <summary>

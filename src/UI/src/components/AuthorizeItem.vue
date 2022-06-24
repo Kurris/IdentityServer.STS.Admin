@@ -2,7 +2,7 @@
 	<div id="authorizeItem">
 		<div :class="{ content: true, dropdown: isDropdown }" @click="dropdown">
 			<div class="left">
-				<div class="icon">
+				<div>
 					<slot name="img"></slot>
 				</div>
 				<div class="text">

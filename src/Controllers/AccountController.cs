@@ -253,7 +253,6 @@ namespace IdentityServer.STS.Admin.Controllers
         {
             var callbackUrl = BackendBaseUrl + Url.Action("ExternalLoginCallback", new
             {
-                isLocal = input.IsLocal,
                 returnUrl = HttpUtility.UrlEncode(input.ReturnUrl)
             });
 

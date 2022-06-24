@@ -8,7 +8,7 @@ namespace IdentityServer.STS.Admin.Models.Account
     /// </summary>
     public class ForgotPasswordInput
     {
-        [Required(ErrorMessage = "找回方式不能为空")]
+        [Required(ErrorMessage = "用户名或邮箱不能为空")]
         public string Content { get; set; }
     }
 }

@@ -168,42 +168,42 @@ namespace IdentityServer.STS.Admin.Controllers
         private async Task<DeviceAuthorizationOutput> BuildOutputModelAsync(string userCode, DeviceAuthorizationInput model = null)
         {
             var request = await _interaction.GetAuthorizationContextAsync(userCode);
-            return request != null ? CreateConsentOutputModel(userCode, model, request) : null;
+            return request != null ? CreateConsentOutput(userCode, model, request) : null;
         }
 
-        private static DeviceAuthorizationOutput CreateConsentOutputModel(string userCode, DeviceAuthorizationInput model, DeviceFlowAuthorizationRequest request)
+        private static DeviceAuthorizationOutput CreateConsentOutput(string userCode, DeviceAuthorizationInput input, DeviceFlowAuthorizationRequest context)
         {
             var output = new DeviceAuthorizationOutput
             {
                 UserCode = userCode,
-                Description = model?.Description,
+                Description = input?.Description,
 
-                RememberConsent = model?.RememberConsent ?? true,
-                ScopesConsented = model?.ScopesConsented ?? Enumerable.Empty<string>(),
+                RememberConsent = input?.RememberConsent ?? true,
+                ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
 
-                ClientName = request.Client.ClientName ?? request.Client.ClientId,
-                ClientUrl = request.Client.ClientUri,
-                ClientLogoUrl = request.Client.LogoUri,
-                AllowRememberConsent = request.Client.AllowRememberConsent
+                ClientName = context.Client.ClientName ?? context.Client.ClientId,
+                ClientUrl = context.Client.ClientUri,
+                ClientLogoUrl = context.Client.LogoUri,
+                AllowRememberConsent = context.Client.AllowRememberConsent
             };
 
-            output.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || model == null)).ToArray();
+            output.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || input == null)).ToArray();
 
             var apiScopes = new List<ScopeOutput>();
-            foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
+            foreach (var parsedScope in context.ValidatedResources.ParsedScopes)
             {
-                var apiScope = request.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
+                var apiScope = context.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
                 if (apiScope != null)
                 {
-                    var scopeVm = CreateScopeOutput(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || model == null);
+                    var scopeVm = CreateScopeOutput(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || input == null);
                     apiScopes.Add(scopeVm);
                 }
             }
 
             //添加refresh token
-            if (request.ValidatedResources.Resources.OfflineAccess)
+            if (context.ValidatedResources.Resources.OfflineAccess)
             {
-                apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
+                apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || input == null));
             }
 
             output.ApiScopes = apiScopes;

@@ -11,7 +11,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         /// <summary>
         /// 双重验证码
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "验证码不能为空")]
         public string TwoFactorCode { get; set; }
 
         /// <summary>

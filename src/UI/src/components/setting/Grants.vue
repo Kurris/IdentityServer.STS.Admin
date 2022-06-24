@@ -1,6 +1,6 @@
 <template>
 	<div id="grants" v-loading="isLoading">
-		<h1>OAuth授权应用</h1>
+		<h1>授权应用(Granted OAuth)</h1>
 		<el-divider></el-divider>
 		<p style="font-size: 10px" v-if="!isLoading">
 			您已授权 <b>{{ grants.length }}个</b> 应用能够访问你的账号
@@ -9,7 +9,7 @@
 			<template v-for="grant in grants">
 				<AuthorizeItem style="margin-top: 20px" :key="grant.clientId" :description="'创建于' + grant.created + '	拥有者:'" :isDropdown="true" :scopeLength="4">
 					<template slot="img">
-						<el-avatar style="box-shadow: 1.2px 1.5px 4px 1px #f9f9fa" :src="grant.clientLogoUrl" :size="56" />
+						<el-avatar fit="fill" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" :src="grant.clientLogoUrl" :size="56" />
 					</template>
 					<el-link type="primary" :underline="false" @click.stop="goClient(grant.clientUrl)">{{ grant.clientName }}</el-link>
 					<template slot="dropdown">
@@ -39,7 +39,7 @@
 						</div>
 						<p style="display: flex; justify-content: space-around">
 							<el-button style="width: 40%" type="danger" @click="deleteById(grant.clientId, grant.clientName)">撤销访问授权</el-button>
-							<el-button style="width: 40%" type="warning">报告滥用行为</el-button>
+							<el-button style="width: 40%" type="warning" @click="report(grant.clientId)">报告滥用行为</el-button>
 						</p>
 					</template>
 				</AuthorizeItem>
@@ -87,6 +87,13 @@ export default {
 			})
 			this.grants = res.data
 		},
+		async report(clientId) {
+			this.$notify({
+				type: 'success',
+				message: '报告滥用行为:' + clientId,
+				title: '成功',
+			})
+		},
 	},
 	async beforeMount() {
 		await this.refresh()
@@ -96,5 +103,9 @@ export default {
 <style scoped>
 .el-divider--horizontal.bottom {
 	margin: unset;
+}
+
+.el-avatar {
+	background-color: white;
 }
 </style>

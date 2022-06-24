@@ -22,7 +22,7 @@
 				</template>
 				<el-menu-item index="/setting/grants">
 					<i class="el-icon-mobile-phone"></i>
-					<span slot="title">OAuth Apps</span>
+					<span slot="title">OAuth Granted Apps</span>
 				</el-menu-item>
 			</el-menu-item-group>
 			<el-menu-item index="/setting/development">
