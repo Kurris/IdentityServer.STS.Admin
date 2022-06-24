@@ -50,18 +50,24 @@
 			</div>
 		</div>
 		<router-view />
+		<CookieTip v-if="cookieTipShow" @confirm="confirm" />
 	</div>
 </template>
 
 <script>
 //
 import { logout, getLoginStatus } from './net/api.js'
+import CookieTip from './components/CookieTip.vue'
 
 export default {
 	name: 'app',
+	components: {
+		CookieTip,
+	},
 	data() {
 		return {
 			status: null,
+			cookieTipShow: false,
 		}
 	},
 	methods: {
@@ -90,8 +96,23 @@ export default {
 				})
 			}
 		},
+		confirm() {
+			this.cookieTipShow = false
+			window.localStorage.setItem('cookieTipShow', '0')
+		},
+		getShow() {
+			let s = window.localStorage.getItem('cookieTipShow')
+
+			if (s == null || s == '') {
+				return true
+			}
+
+			return s == '1'
+		},
 	},
 	async beforeMount() {
+		this.cookieTipShow = this.getShow()
+
 		let res = await getLoginStatus()
 		this.status = res.data
 	},

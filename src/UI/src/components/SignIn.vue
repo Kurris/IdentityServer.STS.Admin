@@ -1,58 +1,60 @@
 <template>
-	<div class="panel" v-if="show">
-		<img class="bg" src="https://www.rancher.cn/imgs/footer-background.svg" alt="" srcset="" />
-		<div :class="{ container_mobile: !slotVisible, container: slotVisible }">
-			<div class="slot" v-if="slotVisible">
-				<img src="../assets/login_left.svg" alt="" srcset="" />
-			</div>
-			<div class="signin">
-				<div class="title">
-					<h1>登录</h1>
-					<div>没有帐号？<el-link type="success" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
+	<div id="signin" v-if="show">
+		<!-- <img class="bg" src="https://www.rancher.cn/imgs/footer-background.svg" alt="" srcset="" /> -->
+		<div class="panel">
+			<div :class="{ container_mobile: !slotVisible, container: slotVisible }">
+				<div class="slot" v-if="slotVisible">
+					<img src="../assets/login_left.svg" alt="" srcset="" />
 				</div>
-				<template>
-					<el-form>
-						<el-form-item>
-							<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" />
-						</el-form-item>
-						<el-form-item>
-							<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" />
-						</el-form-item>
-						<el-form-item>
-							<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-							<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
-						</el-form-item>
-						<el-form-item>
-							<el-button style="width: 100%" type="success" @click="login" :loading="loginLoading">登录</el-button>
-						</el-form-item>
-					</el-form>
-				</template>
+				<div class="signin">
+					<div class="title">
+						<h1>登录</h1>
+						<div>没有帐号？<el-link type="success" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
+					</div>
+					<template>
+						<el-form>
+							<el-form-item>
+								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" />
+							</el-form-item>
+							<el-form-item>
+								<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" />
+							</el-form-item>
+							<el-form-item>
+								<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
+								<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
+							</el-form-item>
+							<el-form-item>
+								<el-button style="width: 100%" type="success" @click="login" :loading="loginLoading">登录</el-button>
+							</el-form-item>
+						</el-form>
+					</template>
 
-				<div v-if="setting.externalProviders != null && setting.externalProviders.length > 0">
-					<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
-					<div class="externalLogins">
-						<template v-for="(item, i) in setting.externalProviders">
-							<template v-if="item.displayName == 'Alipay'">
-								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
-								</div>
+					<div v-if="setting.externalProviders != null && setting.externalProviders.length > 0">
+						<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
+						<div class="externalLogins">
+							<template v-for="(item, i) in setting.externalProviders">
+								<template v-if="item.displayName == 'Alipay'">
+									<div :key="i">
+										<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
+									</div>
+								</template>
+								<template v-else-if="item.displayName == 'GitHub'">
+									<div :key="i">
+										<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
+									</div>
+								</template>
+								<template v-else-if="item.displayName == 'Weibo'">
+									<div :key="i">
+										<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png" @click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
+									</div>
+								</template>
+								<template v-else-if="item.displayName == 'Discord'">
+									<div :key="i">
+										<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
+									</div>
+								</template>
 							</template>
-							<template v-else-if="item.displayName == 'GitHub'">
-								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
-								</div>
-							</template>
-							<template v-else-if="item.displayName == 'Weibo'">
-								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png" @click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
-								</div>
-							</template>
-							<template v-else-if="item.displayName == 'Discord'">
-								<div :key="i">
-									<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
-								</div>
-							</template>
-						</template>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -180,6 +182,7 @@ export default {
 .container {
 	height: 500px;
 	width: 1000px;
+	border-radius: 10px;
 	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	display: flex;
 	justify-content: center;
@@ -229,9 +232,5 @@ img.bg {
 	z-index: -1;
 	left: 0;
 	bottom: 0;
-	/* -ms-transform: scale(0.5);
-	-webkit-transform: scale(0.5);
-	-o-transform: scale(0.5);
-	-moz-transform: scale(0.5); */
 }
 </style>

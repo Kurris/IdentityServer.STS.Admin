@@ -34,7 +34,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
 
             services.AddIdentityServer(options =>
                 {
-                    options.IssuerUri = "ligy.identity";
+                    options.IssuerUri = "identity.isawesome";
                     options.Events.RaiseErrorEvents = true;
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;
