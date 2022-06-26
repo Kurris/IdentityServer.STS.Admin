@@ -1,19 +1,23 @@
 <template>
 	<div id="pat">
 		<p>
-			<el-alert show-icon :closable="false" title="如何使用? curl -i -H 'Authorization:Bearer YourToken' http://host:port/api/weatherForecast"></el-alert>
+			<el-alert show-icon :closable="false"
+				title="如何使用? curl -i -H 'Authorization:Bearer YourToken' http://host:port/api/weatherForecast">
+			</el-alert>
 		</p>
 		<div v-loading="isLoading">
 			<div>
 				<div style="display: flex">
 					<el-select v-model="value" placeholder="请选择">
-						<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+						<el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+						</el-option>
 					</el-select>
 					<el-input v-model="description"></el-input>
 					<el-button @click="create">创建token</el-button>
 				</div>
 				<p>
-					<el-alert v-if="token != null" type="success" show-icon :title="token" description="请您妥善保管以上token, 这将不会再次显示"></el-alert>
+					<el-alert v-if="token != null" type="success" show-icon :title="token"
+						description="请您妥善保管以上token, 这将不会再次显示"></el-alert>
 				</p>
 				<template v-for="item in pats">
 					<el-card :key="item.key" shadow="hover" style="font-size: 15px">
@@ -22,11 +26,13 @@
 								<span style="font-weight: bold">
 									{{ item.description }}
 								</span>
-								<el-button type="danger" plain @click="removePat(item.key, item.description)">撤销令牌</el-button>
+								<el-button type="danger" plain @click="removePat(item.key, item.description)">撤销令牌
+								</el-button>
 							</div>
 							<template v-if="item.isPermanent">
 								<i class="el-icon-warning-outline" style="color: #e5bc7a; margin-right: 5px"> </i>
-								<el-link style="font-size: 10px" type="warning" :underline="false">此 token 永久不失效</el-link>
+								<el-link style="font-size: 10px" type="warning" :underline="false">此 token 永久不失效
+								</el-link>
 							</template>
 							<template v-else>
 								<div style="font-size: 10px">
@@ -39,13 +45,9 @@
 				</template>
 				<p style="font-size: 10px; color: #596069">
 					个人令牌是OAuth2.0中的reference token的实现,能够适用于无需账号密码登录的场景,例如在命令行脚本,测试期间生成长周期令牌,并且能够替代Bearer Token的使用.
-					<el-link
-						type="primary"
-						style="font-size: 10px; margin-bottom: 2.5px"
-						:underline="false"
-						href="https://docs.github.com/cn/rest/overview/other-authentication-methods#basic-authentication"
-						>详细查看</el-link
-					>
+					<el-link type="primary" style="font-size: 10px; margin-bottom: 2.5px" :underline="false"
+						href="https://docs.github.com/cn/rest/overview/other-authentication-methods#basic-authentication">
+						详细查看</el-link>
 				</p>
 			</div>
 		</div>
@@ -134,14 +136,15 @@ export default {
 	align-items: center;
 }
 
->>> .el-card__body {
+>>>.el-card__body {
 	padding: 15px;
 }
-div.el-card + div.el-card {
+
+div.el-card+div.el-card {
 	margin-top: 10px;
 }
 
-span + span {
+span+span {
 	margin-left: 10px;
 }
 </style>

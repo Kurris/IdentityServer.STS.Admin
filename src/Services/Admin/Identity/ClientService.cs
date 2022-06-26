@@ -89,7 +89,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
                 _idsConfigurationDbContext.Clients.Update(client);
             }
-
+            
             await _idsConfigurationDbContext.SaveChangesAsync();
         }
 
@@ -131,7 +131,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             await _idsConfigurationDbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteSecre(int id)
+        public async Task DeleteSecretAsync(int id)
         {
             var clientSecret = await _idsConfigurationDbContext.ClientSecrets.FindAsync(id);
             if (clientSecret == null) return;

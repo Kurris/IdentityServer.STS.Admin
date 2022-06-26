@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace IdentityServer.STS.Admin.DbContexts
 {
     /// <summary>
-    /// IdentityServer4's configuration dbcontext
+    /// IdentityServer4's configuration dbContext
     /// </summary>
     public class IdsConfigurationDbContext : ConfigurationDbContext<IdsConfigurationDbContext>, IIdsConfigurationDbContext
     {

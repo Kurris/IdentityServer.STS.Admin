@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityServer.STS.Admin.Controllers.Admin
 {
-    [Authorize(Policy = "Admin")]
+    [Authorize()]
     [Route("api/[controller]")]
     [ApiController]
     public class ConfigurationController : ControllerBase
@@ -93,8 +93,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         #endregion
-
-
+        
         #region api resource
 
         [HttpGet("apiResource/page")]
@@ -179,7 +178,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         [HttpDelete("clientSecret")]
         public async Task RemoveClientSecret(int id)
         {
-            await _clientService.DeleteSecre(id);
+            await _clientService.DeleteSecretAsync(id);
         }
 
         #endregion

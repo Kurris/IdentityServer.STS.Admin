@@ -1,24 +1,22 @@
 <template>
 	<div id="app">
-		<div
-			id="header"
-			v-if="
-				status != null &&
-				$route.path != '/signIn' &&
-				$route.path != '/signinWith2fa' &&
-				$route.path != '/consent' &&
-				$route.path != '/loginWithRecoveryCode' &&
-				$route.path != '/externalLoginConfirmation' &&
-				$route.path != '/register' &&
-				$route.path != '/forgotPassword'
-			"
-		>
+		<div id="header" v-if="
+			status != null &&
+			$route.path != '/signIn' &&
+			$route.path != '/signinWith2fa' &&
+			$route.path != '/consent' &&
+			$route.path != '/loginWithRecoveryCode' &&
+			$route.path != '/externalLoginConfirmation' &&
+			$route.path != '/register' &&
+			$route.path != '/forgotPassword'
+		">
 			<div class="headerLeft">
 				<a href="http://docs.identityserver.io/en/latest/" title="跳转到identityserver4 document">
 					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
 				</a>
 				<el-link style="color: white; margin-left: 10px" @click="$router.push('/')">首页</el-link>
-				<el-link style="color: white; margin-left: 10px" href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
+				<el-link style="color: white; margin-left: 10px"
+					href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
 				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
 			</div>
 			<div class="headerRight">
@@ -32,12 +30,6 @@
 							<el-dropdown-item>
 								登录为: <strong>{{ status.user.userName }}</strong>
 							</el-dropdown-item>
-							<el-dropdown-item divided>
-								<button style="width: 150px; height: 30px; background-color: white; border-radius: 4px; border: 1px solid #eceef4">
-									<i class="el-icon-star-off">状态</i>
-								</button>
-							</el-dropdown-item>
-							<el-dropdown-item divided command="profile">个人概要</el-dropdown-item>
 							<el-dropdown-item command="setting">设置</el-dropdown-item>
 							<el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
 						</el-dropdown-menu>

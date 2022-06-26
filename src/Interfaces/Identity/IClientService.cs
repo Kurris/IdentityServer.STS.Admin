@@ -16,7 +16,7 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
 
         Task AddSecret(ClientSecretInput clientSecret);
 
-        Task DeleteSecre(int id);
+        Task DeleteSecretAsync(int id);
 
         Task<IEnumerable<string>> GetScopesAsync();
     }

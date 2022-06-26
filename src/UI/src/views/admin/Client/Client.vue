@@ -1,6 +1,6 @@
 <template>
     <div id='client'>
-        <div style="text-align:left">
+        <div style="text-align:right">
             <el-button type="primary" @click="addClient">添加新的客户端</el-button>
         </div>
         <el-table :data="pagination.items" style="width: 100%" stripe>
@@ -10,16 +10,21 @@
             </el-table-column>
             <el-table-column label="操作" fixed='right'>
                 <template slot-scope="scope">
-                    <el-button size="mini" @click="editClient(scope.row.id)">编辑</el-button>
+                    <el-button @click="editClient(scope.row.id)">编辑</el-button>
                 </template>
             </el-table-column>
         </el-table>
-        <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pagination.pageIndex" :page-sizes="[20, 40, 50, 100]" :page-size="pagination.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="pagination.totalCount">
+        <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+            :current-page="pagination.pageIndex" :page-sizes="[10, 20]" :page-size="pagination.pageSize"
+            layout="total, sizes, prev, pager, next" :total="pagination.totalCount">
         </el-pagination>
 
-        <el-drawer title="客户端管理" :visible.sync="clientDrawer" :with-header="true" :size="800">
+        <el-drawer title="客户端管理" :visible.sync="clientDrawer" :with-header="true">
+            <p>
+                <el-button type="primary" style="width: 40%;" @click="save">保存</el-button>
+            </p>
             <div id="clientContainer">
-                <template v-if="operateType==0">
+                <template v-if="operateType == 0">
                     <div>
                         <el-form ref="client" label-position="right" :model="form" label-width="150px">
                             <el-form-item label="客户端标识">
@@ -30,7 +35,8 @@
                             </el-form-item>
                             <el-form-item label="客户端类型">
                                 <el-select v-model="clientType" placeholder="请选择">
-                                    <el-option v-for="item in clientTypes" :key="item.id" :label="item.text" :value="item.id">
+                                    <el-option v-for="item in clientTypes" :key="item.id" :label="item.text"
+                                        :value="item.id">
                                     </el-option>
                                 </el-select>
                             </el-form-item>
@@ -58,7 +64,8 @@
                                     </el-form-item>
                                     <el-form-item label="协议类型">
                                         <el-select v-model="form.protocolType" placeholder="请选择">
-                                            <el-option v-for="item in protocolTypes" :key="item.id" :label="item.text" :value="item.id">
+                                            <el-option v-for="item in protocolTypes" :key="item.id" :label="item.text"
+                                                :value="item.id">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
@@ -85,27 +92,29 @@
                                             <el-button slot="append" icon="el-icon-more-outline"></el-button>
                                         </el-input>
                                         <template v-for="item in form.redirectUris">
-                                            <el-tag :key="item.id">{{item.redirectUri}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.redirectUri }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label="允许的作用域">
                                         <el-select v-model="scope">
-                                            <el-option v-for="(item,index) in scopes" :key="index" :value="item" :label="item">
+                                            <el-option v-for="(item, index) in scopes" :key="index" :value="item"
+                                                :label="item">
                                             </el-option>
                                         </el-select>
                                         <br>
                                         <template v-for="item in form.allowedScopes">
-                                            <el-tag :key="item.id">{{item.scope}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.scope }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label="允许的授权类型">
                                         <el-select v-model="grantType">
-                                            <el-option v-for="(item,index) in grantTypes" :key="index" :value="item" :label="item"></el-option>
+                                            <el-option v-for="(item, index) in grantTypes" :key="index" :value="item"
+                                                :label="item"></el-option>
                                         </el-select>
                                         <el-button style="margin-left:5px" type="primary">添加授权类型</el-button>
                                         <br>
                                         <template v-for="item in form.allowedGrantTypes">
-                                            <el-tag :key="item.id">{{item.grantType}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.grantType }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label="客户端密钥">
@@ -136,7 +145,7 @@
                                             <el-button slot="append" icon="el-icon-more-outline"></el-button>
                                         </el-input>
                                         <template v-for="item in form.postLogoutRedirectUris">
-                                            <el-tag :key="item.id">{{item.postLogoutRedirectUri}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.postLogoutRedirectUri }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label="外部身份提供程序限制">
@@ -144,7 +153,7 @@
                                             <el-button slot="append" icon="el-icon-more-outline"></el-button>
                                         </el-input>
                                         <template v-for="item in form.identityProviderRestrictions">
-                                            <el-tag :key="item.id">{{item.provider}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.provider }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label=" 用户 SSO 生命周期">
@@ -168,7 +177,8 @@
                                     </el-form-item>
                                     <el-form-item label="访问令牌类型">
                                         <el-select v-model="form.accessTokenType">
-                                            <el-option v-for="item in accessTokenTypes" :key="item.id" :value="item.id" :label="item.text">
+                                            <el-option v-for="item in accessTokenTypes" :key="item.id" :value="item.id"
+                                                :label="item.text">
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
@@ -190,7 +200,8 @@
                                     </el-form-item>
                                     <el-form-item label="刷新令牌过期类型">
                                         <el-select v-model="form.refreshTokenExpiration">
-                                            <el-option v-for="item in tokenExpirations" :key="item.id" :label="item.text" :value="item.id"></el-option>
+                                            <el-option v-for="item in tokenExpirations" :key="item.id"
+                                                :label="item.text" :value="item.id"></el-option>
                                         </el-select>
                                     </el-form-item>
                                     <el-form-item label="允许跨域来源">
@@ -198,7 +209,7 @@
                                             <el-button slot="append" icon="el-icon-more-outline"></el-button>
                                         </el-input>
                                         <template v-for="item in form.allowedCorsOrigins">
-                                            <el-tag :key="item.id">{{item.origin}}</el-tag>
+                                            <el-tag :key="item.id">{{ item.origin }}</el-tag>
                                         </template>
                                     </el-form-item>
                                     <el-form-item label="刷新时更新访问令牌声明">
@@ -216,7 +227,14 @@
                                     <el-form-item label="客户端声明前缀">
                                         <el-input v-model="form.clientClaimsPrefix"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="配对主体盐">
+                                    <el-form-item>
+                                        <template slot="label">
+                                            <el-tooltip class="item" effect="dark"
+                                                content="Salt value used in pair-wise subjectId generation for users of this client."
+                                                placement="top">
+                                                <span>配对主体盐 <i class="el-icon-info"></i></span>
+                                            </el-tooltip>
+                                        </template>
                                         <el-input v-model="form.pairWiseSubjectSalt"></el-input>
                                     </el-form-item>
                                     <el-form-item label="客户端声明">
@@ -233,15 +251,23 @@
                                     <el-form-item label="客户端Uri">
                                         <el-input v-model="form.clientUri"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="徽标 Uri">
+                                    <el-form-item label="展示头像Uri">
                                         <el-input v-model="form.logoUri"></el-input>
+                                        <p v-if="form.logoUri">
+                                            <el-avatar :src="form.logoUri"></el-avatar>
+                                        </p>
                                     </el-form-item>
                                 </el-tab-pane>
                                 <el-tab-pane label="设备流程" name="deviceFlow">
                                     <el-form-item label="用户代码类型">
                                         <el-input v-model="form.userCodeType"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="设备代码生命周期">
+                                    <el-form-item>
+                                        <template slot="label">
+                                            <el-tooltip class="item" effect="dark" content="默认300秒,5分钟" placement="top">
+                                                <span>设备code生命周期 <i class="el-icon-info"></i></span>
+                                            </el-tooltip>
+                                        </template>
                                         <el-input-number v-model="form.deviceCodeLifetime">
                                         </el-input-number>
                                     </el-form-item>
@@ -251,8 +277,6 @@
                         </el-form>
                     </div>
                 </template>
-
-                <el-button type="primary" @click="save">保存</el-button>
             </div>
         </el-drawer>
     </div>
@@ -275,7 +299,7 @@ export default {
                 totalPagee: 0,
                 items: []
             },
-            tabName: "name",
+            tabName: 'name',
             clientDrawer: false,
             clientTypes: [],
             clientType: 0,
@@ -291,7 +315,8 @@ export default {
             identityProviderRestriction: '',
             accessTokenTypes: [],
             tokenExpirations: [],
-            origin: ''
+            origin: '',
+            currentId: 0,
         };
     },
     methods: {
@@ -310,13 +335,17 @@ export default {
             })
         },
         addClient() {
+            this.currentId = 0
             this.operateType = 0
             getClientType().then(res => {
                 this.clientTypes = res.data
             })
             this.clientDrawer = true
+            this.form.clientId = ''
+            this.form.clientName = ''
         },
         editClient(id) {
+            this.currentId = id
             this.operateType = 1
             this.clientDrawer = true
             getProtocolTypes().then(res => {
@@ -341,11 +370,17 @@ export default {
 
         },
         async save() {
-            await saveClient({
-                clientId: this.form.clientId,
-                clientName: this.form.clientName,
-                clientType: this.clientType
+            this.form.id = this.currentId
+            await saveClient(this.form)
+            this.clientDrawer = false
+
+            this.$notify({
+                type: 'success',
+                title: '成功',
+                message: '保存成功'
             })
+
+            await this.getClientPage()
         }
     },
     beforeMount() {
@@ -354,7 +389,4 @@ export default {
 }
 </script>
 <style scoped>
-#clientContainer {
-    text-align: left;
-}
 </style>
