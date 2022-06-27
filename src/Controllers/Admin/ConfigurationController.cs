@@ -5,6 +5,7 @@ using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using IdentityServer4.EntityFramework.Entities;
+using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,9 +62,9 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         [HttpGet("accessTokenTypes")]
-        public  IEnumerable<SelectItem<int,string>> GetAccessTokenTypes()
+        public IEnumerable<SelectItem<int, string>> GetAccessTokenTypes()
         {
-          return  EnumEx.GetEnumTypes<IdentityServer4.Models.AccessTokenType>();
+            return EnumEx.GetEnumTypes<IdentityServer4.Models.AccessTokenType>();
         }
 
         [HttpGet("tokenExpirations")]
@@ -93,7 +94,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         #endregion
-        
+
         #region api resource
 
         [HttpGet("apiResource/page")]
@@ -147,6 +148,7 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         [HttpGet("client/page")]
         public async Task<Pagination<Client>> QueryClientPage([FromQuery] ClientSearchPageIn pageIn)
         {
+            pageIn.UserId = int.Parse(User.GetSubjectId());
             return await _clientService.QueryClientPage(pageIn);
         }
 
@@ -159,7 +161,15 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         [HttpPost("client")]
         public async Task SaveClient(ClientInput client)
         {
-            await _clientService.SaveClient(client);
+            var userId = int.Parse(User.Identity.GetSubjectId());
+            await _clientService.SaveClient(client, userId);
+        }
+
+        [HttpDelete("client/{id:int}")]
+        public async Task RemoveClientByIdAsync(int id)
+        {
+            var userId = int.Parse(User.Identity.GetSubjectId());
+            await _clientService.RemoveClientByIdAsync(id, userId);
         }
 
 

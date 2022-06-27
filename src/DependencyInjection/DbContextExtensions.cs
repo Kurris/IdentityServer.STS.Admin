@@ -1,12 +1,10 @@
-using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.Constants;
-using IdentityServer.STS.Admin.Interfaces;
+using IdentityServer4.EntityFramework.Interfaces;
 using IdentityServer4.EntityFramework.Storage;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin.DependencyInjection
 {
@@ -23,8 +21,8 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         /// <typeparam name="TDataProtectionDbContext"></typeparam>
         public static void RegisterDbContexts<TIdentityDbContext, TConfigurationDbContext, TPersistedGrantDbContext, TDataProtectionDbContext>(this IServiceCollection services, IConfiguration configuration)
             where TIdentityDbContext : DbContext
-            where TPersistedGrantDbContext : DbContext, IIdsPersistedGrantDbContext
-            where TConfigurationDbContext : DbContext, IIdsConfigurationDbContext
+            where TPersistedGrantDbContext : DbContext, IPersistedGrantDbContext
+            where TConfigurationDbContext : DbContext, IConfigurationDbContext
             where TDataProtectionDbContext : DbContext, IDataProtectionKeyContext
         {
             var identityConnectionString = configuration.GetConnectionString(ConfigurationConstants.IdentityDbConnectionStringKey);
@@ -37,11 +35,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             //aspnet core identity 用户操作
             services.AddDbContext<TIdentityDbContext>(options =>
             {
-                options.UseMySql(identityConnectionString, MySqlServerVersion.LatestSupportedServerVersion, builder =>
-                {
-                    builder.MigrationsAssembly(migrationsAssembly);
-                    builder.EnableRetryOnFailure();
-                });
+                options.UseMySql(identityConnectionString, MySqlServerVersion.LatestSupportedServerVersion, builder => { builder.MigrationsAssembly(migrationsAssembly); });
 
                 // options.EnableSensitiveDataLogging();
                 // var loggerFactory = provider.GetService<ILoggerFactory>();

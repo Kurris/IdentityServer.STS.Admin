@@ -28,10 +28,8 @@ namespace IdentityServer.STS.Admin
                         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"
                             , theme: SystemConsoleTheme.Literate);
 
-                    if (context.HostingEnvironment.IsDevelopment())
-                    {
-                        serilog.MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information);
-                    }
+                    //生产环境仅显示warning日志
+                    serilog.MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", context.HostingEnvironment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Warning);
                 });
     }
 }

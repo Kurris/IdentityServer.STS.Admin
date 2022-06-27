@@ -3,8 +3,8 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.IdentityServerExtension;
-using IdentityServer.STS.Admin.Interfaces;
 using IdentityServer4;
+using IdentityServer4.EntityFramework.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,15 +26,15 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         /// <typeparam name="TUserIdentity"></typeparam>
         public static void AddIdentityServer4<TConfigurationDbContext, TPersistedGrantDbContext, TUserIdentity>(this IServiceCollection services,
             IConfiguration configuration)
-            where TPersistedGrantDbContext : DbContext, IIdsPersistedGrantDbContext
-            where TConfigurationDbContext : DbContext, IIdsConfigurationDbContext
+            where TPersistedGrantDbContext : DbContext, IPersistedGrantDbContext
+            where TConfigurationDbContext : DbContext, IConfigurationDbContext
             where TUserIdentity : class
         {
             var frontBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
 
             services.AddIdentityServer(options =>
                 {
-                    options.IssuerUri = "identity.isawesome";
+                    options.IssuerUri = "identity.isawesome.cn";
                     options.Events.RaiseErrorEvents = true;
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;

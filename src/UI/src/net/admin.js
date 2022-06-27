@@ -166,6 +166,13 @@ export const getClientPage = data => {
 	})
 }
 
+export const removeClient = data => {
+	return http({
+		method: 'delete',
+		url: `api/configuration/client/${data.id}`,
+	})
+}
+
 export const getClientById = data => {
 	return http({
 		method: 'get',

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityServer.STS.Admin.Configuration;
+using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Consent;
 using IdentityServer4;
@@ -14,6 +15,7 @@ using IdentityServer4.Services;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -28,16 +30,22 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IEventService _eventService;
         private readonly ILogger<ConsentController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IdsConfigurationDbContext _idsConfigurationDbContext;
+        private readonly IdentityDbContext _identityDbContext;
 
         public ConsentController(IIdentityServerInteractionService interactionService
             , IEventService eventService
             , ILogger<ConsentController> logger
-            , IConfiguration configuration)
+            , IConfiguration configuration
+            , IdsConfigurationDbContext idsConfigurationDbContext
+            , IdentityDbContext identityDbContext)
         {
             _interaction = interactionService;
             _eventService = eventService;
             _logger = logger;
             _configuration = configuration;
+            _idsConfigurationDbContext = idsConfigurationDbContext;
+            _identityDbContext = identityDbContext;
         }
 
 
@@ -157,7 +165,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context != null)
             {
-                return CreateConsentModel(model, returnUrl, context);
+                return await CreateConsentModel(model, returnUrl, context);
             }
 
             _logger.LogError($"No consent request matching request: {returnUrl}");
@@ -165,11 +173,24 @@ namespace IdentityServer.STS.Admin.Controllers
             return null;
         }
 
-        private static ConsentOutput CreateConsentModel(ConsentInput input, string returnUrl,
+        private async Task<ConsentOutput> CreateConsentModel(ConsentInput input, string returnUrl,
             AuthorizationRequest context)
         {
+            var clientId = await _idsConfigurationDbContext.Clients
+                .Where(x => x.ClientId == context.Client.ClientId)
+                .Select(x => x.Id)
+                .FirstAsync();
+
+            var userId = await _idsConfigurationDbContext.ClientOwners
+                .Where(x => x.ClientId == clientId)
+                .Select(x => x.UserId)
+                .FirstAsync();
+
+            var user = await _identityDbContext.Users.Where(x => x.Id == userId).FirstAsync();
+
             var output = new ConsentOutput
             {
+                ClientOwner = user,
                 RememberConsent = input?.RememberConsent ?? false,
                 ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
                 Description = input?.Description,

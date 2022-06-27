@@ -10,7 +10,9 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
     {
         Task<Pagination<Client>> QueryClientPage(ClientSearchPageIn pageIn);
 
-        Task SaveClient(ClientInput client);
+        Task SaveClient(ClientInput client, int userId);
+
+        Task RemoveClientByIdAsync(int id, int userId);
 
         Task<Client> QueryClientById(int id);
 

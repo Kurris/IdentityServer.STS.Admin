@@ -2,5 +2,6 @@
 {
     public class ClientSearchPageIn : PageIn
     {
+        public int UserId { get; set; }
     }
 }

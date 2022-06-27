@@ -20,7 +20,9 @@
 						<template slot="img">
 							<el-avatar src=""></el-avatar>
 						</template>
-						<span>来自于 <el-link type="primary">Kurris</el-link> </span>
+						<span
+							>来自于 <el-link type="primary">{{ setting.clientOwner.userName }}</el-link>
+						</span>
 					</AuthorizeItem>
 
 					<AuthorizeItem title="用户私人的数据" :isDropdown="true" :scopeLength="scopeLength" description="个人的信息(只读)或者其他应用级别的权限(读写)">

@@ -1,20 +1,22 @@
+using IdentityServer.STS.Admin.Entities;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.EntityFramework.Options;
-using IdentityServer.STS.Admin.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IdentityServer.STS.Admin.DbContexts
 {
     /// <summary>
-    /// IdentityServer4's configuration dbContext
+    /// IdentityServer4 配置dbContext
     /// </summary>
-    public class IdsConfigurationDbContext : ConfigurationDbContext<IdsConfigurationDbContext>, IIdsConfigurationDbContext
+    public class IdsConfigurationDbContext : ConfigurationDbContext<IdsConfigurationDbContext>
     {
         public IdsConfigurationDbContext(DbContextOptions<IdsConfigurationDbContext> options, ConfigurationStoreOptions storeOptions)
             : base(options, storeOptions)
         {
         }
+
+        public DbSet<ClientOwners> ClientOwners { get; set; }
 
         public DbSet<ApiResourceProperty> ApiResourceProperties { get; set; }
 

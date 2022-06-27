@@ -8,7 +8,7 @@ namespace IdentityServer.STS.Admin.DbContexts
     /// <summary>
     /// IdentityServer4's persisted grant dbcontext
     /// </summary>
-    public class IdsPersistedGrantDbContext : PersistedGrantDbContext<IdsPersistedGrantDbContext>, IIdsPersistedGrantDbContext
+    public class IdsPersistedGrantDbContext : PersistedGrantDbContext<IdsPersistedGrantDbContext>
     {
         public IdsPersistedGrantDbContext(DbContextOptions<IdsPersistedGrantDbContext> options, OperationalStoreOptions storeOptions)
             : base(options, storeOptions)

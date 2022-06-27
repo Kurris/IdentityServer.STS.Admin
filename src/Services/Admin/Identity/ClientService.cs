@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.DbContexts;
+using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Enums;
 using IdentityServer.STS.Admin.Interfaces;
 using IdentityServer.STS.Admin.Interfaces.Identity;
@@ -27,12 +28,11 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-
         /// <summary>
         /// hash 处理密码
         /// </summary>
         /// <param name="secret"></param>
-        private void HashClientSharedSecret(ClientSecretInput secret)
+        private static void HashClientSharedSecret(ClientSecretInput secret)
         {
             if (secret.Type != SharedSecret) return;
 
@@ -44,53 +44,107 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task<Pagination<Client>> QueryClientPage(ClientSearchPageIn pageIn)
         {
+            var clientIds = await _idsConfigurationDbContext.ClientOwners.AsNoTracking()
+                .Where(x => x.UserId == pageIn.UserId)
+                .Select(x => x.ClientId)
+                .ToListAsync();
+
             return await _idsConfigurationDbContext.Clients
-                //.Include(x => x.ClientSecrets)
-                .Include(x => x.RedirectUris)
-                .Include(x => x.AllowedGrantTypes)
-                .Include(x => x.PostLogoutRedirectUris)
-                .Include(x => x.AllowedScopes)
-                .Include(x => x.IdentityProviderRestrictions)
-                .Include(x => x.Claims)
-                .Include(x => x.AllowedCorsOrigins)
+                .Where(x => clientIds.Contains(x.Id))
+                .OrderBy(x => x.Created)
                 .ToPagination(pageIn);
         }
 
-        public async Task SaveClient(ClientInput client)
+        public async Task SaveClient(ClientInput client, int userId)
         {
-            if (client.Id == 0)
+            var isAdd = client.Id == 0;
+            using (var transaction = await _idsConfigurationDbContext.Database.BeginTransactionAsync())
             {
-                PrepareClientTypeForNewClient(client);
-                await _idsConfigurationDbContext.Clients.AddAsync(client);
+                try
+                {
+                    if (isAdd)
+                    {
+                        PrepareClientTypeForNewClient(client);
+                        await _idsConfigurationDbContext.Clients.AddAsync(client);
+                    }
+                    else
+                    {
+                        var redirectUris = await _idsConfigurationDbContext.ClientRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientRedirectUris.RemoveRange(redirectUris);
+
+                        var grantTypes = await _idsConfigurationDbContext.ClientGrantTypes.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientGrantTypes.RemoveRange(grantTypes);
+
+                        var postLogoutRedirectUris = await _idsConfigurationDbContext.ClientPostLogoutRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientPostLogoutRedirectUris.RemoveRange(postLogoutRedirectUris);
+
+                        var scopes = await _idsConfigurationDbContext.ClientScopes.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientScopes.RemoveRange(scopes);
+
+                        var idPRestrictions = await _idsConfigurationDbContext.ClientIdPRestrictions.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientIdPRestrictions.RemoveRange(idPRestrictions);
+
+                        var claims = await _idsConfigurationDbContext.ClientClaims.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientClaims.RemoveRange(claims);
+
+                        var corsOrigins = await _idsConfigurationDbContext.ClientCorsOrigins.Where(x => x.ClientId == client.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientCorsOrigins.RemoveRange(corsOrigins);
+
+                        _idsConfigurationDbContext.Clients.Update(client);
+                    }
+
+                    await _idsConfigurationDbContext.SaveChangesAsync();
+                    if (isAdd)
+                    {
+                        var owner = new ClientOwners
+                        {
+                            ClientId = client.Id,
+                            UserId = userId
+                        };
+                        await _idsConfigurationDbContext.ClientOwners.AddAsync(owner);
+                        await _idsConfigurationDbContext.SaveChangesAsync();
+                    }
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
-            else
+        }
+
+        public async Task RemoveClientByIdAsync(int id, int userId)
+        {
+            var client = await _idsConfigurationDbContext.Clients.FindAsync(id);
+            if (client == null)
             {
-                var redirectUris = await _idsConfigurationDbContext.ClientRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientRedirectUris.RemoveRange(redirectUris);
-
-                var grantTypes = await _idsConfigurationDbContext.ClientGrantTypes.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientGrantTypes.RemoveRange(grantTypes);
-
-                var postLogoutRedirectUris = await _idsConfigurationDbContext.ClientPostLogoutRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientPostLogoutRedirectUris.RemoveRange(postLogoutRedirectUris);
-
-                var scopes = await _idsConfigurationDbContext.ClientScopes.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientScopes.RemoveRange(scopes);
-
-                var idPRestrictions = await _idsConfigurationDbContext.ClientIdPRestrictions.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientIdPRestrictions.RemoveRange(idPRestrictions);
-
-                var claims = await _idsConfigurationDbContext.ClientClaims.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientClaims.RemoveRange(claims);
-
-                var corsOrigins = await _idsConfigurationDbContext.ClientCorsOrigins.Where(x => x.ClientId == client.Id).ToListAsync();
-                _idsConfigurationDbContext.ClientCorsOrigins.RemoveRange(corsOrigins);
-
-
-                _idsConfigurationDbContext.Clients.Update(client);
+                throw new Exception("客户端不存在");
             }
-            
-            await _idsConfigurationDbContext.SaveChangesAsync();
+
+            var owner = await _idsConfigurationDbContext.ClientOwners.FirstOrDefaultAsync(x => x.ClientId == client.Id && x.UserId == userId);
+            if (owner == null)
+            {
+                throw new Exception("客户端所有权有误");
+            }
+
+            using (var transaction = await _idsConfigurationDbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    _idsConfigurationDbContext.Clients.Remove(client);
+                    _idsConfigurationDbContext.ClientOwners.Remove(owner);
+
+                    await _idsConfigurationDbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
         }
 
 
@@ -117,6 +171,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .Include(x => x.IdentityProviderRestrictions)
                 .Include(x => x.Claims)
                 .Include(x => x.AllowedCorsOrigins)
+                .AsSplitQuery()
                 .AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
         }
 
@@ -140,17 +195,13 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-
-
         #region help methods
-
-
 
         private IEnumerable<ClientGrantType> TransferClientGrantType(ICollection<string> grantTypes)
         {
             foreach (var grantType in grantTypes)
             {
-                yield return new ClientGrantType() { GrantType = grantType, };
+                yield return new ClientGrantType() {GrantType = grantType,};
             }
         }
 
