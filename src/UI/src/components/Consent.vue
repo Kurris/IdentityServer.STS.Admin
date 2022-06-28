@@ -132,7 +132,7 @@ export default {
 			let apiScopes = this.setting.apiScopes.filter(x => x.checked)
 
 			NProgress.start()
-			let url = 'https://identity.isawesome.cn/identity/api/consent/setting/process'
+			let url = 'https://isawesome.cn:5000/api/consent/setting/process'
 
 			document.write(`<form action=${url}  method=post name=form1 style='display:none'>`)
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)
