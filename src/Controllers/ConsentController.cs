@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using IdentityServer.STS.Admin.Configuration;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Consent;
@@ -21,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
+    /// <summary>
+    /// 同意屏幕控制器
+    /// </summary>
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -151,15 +153,16 @@ namespace IdentityServer.STS.Admin.Controllers
                 result.RedirectUri = input.ReturnUrl;
                 result.Client = context.Client;
             }
-            else
-            {
-                //重新展示同意屏幕
-                result.ConsentModel = await BuildConsentModelAsync(input.ReturnUrl, input);
-            }
 
             return result;
         }
 
+        /// <summary>
+        /// 创建同意屏幕模型
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         private async Task<ConsentOutput> BuildConsentModelAsync(string returnUrl, ConsentInput model = null)
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
@@ -203,8 +206,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 AllowRememberConsent = context.Client.AllowRememberConsent
             };
 
-            output.IdentityScopes = context.ValidatedResources.Resources
-                .IdentityResources
+            output.IdentityScopes = context.ValidatedResources.Resources.IdentityResources
                 .Select(x => CreateScopeModel(x, output.ScopesConsented.Contains(x.Name) || input == null));
 
             var apiScopes = new List<ScopeOutput>();

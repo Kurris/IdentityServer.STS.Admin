@@ -13,8 +13,6 @@ namespace IdentityServer.STS.Admin.Models.Consent
 
         public Client Client { get; set; }
 
-        public ConsentOutput ConsentModel { get; set; }
-
         public bool HasValidationError => !string.IsNullOrEmpty(ValidationError);
 
         public string ValidationError { get; set; }
