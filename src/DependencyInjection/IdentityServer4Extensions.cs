@@ -84,27 +84,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         {
             var certificateConfiguration = configuration.GetSection("CertificateConfiguration").Get<CertificateOption>();
 
-            if (certificateConfiguration.UseValidationCertificateThumbprint)
-            {
-                if (string.IsNullOrWhiteSpace(certificateConfiguration.ValidationCertificateThumbprint))
-                {
-                    throw new Exception("指纹证书没有定义");
-                }
-
-                var certStore = new X509Store(StoreName.Root, StoreLocation.LocalMachine);
-                certStore.Open(OpenFlags.ReadOnly);
-
-                var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, certificateConfiguration.ValidationCertificateThumbprint, false);
-                if (certCollection.Count == 0)
-                {
-                    throw new Exception("找不到指纹证书");
-                }
-
-                var certificate = certCollection[0];
-
-                builder.AddValidationKey(certificate);
-            }
-            else if (certificateConfiguration.UseValidationCertificatePfxFile)
+            if (certificateConfiguration.UseValidationCertificatePfxFile)
             {
                 if (string.IsNullOrWhiteSpace(certificateConfiguration.ValidationCertificatePfxFilePath))
                 {
@@ -142,51 +122,11 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         {
             var certificateConfiguration = configuration.GetSection("CertificateConfiguration").Get<CertificateOption>();
 
-            //指纹
-            if (certificateConfiguration.UseSigningCertificateThumbprint)
+            //开发者签名
+            if (certificateConfiguration.UseTemporarySigningKeyForDevelopment)
             {
-                if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificateThumbprint))
-                {
-                    throw new Exception("证书没有定义");
-                }
-
-                StoreLocation storeLocation;
-                var validOnly = certificateConfiguration.CertificateValidOnly;
-
-                // Parse the Certificate StoreLocation
-                var certStoreLocationLower = certificateConfiguration.CertificateStoreLocation.ToLower();
-
-                if (certStoreLocationLower == StoreLocation.CurrentUser.ToString().ToLower()
-                    || certificateConfiguration.CertificateStoreLocation == ((int) StoreLocation.CurrentUser).ToString())
-                {
-                    storeLocation = StoreLocation.CurrentUser;
-                }
-                else if (certStoreLocationLower == StoreLocation.LocalMachine.ToString().ToLower()
-                         || certStoreLocationLower == ((int) StoreLocation.LocalMachine).ToString())
-                {
-                    storeLocation = StoreLocation.LocalMachine;
-                }
-                else
-                {
-                    storeLocation = StoreLocation.LocalMachine;
-                    validOnly = true;
-                }
-
-                // Open Certificate
-                var certStore = new X509Store(StoreName.My, storeLocation);
-                certStore.Open(OpenFlags.ReadOnly);
-
-                var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, certificateConfiguration.SigningCertificateThumbprint, validOnly);
-                if (certCollection.Count == 0)
-                {
-                    throw new Exception("找不到证书");
-                }
-
-                var certificate = certCollection[0];
-
-                builder.AddSigningCredential(certificate);
+                builder.AddDeveloperSigningCredential(signingAlgorithm: IdentityServerConstants.RsaSigningAlgorithm.RS256);
             }
-            //pfx
             else if (certificateConfiguration.UseSigningCertificatePfxFile)
             {
                 if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificatePfxFilePath))
@@ -209,11 +149,6 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 {
                     throw new Exception($"签名密钥文件: {certificateConfiguration.SigningCertificatePfxFilePath} 不存在");
                 }
-            }
-            //开发者签名
-            else if (certificateConfiguration.UseTemporarySigningKeyForDevelopment)
-            {
-                builder.AddDeveloperSigningCredential(signingAlgorithm: IdentityServerConstants.RsaSigningAlgorithm.RS256);
             }
             else
             {

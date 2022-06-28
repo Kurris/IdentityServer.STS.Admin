@@ -1,4 +1,9 @@
+using System;
+using System.IO;
+using IdentityServer.STS.Admin.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -16,7 +21,35 @@ namespace IdentityServer.STS.Admin
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); }).UseSerilog((context, configuration) =>
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    var config = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddEnvironmentVariables()
+                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
+                        .Build();
+
+                    var certificateConfiguration = config.GetSection("CertificateConfiguration").Get<CertificateOption>();
+
+                    string filename = certificateConfiguration.SigningCertificatePfxFilePath;
+                    string password = certificateConfiguration.SigningCertificatePfxFilePassword;
+
+                    if (File.Exists(filename))
+                    {
+                        webBuilder.ConfigureKestrel(options =>
+                        {
+                            options.ListenAnyIP(5000, listenOptions =>
+                            {
+                                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                                listenOptions.UseHttps(filename, password);
+                            });
+                        });
+                    }
+
+                    webBuilder.UseStartup<Startup>();
+                })
+                .UseSerilog((context, configuration) =>
                 {
                     var serilog = configuration.MinimumLevel.Debug()
                         .MinimumLevel.Override("System", LogEventLevel.Warning)

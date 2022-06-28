@@ -7,12 +7,12 @@ namespace IdentityServer.STS.Admin.Configuration
     {
         public bool UseTemporarySigningKeyForDevelopment { get; set; }
 
-        public string CertificateStoreLocation { get; set; }
-        public bool CertificateValidOnly { get; set; }
+        // public string CertificateStoreLocation { get; set; }
+        // public bool CertificateValidOnly { get; set; }
 
-        public bool UseSigningCertificateThumbprint { get; set; }
+        // public bool UseSigningCertificateThumbprint { get; set; }
 
-        public string SigningCertificateThumbprint { get; set; }
+        // public string SigningCertificateThumbprint { get; set; }
 
         public bool UseSigningCertificatePfxFile { get; set; }
 
@@ -20,9 +20,9 @@ namespace IdentityServer.STS.Admin.Configuration
 
         public string SigningCertificatePfxFilePassword { get; set; }
 
-        public bool UseValidationCertificateThumbprint { get; set; }
+        // public bool UseValidationCertificateThumbprint { get; set; }
 
-        public string ValidationCertificateThumbprint { get; set; }
+        // public string ValidationCertificateThumbprint { get; set; }
 
         public bool UseValidationCertificatePfxFile { get; set; }
 
