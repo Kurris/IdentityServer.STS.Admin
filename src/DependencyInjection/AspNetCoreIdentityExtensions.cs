@@ -89,6 +89,8 @@ namespace IdentityServer.STS.Admin.DependencyInjection
         {
             var frontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
 
+            options.CallbackPath = "/identity" + options.CallbackPath;
+
             options.ClientId = configuration.GetSection($"OAuth:{scheme}:ClientId").Value;
             options.ClientSecret = configuration.GetSection($"OAuth:{scheme}:ClientSecret").Value;
 
