@@ -124,7 +124,7 @@ export default {
 			let returnUrl = this.$route.query.returnUrl || ''
 
 			NProgress.start()
-			let url = 'https://isawesome.cn:5000/api/account/externalLogin'
+			let url = 'http://localhost:5000/api/account/externalLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
@@ -155,9 +155,11 @@ export default {
 			}
 
 			this.show = this.setting.enableLocalLogin
-			let provider = this.setting.externalProviders[0].authenticationScheme
-			if (!this.show && provider) {
-				this.externalLogin(provider)
+			if (!this.show) {
+				let provider = this.setting.externalProviders[0].authenticationScheme
+				if (provider) {
+					this.externalLogin(provider)
+				}
 			}
 		})
 	},
@@ -199,9 +201,6 @@ export default {
 
 >>> .el-input__inner {
 	width: 300px !important;
-}
-.signin {
-	min-width: 300px;
 }
 
 .signin .title {

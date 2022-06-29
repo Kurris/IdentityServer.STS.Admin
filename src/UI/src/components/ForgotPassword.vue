@@ -63,7 +63,6 @@ export default {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
 }
 
 .container {

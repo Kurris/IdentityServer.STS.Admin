@@ -16,10 +16,10 @@ const signinWith2fa = () => import('../components/SigninWith2fa.vue')
 const twoFactorAuthentication = () => import('../components/setting/TwoFactorAuthentication.vue')
 const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.vue')
 const grants = () => import('../components/setting/Grants.vue')
-const password = () => import('../components/Password.vue')
+const password = () => import('../components/setting/Password.vue')
 const profile = () => import('../components/setting/Profile.vue')
 const personalData = () => import('../components/PersonalData.vue')
-const externalLogins = () => import('../components/ExternalLogins.vue')
+const externalLogins = () => import('../components/setting/ExternalLogins.vue')
 const forgotPassword = () => import('../components/ForgotPassword.vue')
 const resetPassword = () => import('../components/ResetPassword.vue')
 const register = () => import('../components/Register.vue')
@@ -63,6 +63,10 @@ const routes = [
 			{
 				path: 'twoFactorAuthentication',
 				component: twoFactorAuthentication,
+			},
+			{
+				path: 'externalLogins',
+				component: externalLogins,
 			},
 			{
 				path: 'profile',
@@ -123,10 +127,6 @@ const routes = [
 	{
 		path: '/personalData',
 		component: personalData,
-	},
-	{
-		path: '/externalLogins',
-		component: externalLogins,
 	},
 	{
 		path: '/forgotPassword',

@@ -1,7 +1,7 @@
 <template>
 	<div id="cookieTip">
 		<span
-			>为了让您有更好的交互体验,网站将会使用cookie来保持登录,您的个人数据从不会被获取,除非您同意认证应用!
+			>为了让您有更好的交互体验,网站将会使用cookie来保持登录,您的个人数据不会被获取和分析,除非您同意认证应用!
 			<a href="https://www.cookiesandyou.com/">了解更多</a>
 		</span>
 		<div class="confirm" @click="confirm">
@@ -26,17 +26,13 @@ export default {
 </script>
 <style scoped>
 #cookieTip {
-	position: fixed;
-	bottom: 0;
-	height: 100px;
-	width: 100%;
-	font-size: 15px;
-	color: #949699;
-	box-shadow: 10px 20px 10px 20px #d5d5d5;
-	background-color: #edeff4;
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
+	height: 40px;
+	width: 60%;
+	font-size: 15px;
+	color: #949699;
 }
 
 .confirm {

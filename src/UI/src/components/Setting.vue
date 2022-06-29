@@ -14,6 +14,10 @@
 					<i class="el-icon-key"></i>
 					<span slot="title">Password and Authentication</span>
 				</el-menu-item>
+				<el-menu-item index="/setting/externalLogins">
+					<i class="el-icon-connection"></i>
+					<span slot="title">External Logins</span>
+				</el-menu-item>
 			</el-menu-item-group>
 			<el-menu-item-group>
 				<template slot="title">
@@ -22,7 +26,7 @@
 				</template>
 				<el-menu-item index="/setting/grants">
 					<i class="el-icon-mobile-phone"></i>
-					<span slot="title">OAuth Granted Apps</span>
+					<span slot="title">Granted OAuth Apps</span>
 				</el-menu-item>
 			</el-menu-item-group>
 			<el-menu-item index="/setting/development">
@@ -31,7 +35,7 @@
 			</el-menu-item>
 		</el-menu>
 		<div class="view">
-			<router-view></router-view>
+			<router-view />
 		</div>
 	</div>
 </template>
@@ -43,13 +47,7 @@ export default {
 			activeRoute: '/setting/profile',
 		}
 	},
-	// watch: {
-	// 	$route(val) {
-	// 		console.log(val)
-	// 	},
-	// },
 	beforeMount() {
-		console.log(this.$route)
 		this.activeRoute = this.$route.path
 	},
 }

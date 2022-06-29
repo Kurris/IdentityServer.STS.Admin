@@ -25,6 +25,9 @@
 					<i class="el-icon-arrow-down"></i>
 				</template>
 			</div>
+			<div v-else>
+				<slot name="operation" />
+			</div>
 		</div>
 		<div id="dropdownContainer" :style="{ height: dropdownHeight }">
 			<div id="slot">

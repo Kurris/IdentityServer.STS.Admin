@@ -111,7 +111,7 @@ export default {
 	methods: {
 		async process(allow) {
 			NProgress.start()
-			let url = 'https://isawesome.cn:5000/api/device'
+			let url = 'http://localhost:5000/api/device'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)

@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import Password from '../Password.vue'
+import Password from './Password.vue'
 import TwoFactorAuthentication from './TwoFactorAuthentication.vue'
 export default {
 	components: { Password, TwoFactorAuthentication },

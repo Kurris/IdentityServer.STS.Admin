@@ -4,7 +4,7 @@
 		<el-divider></el-divider>
 		<div v-if="hasPassword != null">
 			<el-card shadow="hover">
-				<el-form ref="form" :form="form">
+				<el-form ref="form" :form="form" label-width="70px">
 					<el-form-item :label="hasPassword ? '旧密码' : ''">
 						<template v-if="hasPassword">
 							<el-input v-model="form.oldPassword" type="password" autocomplete="off" name="oldPassword"></el-input>
@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { checkPassword, savePassword } from '../net/api.js'
+import { checkPassword, savePassword } from '../../net/api.js'
 
 export default {
 	components: {},
