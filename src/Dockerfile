@@ -19,5 +19,4 @@ RUN dotnet publish "IdentityServer.STS.Admin.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ./isawesome.cn.pfx /app/isawesome.cn.pfx
 ENTRYPOINT ["dotnet", "IdentityServer.STS.Admin.dll"]

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Web;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Resolvers;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -58,16 +59,7 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 options.User.RequireUniqueEmail = false; //邮件是否唯一
             });
 
-            services.AddAuthentication()
-                .AddGitHub(options => options.SetDefaultSetting(configuration, "GitHub"))
-                .AddWeibo(options =>
-                {
-                    options.SetDefaultSetting(configuration, "Weibo");
-                    options.Scope.Remove("email");
-                })
-                .AddDiscord(options => options.SetDefaultSetting(configuration, "Discord"))
-                .AddAlipay(options => options.SetDefaultSetting(configuration, "Alipay"));
-
+            services.AddAuthentication().AddOAuth2Authentications(configuration);
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Admin", policy =>
@@ -76,6 +68,50 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                         .RequireAuthenticatedUser();
                 });
             });
+        }
+
+
+        /// <summary>
+        /// 添加oauth2.0登录
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        private static AuthenticationBuilder AddOAuth2Authentications(this AuthenticationBuilder builder, IConfiguration configuration)
+        {
+            if (AbleIntegrate(configuration, "GitHub"))
+            {
+                builder.AddGitHub(options => options.SetDefaultSetting(configuration, "GitHub"));
+            }
+
+            if (AbleIntegrate(configuration, "Alipay"))
+            {
+                builder.AddAlipay(options => options.SetDefaultSetting(configuration, "Alipay"));
+            }
+
+            if (AbleIntegrate(configuration, "Discord"))
+            {
+                builder.AddDiscord(options => options.SetDefaultSetting(configuration, "Discord"));
+            }
+
+            if (AbleIntegrate(configuration, "Weibo"))
+            {
+                builder.AddWeibo(options =>
+                {
+                    options.SetDefaultSetting(configuration, "Weibo");
+                    options.Scope.Remove("email");
+                });
+            }
+
+            return builder;
+        }
+
+        private static bool AbleIntegrate(IConfiguration configuration, string scheme)
+        {
+            var clientId = configuration.GetSection($"OAuth:{scheme}:ClientId").Value;
+            var clientSecret = configuration.GetSection($"OAuth:{scheme}:ClientSecret").Value;
+
+            return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
         }
 
         /// <summary>

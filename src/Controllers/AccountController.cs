@@ -133,7 +133,9 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<object>> CheckLoginAndGetUiSetting(string returnUrl)
         {
             var output = await BuildLoginResultAsync(returnUrl);
+#if DEBUG
             _logger.LogInformation("Enabled external login providers: {Providers}", string.Join(",", output.ExternalProviders.Select(x => x.DisplayName)));
+#endif
 
             return new ApiResult<object>
             {
