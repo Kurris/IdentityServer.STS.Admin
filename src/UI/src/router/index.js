@@ -18,7 +18,7 @@ const loginWithRecoveryCode = () => import('../components/LoginWithRecoveryCode.
 const grants = () => import('../components/setting/Grants.vue')
 const password = () => import('../components/setting/Password.vue')
 const profile = () => import('../components/setting/Profile.vue')
-const personalData = () => import('../components/PersonalData.vue')
+const account = () => import('../components/setting/Account.vue')
 const externalLogins = () => import('../components/setting/ExternalLogins.vue')
 const forgotPassword = () => import('../components/ForgotPassword.vue')
 const resetPassword = () => import('../components/ResetPassword.vue')
@@ -80,6 +80,10 @@ const routes = [
 				path: 'grants',
 				component: grants,
 			},
+			{
+				path: 'account',
+				component: account,
+			},
 		],
 	},
 	{
@@ -122,11 +126,6 @@ const routes = [
 	{
 		path: '/password',
 		component: password,
-	},
-
-	{
-		path: '/personalData',
-		component: personalData,
 	},
 	{
 		path: '/forgotPassword',

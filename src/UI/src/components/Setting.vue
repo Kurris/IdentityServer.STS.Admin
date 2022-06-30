@@ -3,7 +3,11 @@
 		<el-menu :default-active="activeRoute" router text-color="black">
 			<el-menu-item index="/setting/profile">
 				<i class="el-icon-user"></i>
-				<span slot="title">Profile</span>
+				<span slot="title">Public Profile</span>
+			</el-menu-item>
+			<el-menu-item index="/setting/account">
+				<i class="el-icon-setting"></i>
+				<span slot="title">Account</span>
 			</el-menu-item>
 			<el-menu-item-group>
 				<template slot="title">
@@ -30,7 +34,7 @@
 				</el-menu-item>
 			</el-menu-item-group>
 			<el-menu-item index="/setting/development">
-				<i class="el-icon-setting"></i>
+				<i class="el-icon-s-operation"></i>
 				<span slot="title">Development Setting</span>
 			</el-menu-item>
 		</el-menu>

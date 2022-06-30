@@ -4,28 +4,27 @@
 		<el-divider></el-divider>
 		<template v-if="model != null">
 			<template v-if="model.otherLogins.length > 0">
-				<h4>添加其他服务以登录</h4>
+				<h4>添加其他可用的外部登录</h4>
 				<template v-for="(item, index) in model.otherLogins">
-					<p :key="index">
-						<el-button type="success" @click="linkExternalLogin(item.name)">{{ item.displayName }}</el-button>
-					</p>
+					<!-- <el-button  type="success" >{{  }}</el-button> -->
+					<AuthorizeItem divider :title="item.displayName" :key="index">
+						<ExternalAvatar :loginProvider="item.name" :size="32" slot="img" />
+						<template slot="operation" v-if="model.ableRemove">
+							<el-button type="primary" @click="linkExternalLogin(item.name)">关联账号</el-button>
+						</template>
+					</AuthorizeItem>
 				</template>
 			</template>
 
 			<template v-if="model.currentLogins.length">
-				<h4>已绑定的登录</h4>
+				<h4>已绑定的外部登录</h4>
 				<template v-for="(item, index) in model.currentLogins">
-					<div :key="index">
-						<AuthorizeItem :title="item.loginProvider">
-							<!-- <template slot="img">
-								<el-avatar src=""></el-avatar>
-							</template> -->
-							<template slot="operation" v-if="model.ableRemove">
-								<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)">解除</el-button>
-							</template>
-						</AuthorizeItem>
-						<el-divider></el-divider>
-					</div>
+					<AuthorizeItem divider :title="item.providerDisplayName" :key="index">
+						<ExternalAvatar :loginProvider="item.loginProvider" :size="32" slot="img" />
+						<template slot="operation" v-if="model.ableRemove">
+							<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)">解除关联</el-button>
+						</template>
+					</AuthorizeItem>
 				</template>
 			</template>
 		</template>
@@ -35,10 +34,12 @@
 <script>
 import { getExternalLogins, deleteExternalLogin } from '../../net/api.js'
 import AuthorizeItem from '../AuthorizeItem.vue'
+import ExternalAvatar from '../ExternalAvatar.vue'
 
 export default {
 	components: {
 		AuthorizeItem,
+		ExternalAvatar,
 	},
 	data() {
 		return {

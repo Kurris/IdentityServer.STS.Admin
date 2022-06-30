@@ -2,10 +2,9 @@
 
 namespace IdentityServer.STS.Admin.Models.Manager
 {
-    public class DeletePersonalDataInputModel
+    public class DeletePersonalDataInput
     {
-        [DataType(DataType.Password)]
-        [Required]
+        [Required(ErrorMessage = "密码不能为空")]
         public string Password { get; set; }
     }
 }

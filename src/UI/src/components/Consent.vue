@@ -2,35 +2,37 @@
 	<div class="consent">
 		<div v-if="setting != null">
 			<div class="logo">
-				<el-avatar :src="setting.ClientLogoUrl" :size="70"></el-avatar>
+				<el-avatar :src="setting.clientLogoUrl" :size="64"></el-avatar>
 				<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
 				<i class="el-icon-success" style="font-size: 32px"></i>
 				<div v-for="n in 7" :key="'right' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
-				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="70"></el-avatar>
-				<!-- </template> -->
+				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="64"></el-avatar>
 			</div>
 
 			<div class="title">
-				<h2>{{ setting.clientName }} 正在请求额外的权限</h2>
+				<h2>
+					<p>{{ setting.clientName }}</p>
+					<span>正在请求您的访问权限</span>
+				</h2>
 			</div>
 
 			<div class="panel">
 				<div class="notice">
 					<AuthorizeItem :title="setting.clientName" description="希望获取额外的访问权限">
 						<template slot="img">
-							<el-avatar src=""></el-avatar>
+							<el-avatar :src="setting.clientLogoUrl"></el-avatar>
 						</template>
 						<span
 							>来自于 <el-link type="primary">{{ setting.clientOwner.userName }}</el-link>
 						</span>
 					</AuthorizeItem>
 
-					<AuthorizeItem title="用户私人的数据" :isDropdown="true" :scopeLength="scopeLength" description="个人的信息(只读)或者其他应用级别的权限(读写)">
+					<AuthorizeItem divider title="用户私人的数据" description="个人的信息(只读)或者其他应用级别的权限(读写)">
 						<template slot="img">
-							<i class="el-icon-user" style="color: #555b65; font-size: 40px"></i>
+							<i class="el-icon-user" style="color: #555b65; font-size: 32px; padding: 4px"></i>
 						</template>
-						<template slot="dropdown">
-							<div class="userData">
+						<template slot="container">
+							<div class="userData" v-if="dropdownStatus">
 								<template v-if="setting.identityScopes">
 									<template v-for="item in setting.identityScopes">
 										<div :key="item.displayName">
@@ -50,9 +52,18 @@
 								</el-link>
 							</div>
 						</template>
+						<div slot="operation" style="cursor: pointer">
+							<div @click="dropdownStatus = !dropdownStatus">
+								<template v-if="dropdownStatus">
+									<i class="el-icon-arrow-up" style="font-size: 15px; font-weight: bold"></i>
+								</template>
+								<template v-else>
+									<i class="el-icon-arrow-down" style="font-size: 15px; font-weight: bold"></i>
+								</template>
+							</div>
+						</div>
 					</AuthorizeItem>
 
-					<el-divider></el-divider>
 					<div class="extension">
 						<div>
 							<span style="font-weight: bold; font-size: 14px"> 存在的许可 </span>
@@ -72,8 +83,8 @@
 					<div style="text-align: center; margin-bottom: 30px">
 						<el-divider></el-divider>
 						<div style="margin-top: 40px">
-							<el-button class="nohover" size="small" @click="process(false)">不许可</el-button>
-							<el-button class="green" size="small" autofocus @click="process(true)">许可</el-button>
+							<el-button type="warning" plain @click="process(false)">不许可</el-button>
+							<el-button type="primary" v-focus @click="process(true)">许可</el-button>
 						</div>
 
 						<div style="font-size: 10px; margin-top: 30px">
@@ -123,6 +134,7 @@ export default {
 	},
 	data() {
 		return {
+			dropdownStatus: false,
 			setting: null,
 		}
 	},
@@ -265,16 +277,5 @@ div.dashed + div.dashed {
 
 .userData {
 	max-width: 420px;
-}
-
-.el-button.green {
-	background-color: #53a258;
-	color: white;
-}
-
-.el-button.nohover:hover {
-	border-color: #dddfe5;
-	background-color: unset;
-	color: unset;
 }
 </style>

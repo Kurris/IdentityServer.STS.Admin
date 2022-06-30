@@ -9,7 +9,7 @@
 			<template v-for="grant in grants">
 				<AuthorizeItem style="margin-top: 20px" :key="grant.clientId" :description="'创建于' + grant.created + '	拥有者:'" :isDropdown="true" :scopeLength="4">
 					<template slot="img">
-						<el-avatar fit="fill" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" :src="grant.clientLogoUrl" :size="56" />
+						<el-avatar style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" :src="grant.clientLogoUrl" :size="56" />
 					</template>
 					<el-link type="primary" :underline="false" @click.stop="goClient(grant.clientUrl)">{{ grant.clientName }}</el-link>
 					<template slot="dropdown">

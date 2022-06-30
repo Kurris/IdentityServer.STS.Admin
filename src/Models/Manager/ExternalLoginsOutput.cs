@@ -12,12 +12,12 @@ namespace IdentityServer.STS.Admin.Models.Manager
         /// <summary>
         /// 当前登录
         /// </summary>
-        public IList<UserLoginInfo> CurrentLogins { get; set; }
+        public IEnumerable<UserLoginInfo> CurrentLogins { get; set; }
 
         /// <summary>
         /// 其他登录
         /// </summary>
-        public IList<AuthenticationScheme> OtherLogins { get; set; }
+        public IEnumerable<AuthenticationScheme> OtherLogins { get; set; }
 
         /// <summary>
         /// 是否可以解除关联

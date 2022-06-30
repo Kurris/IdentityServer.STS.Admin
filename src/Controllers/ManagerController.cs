@@ -56,7 +56,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<PersonalProfileAndClaims>> GetPersonalProfileAndClaims()
         {
             var user = await _userManager.GetUserAsync(User);
-
             var claims = await _userManager.GetClaimsAsync(user);
             var profile = OpenIdClaimHelpers.ExtractProfileInfo(claims);
 
@@ -118,17 +117,17 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 删除个人信息
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="input"></param>
         /// <exception cref="Exception"></exception>
         [HttpDelete("profile")]
-        public async Task DeletePersonalData(DeletePersonalDataInputModel model)
+        public async Task DeletePersonalData(DeletePersonalDataInput input)
         {
             var user = await _userManager.GetUserAsync(User);
 
             var requirePassword = await _userManager.HasPasswordAsync(user);
             if (requirePassword)
             {
-                if (!await _userManager.CheckPasswordAsync(user, model.Password))
+                if (!await _userManager.CheckPasswordAsync(user, input.Password))
                 {
                     throw new Exception("密码错误");
                 }
@@ -153,13 +152,13 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             var personalDataProps = typeof(User).GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
-            var personalData = personalDataProps.ToDictionary(p => p.Name, p => p.GetValue(user)?.ToString() ?? "null");
+            var personalData = personalDataProps.ToDictionary(p => p.Name, p => p.GetValue(user) ?? string.Empty);
 
             Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
             Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
             return new FileContentResult(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(personalData)), "application/octet-stream")
             {
-                FileDownloadName = "PersonalData.json",
+                FileDownloadName = "data.json",
             };
         }
 
@@ -393,22 +392,33 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         [HttpGet("externalLogins")]
-        public async Task<ApiResult<object>> ExternalLogins()
+        public async Task<ApiResult<ExternalLoginsOutput>> ExternalLogins()
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var model = new ExternalLoginsOutput
+            //注册的外部登录
+            var registeredExternalLogins = await _signInManager.GetExternalAuthenticationSchemesAsync();
+            if (!registeredExternalLogins.Any())
+            {
+                return new ApiResult<ExternalLoginsOutput>
+                {
+                    Data = new ExternalLoginsOutput()
+                };
+            }
+
+            var output = new ExternalLoginsOutput
             {
                 CurrentLogins = await _userManager.GetLoginsAsync(user)
             };
 
-            model.OtherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync())
-                .Where(auth => model.CurrentLogins.All(ul => auth.Name != ul.LoginProvider))
-                .ToList();
+            output.OtherLogins = registeredExternalLogins.Where(auth => output.CurrentLogins.All(ul => auth.Name != ul.LoginProvider));
+            //外部登录关联存在没有密码的情况
+            output.AbleRemove = await _userManager.HasPasswordAsync(user) || output.CurrentLogins.Count() > 1;
 
-            model.AbleRemove = await _userManager.HasPasswordAsync(user) || model.CurrentLogins.Count > 1;
-
-            return new ApiResult<object> {Data = model};
+            return new ApiResult<ExternalLoginsOutput>
+            {
+                Data = output
+            };
         }
 
         /// <summary>

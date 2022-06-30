@@ -9,7 +9,7 @@
 				<div class="signin">
 					<div class="title">
 						<h1>登录</h1>
-						<div>没有帐号？<el-link type="success" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
+						<div>没有帐号？<el-link type="primary" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
 					</div>
 					<template>
 						<el-form>
@@ -21,10 +21,10 @@
 							</el-form-item>
 							<el-form-item>
 								<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-								<el-link type="success" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
+								<el-link type="primary" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
 							</el-form-item>
 							<el-form-item>
-								<el-button style="width: 100%" type="success" @click="login" :loading="loginLoading">登录</el-button>
+								<el-button style="width: 100%" type="primary" @click="login" :loading="loginLoading">登录</el-button>
 							</el-form-item>
 						</el-form>
 					</template>

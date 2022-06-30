@@ -1,18 +1,21 @@
 <template>
 	<div id="client">
-		<div style="text-align: right">
+		<p style="text-align: right">
 			<el-button type="primary" @click="addClient">添加新的客户端</el-button>
-		</div>
-		<el-table :data="pagination.items" style="width: 100%" stripe>
-			<el-table-column label="客户端标识" prop="clientId"> </el-table-column>
-			<el-table-column label="客户端名称" prop="clientName"> </el-table-column>
-			<el-table-column label="操作" fixed="right">
-				<template slot-scope="scope">
-					<el-button type="primary" @click="editClient(scope.row.id)" plain>编辑</el-button>
-					<el-button type="danger" @click="removeClient(scope.row.id, scope.row.clientName)" plain>移除</el-button>
+		</p>
+
+		<template v-for="item in pagination.items">
+			<AuthorizeItem :key="item.id" :title="item.clientName" divider :description="description">
+				<template slot="img">
+					<el-avatar :src="item.logoUri" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" />
 				</template>
-			</el-table-column>
-		</el-table>
+				<template slot="operation">
+					<el-button type="primary" @click="editClient(item.id)" plain>编辑</el-button>
+					<el-button type="danger" @click="removeClient(item.id, item.clientName)" plain>移除</el-button>
+				</template>
+			</AuthorizeItem>
+		</template>
+
 		<el-pagination
 			background
 			@size-change="handleSizeChange"
@@ -263,9 +266,11 @@
 
 <script>
 import { getClientPage, getClientType, saveClient, removeClient, getClientById, getProtocolTypes, getGrantTypes, getScopes, getAccessTokenTypes, getTokenExpirations } from '../../../net/admin.js'
-
+import AuthorizeItem from '../../../components/AuthorizeItem.vue'
 export default {
-	components: {},
+	components: {
+		AuthorizeItem,
+	},
 	data() {
 		return {
 			pagination: {
