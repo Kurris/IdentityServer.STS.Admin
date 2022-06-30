@@ -79,7 +79,7 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
         private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
-        private string BackendBaseUrl => _configuration.GetSection("BackendBaseUrl").Value;
+        private string BackendBaseUrl =>  this.Request.Scheme + "://" + this.Request.Host;
 
 
         /// <summary>

@@ -42,11 +42,11 @@ namespace IdentityServer.STS.Admin.Controllers
             _urlEncoder = urlEncoder;
 
             FrontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
-            BackendBaseUrl = configuration.GetSection("BackendBaseUrl").Value;
         }
 
         private string FrontendBaseUrl { get; }
-        private string BackendBaseUrl { get; }
+
+        private string BackendBaseUrl => this.Request.Scheme + "://" + this.Request.Host;
 
         /// <summary>
         /// 获取个人信息
@@ -56,7 +56,6 @@ namespace IdentityServer.STS.Admin.Controllers
         public async Task<ApiResult<PersonalProfileAndClaims>> GetPersonalProfileAndClaims()
         {
             var user = await _userManager.GetUserAsync(User);
-            _logger.LogInformation(this.Request.Scheme + "://" + this.Request.Host);
 
             var claims = await _userManager.GetClaimsAsync(user);
             var profile = OpenIdClaimHelpers.ExtractProfileInfo(claims);
