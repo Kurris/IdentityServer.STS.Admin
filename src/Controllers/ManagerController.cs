@@ -42,9 +42,13 @@ namespace IdentityServer.STS.Admin.Controllers
             _urlEncoder = urlEncoder;
 
             FrontendBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
+            BackendBaseUrl = configuration.GetSection("BackendBaseUrl").Value;
+
+            _logger.LogInformation(this.Request.Scheme + "://" + this.Request.Host);
         }
 
         private string FrontendBaseUrl { get; }
+        private string BackendBaseUrl { get; }
 
         /// <summary>
         /// 获取个人信息
@@ -420,7 +424,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //清除当前存在的外部登录cookie,确保登录无误
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            var redirectUrl = FrontendBaseUrl + Url.Action(nameof(LinkLoginCallback));
+            var redirectUrl = BackendBaseUrl + Url.Action(nameof(LinkLoginCallback));
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(model.Provider, redirectUrl, _userManager.GetUserId(User));
 
             return Challenge(properties, model.Provider);
@@ -432,7 +436,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        [HttpGet("linkLoginCallback")]
+        [HttpGet("linkExternalLoginCallback")]
         public async Task<IActionResult> LinkLoginCallback()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -449,7 +453,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var result = await _userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
-                return await RedirectHelper.Error(new Dictionary<string, string>()
+                return await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = string.Join(",", result.Errors.Select(x => x.Description))
                 });
@@ -458,7 +462,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //清除当前存在的外部登录cookie,确保登录无误
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            var url = $"{FrontendBaseUrl}/externalLogins";
+            var url = $"{FrontendBaseUrl}/setting/externalLogins";
             return Redirect(url);
         }
 
