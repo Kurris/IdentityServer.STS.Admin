@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Web;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Models;
+using IdentityServer.STS.Admin.Models.Account;
 using IdentityServer.STS.Admin.Models.Consent;
 using IdentityServer4;
 using IdentityServer4.Events;
@@ -193,7 +194,10 @@ namespace IdentityServer.STS.Admin.Controllers
 
             var output = new ConsentOutput
             {
-                ClientOwner = user,
+                ClientOwner = new UserOutput
+                {
+                    UserName = user.UserName
+                },
                 RememberConsent = input?.RememberConsent ?? false,
                 ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
                 Description = input?.Description,

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using IdentityServer.STS.Admin.Entities;
+using IdentityServer.STS.Admin.Models.Account;
 
 namespace IdentityServer.STS.Admin.Models.Consent
 {
@@ -8,7 +8,7 @@ namespace IdentityServer.STS.Admin.Models.Consent
         /// <summary>
         /// 拥有者
         /// </summary>
-        public User ClientOwner { get; set; }
+        public UserOutput ClientOwner { get; set; }
 
         /// <summary>
         /// 应用名称

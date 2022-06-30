@@ -88,7 +88,6 @@ export default {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
 }
 
 .container {
@@ -98,7 +97,7 @@ export default {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	box-shadow: 10px 1px 50px 21px #d9d9d9;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	background-color: #ffffff;
 }
 
