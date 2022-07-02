@@ -189,19 +189,6 @@ export const saveClient = data => {
 	})
 }
 
-export const getClientType = () => {
-	return http({
-		method: 'get',
-		url: 'api/configuration/client/types',
-	})
-}
-
-export const getProtocolTypes = () => {
-	return http({
-		url: 'api/configuration/protocolTypes',
-		method: 'get',
-	})
-}
 export const getGrantTypes = () => {
 	return http({
 		url: 'api/configuration/grantTypes',
@@ -216,15 +203,9 @@ export const getScopes = () => {
 	})
 }
 
-export const getAccessTokenTypes = () => {
+export const getEnums = () => {
 	return http({
-		url: 'api/configuration/accessTokenTypes',
-		method: 'get',
-	})
-}
-export const getTokenExpirations = () => {
-	return http({
-		url: 'api/configuration/tokenExpirations',
+		url: 'api/configuration/enums',
 		method: 'get',
 	})
 }

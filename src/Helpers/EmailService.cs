@@ -1,7 +1,6 @@
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using MimeKit.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,23 +23,24 @@ namespace IdentityServer.STS.Admin.Helpers
         }
 
 
-        #region 自定义配置
-
+        /// <summary>
+        /// 发送电子邮件
+        /// </summary>
+        /// <param name="subject">主题</param>
+        /// <param name="content">内容</param>
+        /// <param name="toAddresses">接收方信息</param>
+        /// <param name="options">发送人账号密码</param>
         public async Task SendEmailAsync(string subject, string content, IEnumerable<MailboxAddress> toAddresses, MailkitOptions options)
         {
             await SendEmailAsync(subject, content, toAddresses, null, options);
         }
 
-        #endregion
-
-
-        #region 使用默认配置
 
         /// <summary>
         /// 发送电子邮件
         /// </summary>
-        /// <param name="subject">邮件主题</param>
-        /// <param name="content">邮件内容主题</param>
+        /// <param name="subject">主题</param>
+        /// <param name="content">内容</param>
         /// <param name="toAddress">接收方信息</param>
         /// <returns></returns>
         public async Task SendEmailAsync(string subject, string content, IEnumerable<MailboxAddress> toAddress)
@@ -50,28 +50,27 @@ namespace IdentityServer.STS.Admin.Helpers
 
 
         /// <summary>
-        /// 发送邮箱 (传入发送账号密码)
+        /// 发送电子邮件
         /// </summary>
-        /// <param name="subject"></param>
-        /// <param name="content"></param>
-        /// <param name="toAddresses"></param>
-        /// <param name="attachments"></param>
+        /// <param name="subject">主题</param>
+        /// <param name="content">内容</param>
+        /// <param name="toAddresses">接收方信息</param>
+        /// <param name="attachments">附件</param>
         /// <returns></returns>
         public async Task SendEmailAsync(string subject, string content, IEnumerable<MailboxAddress> toAddresses, IEnumerable<AttachmentInfo> attachments)
         {
             await SendEmailAsync(subject, content, toAddresses, attachments, null);
         }
 
-        #endregion
 
         /// <summary>
         /// 发送电子邮件
         /// </summary>
-        /// <param name="subject"></param>
-        /// <param name="content"></param>
-        /// <param name="toAddresses"></param>
-        /// <param name="attachments"></param>
-        /// <param name="options"></param>
+        /// <param name="subject">主题</param>
+        /// <param name="content">内容</param>
+        /// <param name="toAddresses">接收方信息</param>
+        /// <param name="attachments">附件</param>
+        /// <param name="options">发送人账号密码</param>
         public async Task SendEmailAsync(string subject
             , string content
             , IEnumerable<MailboxAddress> toAddresses
@@ -92,28 +91,25 @@ namespace IdentityServer.STS.Admin.Helpers
                     HtmlBody = content
                 };
 
-                if (attachments != null && attachments.Any())
+                message.Body = builder.ToMessageBody();
+                message.Date = DateTime.Now;
+
+                if (attachments?.Any() == true)
                 {
                     foreach (var att in attachments)
                     {
-                        if (att.Stream != null)
-                        {
-                            var attachment = string.IsNullOrWhiteSpace(att.ContentType)
-                                ? new MimePart()
-                                : new MimePart(att.ContentType);
+                        var attachment = string.IsNullOrWhiteSpace(att.ContentType)
+                            ? new MimePart()
+                            : new MimePart(att.ContentType);
 
-                            attachment.Content = new MimeContent(att.Stream);
-                            attachment.ContentDisposition = new ContentDisposition(ContentDisposition.Attachment);
-                            attachment.ContentTransferEncoding = ContentEncoding.Default;
-                            attachment.FileName = ConvertHeaderToBase64(att.FileName, Encoding.UTF8); //解决附件中文名问题
+                        attachment.Content = new MimeContent(att.Stream);
+                        attachment.ContentDisposition = new ContentDisposition(ContentDisposition.Attachment);
+                        attachment.ContentTransferEncoding = ContentEncoding.Default;
+                        attachment.FileName = ConvertHeaderToBase64(att.FileName, Encoding.UTF8); //解决附件中文名问题
 
-                            builder.Attachments.Add(attachment);
-                        }
+                        builder.Attachments.Add(attachment);
                     }
                 }
-
-                message.Body = builder.ToMessageBody();
-                message.Date = DateTime.Now;
 
                 using (var client = new SmtpClient())
                 {
@@ -123,13 +119,6 @@ namespace IdentityServer.STS.Admin.Helpers
 
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
-                    if (attachments != null)
-                    {
-                        foreach (var att in attachments)
-                        {
-                            att.Dispose();
-                        }
-                    }
                 }
             }
         }
@@ -154,6 +143,12 @@ namespace IdentityServer.STS.Admin.Helpers
         }
 
 
+        public AttachmentInfo(Stream stream, string contentType)
+        {
+            this.ContentType = contentType;
+            this.Stream = stream;
+        }
+
         /// <summary>
         /// 文件名称
         /// </summary>
@@ -169,6 +164,7 @@ namespace IdentityServer.STS.Admin.Helpers
         /// 文件数据流，获取数据时优先采用此部分
         /// </summary>
         public Stream Stream { get; private set; }
+
 
         /// <summary>
         /// 释放Stream

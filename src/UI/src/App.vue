@@ -61,7 +61,6 @@
 <script>
 //
 import { logout, getLoginStatus } from './net/api.js'
-// import CookieTip from './components/CookieTip.vue'
 
 export default {
 	name: 'app',
@@ -194,11 +193,5 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	height: 65vh;
-	background-position: 0 100%;
-	background-repeat: no-repeat;
-	background-size: 42.5%;
-	padding: 100px 0;
-	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
 	<div id="password" v-loading="isLoading">
-		<h1>密码(Password)</h1>
+		<h2>密码(Password)</h2>
 		<el-divider></el-divider>
 		<div v-if="hasPassword != null">
 			<el-card shadow="hover">

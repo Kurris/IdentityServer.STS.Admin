@@ -36,7 +36,6 @@ namespace IdentityServer.STS.Admin.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private const double ExpiredTime = 30;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IWebHostEnvironment _environment;
         private readonly SignInManager<User> _signInManager;
@@ -44,11 +43,12 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IEventService _eventService;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
-        private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly EmailGenerateService _emailGenerateService;
+        private readonly EmailService _emailService;
         private readonly ITimeLimitedDataProtector _timeLimitedDataProtector;
         private readonly ILogger<AccountController> _logger;
+        private const double ExpiredTime = 30;
 
 
         public AccountController(IIdentityServerInteractionService interaction,
@@ -58,10 +58,10 @@ namespace IdentityServer.STS.Admin.Controllers
             , IEventService eventService
             , IClientStore clientStore
             , IAuthenticationSchemeProvider schemeProvider
-            , EmailService emailService
             , IConfiguration configuration
             , EmailGenerateService emailGenerateService
             , IDataProtectionProvider protectionProvider
+            , EmailService emailService
             , ILogger<AccountController> logger)
         {
             _interaction = interaction;
@@ -71,15 +71,15 @@ namespace IdentityServer.STS.Admin.Controllers
             _eventService = eventService;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
-            _emailService = emailService;
             _configuration = configuration;
             _emailGenerateService = emailGenerateService;
+            _emailService = emailService;
             _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
             _logger = logger;
         }
 
         private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
-        private string BackendBaseUrl =>  this.Request.Scheme + "://" + this.Request.Host;
+        private string BackendBaseUrl => this.Request.Scheme + "://" + this.Request.Host;
 
 
         /// <summary>
@@ -295,14 +295,19 @@ namespace IdentityServer.STS.Admin.Controllers
                 });
 
                 var content = await _emailGenerateService.GetEmailConfirmHtml(user.UserName, callbackUrl, ExpiredTime.ToString());
+
                 await _emailService.SendEmailAsync("验证邮箱用户", content, new[] {new MailboxAddress(model.UserName, model.Email)});
             }
             else
             {
-                //DuplicateUserName
-                //DuplicateEmail
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
             }
+        }
+
+
+        [HttpPost("validation/email")]
+        public async Task ConfirmEmail()
+        {
         }
 
         /// <summary>
@@ -689,7 +694,9 @@ namespace IdentityServer.STS.Admin.Controllers
         {
             if (userId == null || code == null)
             {
+#if DEBUG
                 _logger.LogInformation("userId and core mybe empty or null: userId-{UserId} code-{Code}", userId, code);
+#endif
                 return await RedirectHelper.Error(new Dictionary<string, string>
                 {
                     ["error"] = "验证失败"
@@ -726,7 +733,9 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             var result = await _userManager.ConfirmEmailAsync(user, code);
+#if DEBUG
             _logger.LogInformation("confirm email result is : {Result}", JsonConvert.SerializeObject(result));
+#endif
 
             return result.Succeeded
                 ? await RedirectHelper.Success(new Dictionary<string, string>()
@@ -829,9 +838,9 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("loggedOut")]
-        public async Task<ApiResult<LoggedOutOutput>> Logout(LogoutInput model)
+        public async Task<ApiResult<LoggedOutOutput>> Logout(LogoutInput input)
         {
-            var output = await BuildLoggedOutModelAsync(model.LogoutId);
+            var output = await BuildLoggedOutModelAsync(input.LogoutId);
 
             //存在登录凭证
             if (User?.Identity.IsAuthenticated == true)

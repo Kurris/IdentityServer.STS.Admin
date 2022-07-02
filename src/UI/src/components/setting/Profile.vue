@@ -1,6 +1,6 @@
 <template>
 	<div id="profile" v-loading="isLoading">
-		<h1>用户信息</h1>
+		<h2>用户信息</h2>
 		<el-divider></el-divider>
 		<div v-if="profile != null">
 			<div class="flex">

@@ -1,6 +1,6 @@
 <template>
 	<div id="development">
-		<h1>开发者设置(development)</h1>
+		<h2>开发者设置(development)</h2>
 		<el-tabs tab-position="top">
 			<el-tab-pane label="OAuth应用(OAuth Apps)">
 				<MyOAuthApp />
@@ -19,5 +19,4 @@ export default {
 	components: { Pat, MyOAuthApp },
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

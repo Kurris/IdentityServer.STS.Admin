@@ -1,59 +1,72 @@
 <template>
 	<div id="client">
 		<p style="text-align: right">
-			<el-button type="primary" @click="addClient">添加新的客户端</el-button>
+			<el-button type="primary" @click="addClient">添加新的应用</el-button>
 		</p>
 
-		<template v-for="item in pagination.items">
-			<AuthorizeItem :key="item.id" :title="item.clientName" divider :description="description">
-				<template slot="img">
-					<el-avatar :src="item.logoUri" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" />
-				</template>
-				<template slot="operation">
-					<el-button type="primary" @click="editClient(item.id)" plain>编辑</el-button>
-					<el-button type="danger" @click="removeClient(item.id, item.clientName)" plain>移除</el-button>
-				</template>
-			</AuthorizeItem>
+		<template v-if="pagination.items.length > 0">
+			<template v-for="item in pagination.items">
+				<AuthorizeItem :key="item.id" divider :description="item.description">
+					<template> {{ item.clientName }} | {{ item.clientId }} </template>
+					<template slot="img">
+						<el-avatar :src="item.logoUri" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" />
+					</template>
+					<template slot="operation" v-if="item.nonEditable == 0">
+						<el-button type="primary" @click="editClient(item.id)" plain>编辑</el-button>
+						<el-button type="danger" @click="removeClient(item.id, item.clientName)" plain>移除</el-button>
+					</template>
+				</AuthorizeItem>
+			</template>
+
+			<el-pagination
+				background
+				@size-change="handleSizeChange"
+				@current-change="handleCurrentChange"
+				:current-page="pagination.pageIndex"
+				:page-sizes="[5, 10]"
+				:page-size="pagination.pageSize"
+				layout="total, sizes, prev, pager, next"
+				:total="pagination.totalCount"
+			>
+			</el-pagination>
 		</template>
 
-		<el-pagination
-			background
-			@size-change="handleSizeChange"
-			@current-change="handleCurrentChange"
-			:current-page="pagination.pageIndex"
-			:page-sizes="[5, 10]"
-			:page-size="pagination.pageSize"
-			layout="total, sizes, prev, pager, next"
-			:total="pagination.totalCount"
-		>
-		</el-pagination>
-
 		<el-drawer title="客户端管理" :visible.sync="clientDrawer" :with-header="true" size="800px">
-			<p>
-				<el-button type="primary" style="width: 40%" @click="save">保存</el-button>
-			</p>
-			<div id="clientContainer">
+			<el-divider></el-divider>
+			<div class="clientContainer" v-if="enums != null">
+				<el-button type="primary" @click="save" style="margin-left: 20px">保存应用配置</el-button>
 				<template v-if="operateType == 0">
-					<el-form ref="client" :model="form" label-width="150px">
-						<el-form-item label="客户端标识">
-							<el-input v-model="form.clientId"></el-input>
-						</el-form-item>
-						<el-form-item label="客户端名称">
-							<el-input v-model="form.clientName"></el-input>
-						</el-form-item>
-						<el-form-item label="客户端类型">
-							<el-select v-model="clientType" placeholder="请选择">
-								<el-option v-for="item in clientTypes" :key="item.id" :label="item.text" :value="item.id"> </el-option>
-							</el-select>
-						</el-form-item>
-					</el-form>
+					<el-card style="margin: 20px" shadow="hover">
+						<el-form ref="client" label-position="left" :model="form" label-width="240px">
+							<el-form-item label="应用类型">
+								<el-select v-model="clientType" placeholder="请选择" style="width: 100%">
+									<el-option v-for="item in enums.clientType" :key="item.id" :label="item.text" :value="item.id"> </el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="应用名称">
+								<el-input v-model="form.clientName"></el-input>
+							</el-form-item>
+							<el-form-item label="描述">
+								<el-input v-model="form.description" type="textarea" :autosize="{ minRows: 4, maxRows: 4 }"></el-input>
+							</el-form-item>
+							<el-form-item label="应用Uri">
+								<el-input v-model="form.clientUri"></el-input>
+							</el-form-item>
+							<el-form-item label="展示图标Uri">
+								<el-input v-model="form.logoUri"></el-input>
+								<p v-if="form.logoUri">
+									<el-avatar :src="form.logoUri"></el-avatar>
+								</p>
+							</el-form-item>
+						</el-form>
+					</el-card>
 				</template>
 				<template v-else>
-					<el-form ref="apiResourceForm" label-position="right" :model="form" label-width="180px">
-						<el-tabs type="border-card" v-model="tabName">
+					<el-form ref="apiResourceForm" label-position="left" :model="form" label-width="240px">
+						<el-tabs type="border-card" v-model="tabName" style="margin: 20px">
 							<el-tab-pane label="名称" name="name">
-								<el-form-item label="clientId">
-									<el-input v-model="form.clientId"></el-input>
+								<el-form-item label="ClientId">
+									<el-input v-model="form.clientId" readonly></el-input>
 								</el-form-item>
 								<el-form-item label="显示名称">
 									<el-input v-model="form.clientName"></el-input>
@@ -64,32 +77,42 @@
 									<el-switch v-model="form.enabled"></el-switch>
 								</el-form-item>
 								<el-form-item label="描述">
-									<el-input v-model="form.description"></el-input>
+									<el-input v-model="form.description" type="textarea" autosize></el-input>
 								</el-form-item>
-								<el-form-item label="协议类型">
-									<el-select v-model="form.protocolType" placeholder="请选择">
-										<el-option v-for="item in protocolTypes" :key="item.id" :label="item.text" :value="item.id"> </el-option>
-									</el-select>
-								</el-form-item>
-								<el-form-item label="需要客户端密钥">
+								<el-form-item label="需要应用密钥">
 									<el-switch v-model="form.requireClientSecret"></el-switch>
 								</el-form-item>
-								<el-form-item label="需要授权参数冗余到jwt中">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认为 false" placement="top">
+											<span>需要请求授权参数附加到JWT中 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.requireRequestObject"></el-switch>
 								</el-form-item>
-								<el-form-item label="需要 Pkce">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认为 true" placement="top">
+											<span>需要Pkce <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.requirePkce"></el-switch>
 								</el-form-item>
-								<el-form-item label="允许纯文本 Pkce">
+								<el-form-item label="允许纯文本Pkce">
 									<el-switch v-model="form.allowPlainTextPkce"></el-switch>
 								</el-form-item>
-								<el-form-item label="允许离线访问">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="刷新token必须,携带scope offline_access" placement="top">
+											<span>允许离线访问 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.allowOfflineAccess"></el-switch>
 								</el-form-item>
 								<el-form-item label="允许通过浏览器访问令牌">
 									<el-switch v-model="form.allowAccessTokensViaBrowser"></el-switch>
 								</el-form-item>
-								<el-form-item label="允许的重定向Uris">
+								<el-form-item label="授权后重定向地址">
 									<el-input v-model="redirectUri">
 										<el-button slot="append" icon="el-icon-more-outline"></el-button>
 									</el-input>
@@ -116,30 +139,34 @@
 										<el-tag :key="item.id">{{ item.grantType }}</el-tag>
 									</template>
 								</el-form-item>
-								<el-form-item label="客户端密钥">
-									<el-button type="primary">管理客户端密钥</el-button>
+								<el-form-item label="应用密钥">
+									<el-button type="primary">管理应用密钥</el-button>
 								</el-form-item>
-								<el-form-item label="客户端属性">
-									<el-button type="primary">客户端属性</el-button>
+								<el-form-item label="应用属性">
+									<el-button type="primary">管理应用属性</el-button>
 								</el-form-item>
 							</el-tab-pane>
 							<el-tab-pane label="认证/注销" name="identity">
 								<el-form-item label="启用本地登录">
 									<el-switch v-model="form.enableLocalLogin"></el-switch>
 								</el-form-item>
-								<el-form-item label="需要前端通道注销会话">
-									<el-switch v-model="form.frontChannelLogoutSessionRequired"></el-switch>
-								</el-form-item>
-								<el-form-item v-show="form.frontChannelLogoutSessionRequired" label="前端通道注销 Uri">
-									<el-input v-model="form.frontChannelLogoutUri"></el-input>
-								</el-form-item>
-								<el-form-item label="需要后端通道注销会话">
-									<el-switch v-model="form.backChannelLogoutSessionRequired"></el-switch>
-								</el-form-item>
-								<el-form-item v-show="form.backChannelLogoutSessionRequired" label="后端通道注销 Uri">
-									<el-input v-model="form.backChannelLogoutUri"></el-input>
-								</el-form-item>
-								<el-form-item label="注销重定向 Uri">
+								<el-card style="margin-top: 10px; margin-bottom: 10px" shadow="hover">
+									<el-form-item label="需要前端通道注销会话">
+										<el-switch v-model="form.frontChannelLogoutSessionRequired"></el-switch>
+									</el-form-item>
+									<el-form-item v-show="form.frontChannelLogoutSessionRequired" label="前端通道注销 Uri">
+										<el-input v-model="form.frontChannelLogoutUri"></el-input>
+									</el-form-item>
+								</el-card>
+								<el-card style="margin-top: 10px; margin-bottom: 10px" shadow="hover">
+									<el-form-item label="需要后端通道注销会话">
+										<el-switch v-model="form.backChannelLogoutSessionRequired"></el-switch>
+									</el-form-item>
+									<el-form-item v-show="form.backChannelLogoutSessionRequired" label="后端通道注销 Uri">
+										<el-input v-model="form.backChannelLogoutUri"></el-input>
+									</el-form-item>
+								</el-card>
+								<el-form-item label="注销后重定向Uri">
 									<el-input v-model="postLogoutRedirectUri">
 										<el-button slot="append" icon="el-icon-more-outline"></el-button>
 									</el-input>
@@ -147,7 +174,12 @@
 										<el-tag :key="item.id">{{ item.postLogoutRedirectUri }}</el-tag>
 									</template>
 								</el-form-item>
-								<el-form-item label="外部身份提供程序限制">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="设置允许的外部登录,如果为空则允许所有,默认为空" placement="top">
+											<span>外部身份提供程序限制 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-input v-model="identityProviderRestriction">
 										<el-button slot="append" icon="el-icon-more-outline"></el-button>
 									</el-input>
@@ -155,41 +187,81 @@
 										<el-tag :key="item.id">{{ item.provider }}</el-tag>
 									</template>
 								</el-form-item>
-								<el-form-item label=" 用户 SSO 生命周期">
-									<el-input-number v-model="form.userSsoLifetime"> </el-input-number>
+								<el-form-item label=" 用户SSO生命周期">
+									<el-input v-model.number="form.userSsoLifetime"> </el-input>
 								</el-form-item>
 							</el-tab-pane>
 							<el-tab-pane label="令牌" name="token">
-								<el-form-item label="身份令牌生命周期">
-									<el-input-number v-model="form.identityTokenLifetime"> </el-input-number>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认300秒,5分钟" placement="top">
+											<span>身份令牌生命周期 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-input v-model.number="form.identityTokenLifetime"> </el-input>
 								</el-form-item>
-								<el-form-item label="允许的身份令牌签名算法">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="id令牌的签名算法,如果为空则使用服务端的默认算法" placement="top">
+											<span>允许的身份令牌签名算法 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-input v-model="form.allowedIdentityTokenSigningAlgorithms"> </el-input>
 								</el-form-item>
-								<el-form-item label="访问令牌生命周期">
-									<el-input-number v-model="form.accessTokenLifetime"> </el-input-number>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认3600秒,一小时" placement="top">
+											<span>访问令牌生命周期 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-input v-model.number="form.accessTokenLifetime"> </el-input>
+								</el-form-item>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认300秒,5分钟" placement="top">
+											<span>授权码生命周期 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-input v-model.number="form.authorizationCodeLifetime"></el-input>
+								</el-form-item>
+								<el-card style="margin-top: 10px; margin-bottom: 10px" shadow="hover">
+									<el-form-item label="刷新令牌使用方式">
+										<el-select v-model="form.refreshTokenUsage">
+											<el-option v-for="item in enums.tokenUsage" :key="item.id" :label="item.text" :value="item.id" />
+										</el-select>
+									</el-form-item>
+									<el-form-item label="刷新令牌过期类型">
+										<el-select v-model="form.refreshTokenExpiration">
+											<el-option v-for="item in enums.tokenExpiration" :key="item.id" :label="item.text" :value="item.id" />
+										</el-select>
+									</el-form-item>
+									<el-form-item label="绝对刷新令牌生命周期" v-if="form.refreshTokenExpiration == 1">
+										<el-input v-model="form.absoluteRefreshTokenLifetime"> </el-input>
+									</el-form-item>
+									<el-form-item label="滑动刷新令牌生命周期" v-else>
+										<el-input v-model="form.slidingRefreshTokenLifetime"> </el-input>
+									</el-form-item>
+								</el-card>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="是否应在刷新令牌请求上更新访问令牌(及其声明)" placement="top">
+											<span>刷新时更新访问令牌声明 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-switch v-model="form.updateAccessTokenClaimsOnRefresh"></el-switch>
 								</el-form-item>
 								<el-form-item label="访问令牌类型">
 									<el-select v-model="form.accessTokenType">
-										<el-option v-for="item in accessTokenTypes" :key="item.id" :value="item.id" :label="item.text"> </el-option>
+										<el-option v-for="item in enums.accessTokenType" :key="item.id" :value="item.id" :label="item.text"> </el-option>
 									</el-select>
 								</el-form-item>
-								<el-form-item label="授权码生命周期">
-									<el-input v-model="form.authorizationCodeLifetime"> </el-input>
-								</el-form-item>
-								<el-form-item label="绝对刷新令牌生命周期">
-									<el-input v-model="form.absoluteRefreshTokenLifetime"> </el-input>
-								</el-form-item>
-								<el-form-item label="滚动刷新令牌生命周期">
-									<el-input v-model="form.slidingRefreshTokenLifetime"> </el-input>
-								</el-form-item>
-								<el-form-item label="刷新令牌使用情况">
-									<el-input v-model="form.slidingRefreshTokenLifetime"> </el-input>
-								</el-form-item>
-								<el-form-item label="刷新令牌过期类型">
-									<el-select v-model="form.refreshTokenExpiration">
-										<el-option v-for="item in tokenExpirations" :key="item.id" :label="item.text" :value="item.id"></el-option>
-									</el-select>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="指定JWT访问令牌是否携带唯一ID(通过claims.jti)。默认值为 true" placement="top">
+											<span>携带JWT唯一ID <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-switch v-model="form.includeJwtId"></el-switch>
 								</el-form-item>
 								<el-form-item label="允许跨域来源">
 									<el-input v-model="origin">
@@ -199,20 +271,26 @@
 										<el-tag :key="item.id">{{ item.origin }}</el-tag>
 									</template>
 								</el-form-item>
-								<el-form-item label="刷新时更新访问令牌声明">
-									<el-switch v-model="form.updateAccessTokenClaimsOnRefresh"></el-switch>
-								</el-form-item>
-								<el-form-item label=" 包括 Jwt 标识">
-									<el-switch v-model="form.includeJwtId"></el-switch>
-								</el-form-item>
-								<el-form-item label="始终发送客户端声明">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="如果设置了,在所有授权flow中客户端声明会被携带,否则只有客户端凭证授权flow才会携带,默认为 false" placement="top">
+											<span>携带客户端声明<i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.alwaysSendClientClaims"></el-switch>
 								</el-form-item>
-								<el-form-item label="始终在身份令牌中包含用户声明">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip
+											class="item"
+											effect="dark"
+											content="请求id令牌和访问令牌时,是否应始终将用户声明添加到 id 令牌，而不是要求客户端使用 userinfo 终结点。默认值为 false"
+											placement="top"
+										>
+											<span>始终在身份令牌中携带用户声明<i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.alwaysIncludeUserClaimsInIdToken"></el-switch>
-								</el-form-item>
-								<el-form-item label="客户端声明前缀">
-									<el-input v-model="form.clientClaimsPrefix"></el-input>
 								</el-form-item>
 								<el-form-item>
 									<template slot="label">
@@ -222,25 +300,54 @@
 									</template>
 									<el-input v-model="form.pairWiseSubjectSalt"></el-input>
 								</el-form-item>
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="默认 client_" placement="top">
+											<span>客户端声明前缀 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-input v-model="form.clientClaimsPrefix"></el-input>
+								</el-form-item>
 								<el-form-item label="客户端声明">
 									<el-button>客户端声明</el-button>
 								</el-form-item>
 							</el-tab-pane>
 							<el-tab-pane label="同意屏幕" name="consentScreen">
-								<el-form-item label="需要同意">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="定义是否展示同意屏幕,默认为 false" placement="top">
+											<span>启用同意屏幕授权流程 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.requireConsent"></el-switch>
 								</el-form-item>
-								<el-form-item label="允许记住同意">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="用户是否可以记住同意屏幕的授权操作,默认为 true" placement="top">
+											<span>允许记住授权操作 <i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
 									<el-switch v-model="form.allowRememberConsent"></el-switch>
 								</el-form-item>
-								<el-form-item label="客户端Uri">
+								<el-form-item>
+									<template slot="label">
+										<el-tooltip class="item" effect="dark" content="授权的生命时间,默认为 null,永不过期" placement="top">
+											<span>同意屏幕授权生命周期<i class="el-icon-info"></i></span>
+										</el-tooltip>
+									</template>
+									<el-input v-model.number="form.consentLifetime"></el-input>
+								</el-form-item>
+								<el-form-item label="应用Uri">
 									<el-input v-model="form.clientUri"></el-input>
 								</el-form-item>
-								<el-form-item label="展示头像Uri">
+								<el-form-item label="展示图标Uri">
 									<el-input v-model="form.logoUri"></el-input>
 									<p v-if="form.logoUri">
 										<el-avatar :src="form.logoUri"></el-avatar>
 									</p>
+								</el-form-item>
+								<el-form-item>
+									<el-button>预览同意屏幕</el-button>
 								</el-form-item>
 							</el-tab-pane>
 							<el-tab-pane label="设备流程" name="deviceFlow">
@@ -253,7 +360,7 @@
 											<span>设备code生命周期 <i class="el-icon-info"></i></span>
 										</el-tooltip>
 									</template>
-									<el-input-number v-model="form.deviceCodeLifetime"> </el-input-number>
+									<el-input v-model.number="form.deviceCodeLifetime"> </el-input>
 								</el-form-item>
 							</el-tab-pane>
 						</el-tabs>
@@ -265,7 +372,7 @@
 </template>
 
 <script>
-import { getClientPage, getClientType, saveClient, removeClient, getClientById, getProtocolTypes, getGrantTypes, getScopes, getAccessTokenTypes, getTokenExpirations } from '../../../net/admin.js'
+import { getClientPage, saveClient, removeClient, getClientById, getGrantTypes, getScopes, getEnums } from '../../../net/admin.js'
 import AuthorizeItem from '../../../components/AuthorizeItem.vue'
 export default {
 	components: {
@@ -281,14 +388,12 @@ export default {
 			},
 			tabName: 'name',
 			clientDrawer: false,
-			clientTypes: [],
 			clientType: 0,
 			form: {
 				clientId: null,
 				clientName: null,
 			},
 			operateType: 0,
-			protocolTypes: [],
 			grantTypes: [],
 			grantType: '',
 			redirectUri: '',
@@ -296,10 +401,9 @@ export default {
 			scope: '',
 			postLogoutRedirectUri: '',
 			identityProviderRestriction: '',
-			accessTokenTypes: [],
-			tokenExpirations: [],
 			origin: '',
 			currentId: 0,
+			enums: null,
 		}
 	},
 	methods: {
@@ -322,9 +426,7 @@ export default {
 		addClient() {
 			this.currentId = 0
 			this.operateType = 0
-			getClientType().then(res => {
-				this.clientTypes = res.data
-			})
+
 			this.clientDrawer = true
 			this.form = {
 				clientId: null,
@@ -356,29 +458,26 @@ export default {
 			this.operateType = 1
 
 			this.editLoading = true
-			await getProtocolTypes().then(res => {
-				this.protocolTypes = res.data
-			})
+
 			await getGrantTypes().then(res => {
 				this.grantTypes = res.data
 			})
 			await getScopes().then(res => {
 				this.scopes = res.data
 			})
-			await getAccessTokenTypes().then(res => {
-				this.accessTokenTypes = res.data
-			})
-			await getTokenExpirations().then(res => {
-				this.tokenExpirations = res.data
-			})
+
 			await getClientById({ id }).then(res => {
 				this.form = res.data
+				console.log(this.form)
 			})
 			this.editLoading = false
 			this.clientDrawer = true
 		},
 		async save() {
 			this.form.id = this.currentId
+			this.form.ClientType = this.clientType
+			this.form.protocolType = 'oidc'
+
 			await saveClient(this.form)
 			this.clientDrawer = false
 
@@ -393,11 +492,10 @@ export default {
 	},
 	async beforeMount() {
 		await this.getClientPage()
+		let enumsRes = await getEnums()
+		this.enums = enumsRes.data
+		console.log(this.enums)
 	},
 }
 </script>
-<style scoped>
-.clientContainer {
-	display: flex;
-}
-</style>
+<style scoped></style>

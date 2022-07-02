@@ -11,8 +11,11 @@
 					</span>
 					<slot></slot>
 					<br />
-					<span style="font-size: 10px; color: #91969b">
+					<span v-if="description" style="font-size: 10px; color: #91969b">
 						{{ description }}
+					</span>
+					<span v-else style="font-size: 10px; color: #91969b">
+						<slot name="description"></slot>
 					</span>
 				</div>
 			</div>

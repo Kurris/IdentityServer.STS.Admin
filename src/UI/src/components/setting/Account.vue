@@ -1,12 +1,17 @@
 <template>
 	<div id="account">
-		<h1>账号信息(account)</h1>
-		<el-divider></el-divider>
-		您的帐户包含您提供给我们的个人数据,允许您下载或删除该数据
-		<el-button @click="downloadData">下载个人数据</el-button>
 		<div>
-			删除此数据会永久删除您的帐户，并无法恢复。
-			<el-button @click="deleteData">删除个人数据</el-button>
+			<h2>下载个人数据(Download account)</h2>
+			<el-divider></el-divider>
+			<p>下载您的个人数据</p>
+			<el-button @click="downloadData">开始下载</el-button>
+		</div>
+
+		<div>
+			<h2 style="color: red">删除您的账号(Delete account)</h2>
+			<el-divider></el-divider>
+			<p>一旦删除您的账户,这将不可恢复,请确保您当前的操作</p>
+			<el-button type="danger" plain @click="deleteData">删除您的账户</el-button>
 		</div>
 	</div>
 </template>

@@ -22,18 +22,19 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         public async Task<Pagination<ApiScope>> QueryApiScopePage(ApiScopePageIn pageIn)
         {
             return await _idsConfigurationDbContext.ApiScopes
-                   .Include(x => x.UserClaims)
-                   .Include(x => x.Properties)
-                   .ToPagination(pageIn);
+                .Include(x => x.UserClaims)
+                .Include(x => x.Properties)
+                .OrderBy(x => x.Name)
+                .ToPagination(pageIn);
         }
 
         public async Task<ApiScope> QueryApiScope(int id)
         {
             return await _idsConfigurationDbContext.ApiScopes
-                        .Include(x => x.UserClaims)
-                        .Include(x => x.Properties)
-                        .AsNoTracking()
-                        .FirstAsync(x => x.Id == id);
+                .Include(x => x.UserClaims)
+                .Include(x => x.Properties)
+                .AsNoTracking()
+                .FirstAsync(x => x.Id == id);
         }
 
         public async Task SaveApiScope(ApiScope apiScope)
@@ -44,17 +45,14 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             }
             else
             {
-
                 var claims = await _idsConfigurationDbContext.ApiScopeClaims.Where(x => x.ScopeId == apiScope.Id).ToListAsync();
                 _idsConfigurationDbContext.ApiScopeClaims.RemoveRange(claims);
 
                 var properties = await _idsConfigurationDbContext.ApiScopeProperties.Where(x => x.ScopeId == apiScope.Id).ToListAsync();
                 _idsConfigurationDbContext.ApiScopeProperties.RemoveRange(properties);
 
-
                 _idsConfigurationDbContext.ApiScopes.Update(apiScope);
             }
-
 
             await _idsConfigurationDbContext.SaveChangesAsync();
         }

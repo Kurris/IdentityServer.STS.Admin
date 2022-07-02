@@ -29,6 +29,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         {
             return await _identityDbContext.Roles
                 .WhereIf(!string.IsNullOrEmpty(input.Content), x => x.Name.Contains(input.Content))
+                .OrderBy(x => x.Name)
                 .ToPagination(input);
         }
 
@@ -65,9 +66,9 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         public Task<Pagination<User>> QueryRoleUserPage(RoleUserSearchPageIn pageIn)
         {
             var users = _identityDbContext.UserRoles.Where(x => x.RoleId == pageIn.RoleId)
-                       .GroupJoin(_identityDbContext.Users, ur => ur.UserId, u => u.Id, (ur, u) => new { ur, u })
-                       .SelectMany(x => x.u.DefaultIfEmpty(), (ur, u) => u)
-                       .ToPagination(pageIn);
+                .GroupJoin(_identityDbContext.Users, ur => ur.UserId, u => u.Id, (ur, u) => new {ur, u})
+                .SelectMany(x => x.u.DefaultIfEmpty(), (ur, u) => u)
+                .ToPagination(pageIn);
             return users;
         }
     }

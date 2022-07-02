@@ -55,6 +55,18 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .ToPagination(pageIn);
         }
 
+        private static string GenerateStringId()
+        {
+            long i = 1;
+            foreach (byte b in Guid.NewGuid().ToByteArray())
+            {
+                i *= b + 1;
+            }
+
+            return $"{i - DateTime.Now.Ticks:x}";
+        }
+
+
         public async Task SaveClient(ClientInput client, int userId)
         {
             var isAdd = client.Id == 0;
@@ -197,11 +209,11 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         #region help methods
 
-        private IEnumerable<ClientGrantType> TransferClientGrantType(ICollection<string> grantTypes)
+        private static IEnumerable<ClientGrantType> TransferClientGrantType(IEnumerable<string> grantTypes)
         {
             foreach (var grantType in grantTypes)
             {
-                yield return new ClientGrantType() {GrantType = grantType,};
+                yield return new ClientGrantType {GrantType = grantType,};
             }
         }
 
@@ -238,6 +250,8 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            client.ClientId = GenerateStringId();
         }
 
         #endregion

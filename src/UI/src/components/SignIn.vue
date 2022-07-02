@@ -14,10 +14,10 @@
 					<template>
 						<el-form>
 							<el-form-item>
-								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" />
+								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" prefix-icon="el-icon-user" />
 							</el-form-item>
 							<el-form-item>
-								<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" />
+								<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" show-password prefix-icon="el-icon-key" />
 							</el-form-item>
 							<el-form-item>
 								<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>

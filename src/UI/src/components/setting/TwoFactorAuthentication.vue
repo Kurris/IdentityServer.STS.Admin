@@ -1,7 +1,7 @@
 <template>
 	<div id="twoFactorAuthentication" v-loading="isLoading">
 		<div class="flex">
-			<h1>双重身份验证(2FA)</h1>
+			<h2>双重身份验证(2FA)</h2>
 			<template v-if="setting != null">
 				<el-button v-if="setting.is2FaEnabled" type="danger" @click="enable2Fa(false)">停用2FA</el-button>
 				<el-button v-else type="success" @click="enable2Fa(true)">启用</el-button>

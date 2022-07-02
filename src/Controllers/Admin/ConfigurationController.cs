@@ -4,14 +4,18 @@ using IdentityServer.STS.Admin.Constants;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
-using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.Extensions;
+using IdentityServer4.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ApiResource = IdentityServer4.EntityFramework.Entities.ApiResource;
+using ApiScope = IdentityServer4.EntityFramework.Entities.ApiScope;
+using Client = IdentityServer4.EntityFramework.Entities.Client;
+using IdentityResource = IdentityServer4.EntityFramework.Entities.IdentityResource;
 
 namespace IdentityServer.STS.Admin.Controllers.Admin
 {
-    [Authorize()]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ConfigurationController : ControllerBase
@@ -35,16 +39,22 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             _clientService = clientService;
         }
 
+        [HttpGet("enums")]
+        public Dictionary<string, IEnumerable<SelectItem<int, string>>> GetEnums()
+        {
+            return new Dictionary<string, IEnumerable<SelectItem<int, string>>>
+            {
+                ["tokenUsage"] = EnumEx.GetEnumTypes<TokenUsage>(),
+                ["accessTokenType"] = EnumEx.GetEnumTypes<AccessTokenType>(),
+                ["clientType"] = EnumEx.GetEnumTypes<ClientType>(),
+                ["tokenExpiration"] = EnumEx.GetEnumTypes<TokenExpiration>()
+            };
+        }
+
         [HttpGet("claims")]
         public IEnumerable<string> GetStandardClaims()
         {
             return _configurationService.GetStandardClaims();
-        }
-
-        [HttpGet("protocolTypes")]
-        public IEnumerable<SelectItem<string, string>> GetProtocolTypes()
-        {
-            return ClientConstants.ProtocolTypes;
         }
 
 
@@ -59,18 +69,6 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         public async Task<IEnumerable<string>> GetScopesAsync()
         {
             return await _clientService.GetScopesAsync();
-        }
-
-        [HttpGet("accessTokenTypes")]
-        public IEnumerable<SelectItem<int, string>> GetAccessTokenTypes()
-        {
-            return EnumEx.GetEnumTypes<IdentityServer4.Models.AccessTokenType>();
-        }
-
-        [HttpGet("tokenExpirations")]
-        public IEnumerable<SelectItem<int, string>> GetTokenExpirations()
-        {
-            return EnumEx.GetEnumTypes<IdentityServer4.Models.TokenExpiration>();
         }
 
         #region identity resource
@@ -170,13 +168,6 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         {
             var userId = int.Parse(User.Identity.GetSubjectId());
             await _clientService.RemoveClientByIdAsync(id, userId);
-        }
-
-
-        [HttpGet("client/Types")]
-        public IEnumerable<SelectItem<int, string>> QueryClientSelection()
-        {
-            return EnumEx.GetEnumTypes<ClientType>();
         }
 
         [HttpPost("clientSecret")]

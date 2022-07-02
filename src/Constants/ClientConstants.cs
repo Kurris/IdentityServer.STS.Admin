@@ -78,14 +78,5 @@ namespace IdentityServer.STS.Admin.Constants
                 "ES384",
                 "ES512"
             };
-
-        /// <summary>
-        /// 协议类型
-        /// </summary>
-        public static IEnumerable<SelectItem<string, string>> ProtocolTypes =>
-            new List<SelectItem<string, string>>
-            {
-                new("oidc", "OpenID Connect")
-            };
     }
 }

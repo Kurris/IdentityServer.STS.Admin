@@ -25,17 +25,18 @@
 						@keyup.enter.native="login"
 					/>
 
-					<el-button :loading="isLoading" class="green" @click="login">验证</el-button>
+					<el-button :loading="isLoading" style="width: 290px" type="primary" @click="login">验证</el-button>
 
 					<p style="font-size: 13px; color: #636d74">您的登录使用身份验证器应用程序进行保护,打开双重验证器应用(TOTP)查看您的验证码</p>
-					<el-divider></el-divider>
 					<div>
 						<el-checkbox v-model="model.rememberMachine"> 记住当前设备 </el-checkbox>
 					</div>
+					<el-divider></el-divider>
+				</div>
+				<div class="footer">
+					<TipLink tipText="无法访问您的身份验证设备?" hrefText="使用恢复码登录" @click="goUseRecoveryCode" />
 				</div>
 			</div>
-
-			<div class="footer">无法访问您的身份验证设备?<el-link type="primary" @click="goUseRecoveryCode">使用恢复码登录</el-link></div>
 		</div>
 	</div>
 </template>
@@ -43,9 +44,12 @@
 <script>
 import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
 import NProgress from 'nprogress'
+import TipLink from './TipLink.vue'
 
 export default {
-	components: {},
+	components: {
+		TipLink,
+	},
 	data() {
 		return {
 			model: {
@@ -109,7 +113,7 @@ export default {
 
 .panel {
 	width: 350px;
-	border: 1px solid #d0d7dd;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	border-radius: 7px;
 	background-color: white;
 }
@@ -118,19 +122,12 @@ export default {
 	padding: 30px;
 }
 
-.el-button.green {
-	background-color: #2aa44c;
-	color: white;
-	width: 290px;
-}
-
 .footer {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	width: 350px;
 	height: 65px;
-	border: 1px solid #d0d7dd;
 	border-radius: 7px;
 	margin-top: 20px;
 	font-size: 14px;

@@ -33,10 +33,18 @@
 					<span slot="title">Granted OAuth Apps</span>
 				</el-menu-item>
 			</el-menu-item-group>
-			<el-menu-item index="/setting/development">
-				<i class="el-icon-s-operation"></i>
-				<span slot="title">Development Setting</span>
-			</el-menu-item>
+
+			<el-menu-item-group>
+				<template slot="title">
+					<el-divider></el-divider>
+				</template>
+				<el-menu-item index="/setting/development">
+					<i class="el-icon-s-operation"></i>
+					<template slot="title">
+						<span>Development Setting</span>
+					</template>
+				</el-menu-item>
+			</el-menu-item-group>
 		</el-menu>
 		<div class="view">
 			<router-view />

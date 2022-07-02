@@ -1,6 +1,6 @@
 <template>
 	<div id="externalLogins">
-		<h1>外部登录关联(External Logins)</h1>
+		<h2>外部登录关联(External Logins)</h2>
 		<el-divider></el-divider>
 		<template v-if="model != null">
 			<template v-if="model.otherLogins.length > 0">

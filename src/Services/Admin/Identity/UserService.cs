@@ -165,7 +165,9 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                     ProviderKey = x.login.ProviderKey,
                     LoginProvider = x.login.LoginProvider,
                     ProviderDisplayName = x.login.ProviderDisplayName
-                }).ToPagination(input);
+                })
+                .OrderBy(x => x.LoginProvider)
+                .ToPagination(input);
 
             return pages;
         }
