@@ -67,53 +67,51 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-        public async Task SaveClient(ClientInput client, int userId)
+        public async Task SaveClient(ClientInput input, int userId)
         {
-            var isAdd = client.Id == 0;
+            var isAdd = input.Id == 0;
             using (var transaction = await _idsConfigurationDbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
                     if (isAdd)
                     {
-                        PrepareClientTypeForNewClient(client);
+                        var client = PrepareClientTypeForNewClient(input);
                         await _idsConfigurationDbContext.Clients.AddAsync(client);
-                    }
-                    else
-                    {
-                        var redirectUris = await _idsConfigurationDbContext.ClientRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientRedirectUris.RemoveRange(redirectUris);
+                        await _idsConfigurationDbContext.SaveChangesAsync();
 
-                        var grantTypes = await _idsConfigurationDbContext.ClientGrantTypes.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientGrantTypes.RemoveRange(grantTypes);
-
-                        var postLogoutRedirectUris = await _idsConfigurationDbContext.ClientPostLogoutRedirectUris.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientPostLogoutRedirectUris.RemoveRange(postLogoutRedirectUris);
-
-                        var scopes = await _idsConfigurationDbContext.ClientScopes.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientScopes.RemoveRange(scopes);
-
-                        var idPRestrictions = await _idsConfigurationDbContext.ClientIdPRestrictions.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientIdPRestrictions.RemoveRange(idPRestrictions);
-
-                        var claims = await _idsConfigurationDbContext.ClientClaims.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientClaims.RemoveRange(claims);
-
-                        var corsOrigins = await _idsConfigurationDbContext.ClientCorsOrigins.Where(x => x.ClientId == client.Id).ToListAsync();
-                        _idsConfigurationDbContext.ClientCorsOrigins.RemoveRange(corsOrigins);
-
-                        _idsConfigurationDbContext.Clients.Update(client);
-                    }
-
-                    await _idsConfigurationDbContext.SaveChangesAsync();
-                    if (isAdd)
-                    {
                         var owner = new ClientOwners
                         {
                             ClientId = client.Id,
                             UserId = userId
                         };
                         await _idsConfigurationDbContext.ClientOwners.AddAsync(owner);
+                        await _idsConfigurationDbContext.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var redirectUris = await _idsConfigurationDbContext.ClientRedirectUris.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientRedirectUris.RemoveRange(redirectUris);
+
+                        var grantTypes = await _idsConfigurationDbContext.ClientGrantTypes.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientGrantTypes.RemoveRange(grantTypes);
+
+                        var postLogoutRedirectUris = await _idsConfigurationDbContext.ClientPostLogoutRedirectUris.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientPostLogoutRedirectUris.RemoveRange(postLogoutRedirectUris);
+
+                        var scopes = await _idsConfigurationDbContext.ClientScopes.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientScopes.RemoveRange(scopes);
+
+                        var idPRestrictions = await _idsConfigurationDbContext.ClientIdPRestrictions.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientIdPRestrictions.RemoveRange(idPRestrictions);
+
+                        var claims = await _idsConfigurationDbContext.ClientClaims.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientClaims.RemoveRange(claims);
+
+                        var corsOrigins = await _idsConfigurationDbContext.ClientCorsOrigins.Where(x => x.ClientId == input.Id).ToListAsync();
+                        _idsConfigurationDbContext.ClientCorsOrigins.RemoveRange(corsOrigins);
+
+                        _idsConfigurationDbContext.Clients.Update(input);
                         await _idsConfigurationDbContext.SaveChangesAsync();
                     }
 
@@ -218,9 +216,15 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-        private void PrepareClientTypeForNewClient(ClientInput client)
+        private static Client PrepareClientTypeForNewClient(ClientInput input)
         {
-            switch (client.ClientType)
+            var client = new Client
+            {
+                ClientId = GenerateStringId() ,
+                AllowedGrantTypes = new List<ClientGrantType>()
+            };
+
+            switch (input.ClientType)
             {
                 case ClientType.Empty:
                     break;
@@ -251,7 +255,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                     throw new ArgumentOutOfRangeException();
             }
 
-            client.ClientId = GenerateStringId();
+            return client;
         }
 
         #endregion
