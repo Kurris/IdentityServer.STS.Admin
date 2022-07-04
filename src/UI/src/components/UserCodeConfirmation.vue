@@ -63,7 +63,8 @@
 					<div class="row m-4">
 						<div class="col-sm-12">
 							<div class="toggle-button__input">
-								<el-switch v-model="model.rememberConsent" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
+								<el-switch v-model="model.rememberConsent" active-color="#13ce66"
+									inactive-color="#ff4949"> </el-switch>
 							</div>
 							<div class="toggle-button__text">
 								<strong>记住</strong>
@@ -138,4 +139,5 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>

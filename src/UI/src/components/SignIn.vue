@@ -9,22 +9,28 @@
 				<div class="signin">
 					<div class="title">
 						<h1>登录</h1>
-						<div>没有帐号？<el-link type="primary" @click="$router.push('/register')" :underline="false">点此注册</el-link></div>
+						<div>没有帐号？<el-link type="primary" @click="$router.push('/register')" :underline="false">点此注册
+							</el-link>
+						</div>
 					</div>
 					<template>
 						<el-form>
 							<el-form-item>
-								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号" @keyup.enter.native="login" prefix-icon="el-icon-user" />
+								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号"
+									@keyup.enter.native="login" prefix-icon="el-icon-user" />
 							</el-form-item>
 							<el-form-item>
-								<el-input type="password" v-model="form.password" placeholder="密码" @keyup.enter.native="login" show-password prefix-icon="el-icon-key" />
+								<el-input type="password" v-model="form.password" placeholder="密码"
+									@keyup.enter.native="login" show-password prefix-icon="el-icon-key" />
 							</el-form-item>
 							<el-form-item>
 								<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-								<el-link type="primary" style="float: right" @click="$router.push('/forgotPassword')" :underline="false">忘记密码?</el-link>
+								<el-link type="primary" style="float: right" @click="$router.push('/forgotPassword')"
+									:underline="false">忘记密码?</el-link>
 							</el-form-item>
 							<el-form-item>
-								<el-button style="width: 100%" type="primary" @click="login" :loading="loginLoading">登录</el-button>
+								<el-button style="width: 100%" type="primary" @click="login" :loading="loginLoading">登录
+								</el-button>
 							</el-form-item>
 						</el-form>
 					</template>
@@ -35,22 +41,26 @@
 							<template v-for="(item, i) in setting.externalProviders">
 								<template v-if="item.displayName == 'Alipay'">
 									<div :key="i">
-										<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
+										<img class="externalProvider" src="../assets/auth2logo/Alipay-32.svg"
+											@click="externalLogin(item.authenticationScheme)" title="使用支付宝登录" />
 									</div>
 								</template>
 								<template v-else-if="item.displayName == 'GitHub'">
 									<div :key="i">
-										<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png" @click="externalLogin(item.authenticationScheme)" title="使用github登录" />
+										<img class="externalProvider" src="../assets/auth2logo/GitHub-32.png"
+											@click="externalLogin(item.authenticationScheme)" title="使用github登录" />
 									</div>
 								</template>
 								<template v-else-if="item.displayName == 'Weibo'">
 									<div :key="i">
-										<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png" @click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
+										<img class="externalProvider" src="../assets/auth2logo/WeiBo-32.png"
+											@click="externalLogin(item.authenticationScheme)" title="使用微博登录" />
 									</div>
 								</template>
 								<template v-else-if="item.displayName == 'Discord'">
 									<div :key="i">
-										<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg" @click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
+										<img class="externalProvider" src="../assets/auth2logo/Discord-32.svg"
+											@click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
 									</div>
 								</template>
 							</template>
@@ -197,9 +207,12 @@ export default {
 	justify-content: center;
 	align-items: center;
 	margin-bottom: 150px;
+	border-radius: 10px;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
+	padding: 30px;
 }
 
->>> .el-input__inner {
+>>>.el-input__inner {
 	width: 300px !important;
 }
 

@@ -2,7 +2,7 @@
 	<div id="loginWithRecoveryCode">
 		<div>
 			<div class="title">
-				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="65"></el-avatar>
+				<AppAvatar />
 				<div style="margin-top: 40px">
 					<h2>恢复码验证</h2>
 				</div>
@@ -15,7 +15,8 @@
 					</div>
 
 					<span style="font-size: 13px">恢复码:</span>
-					<el-input ref="input" maxlength="8" v-model="code" style="margin-bottom: 20px; margin-top: 10px" placeholder="请输入恢复码" @keyup.enter.native="login" v-focus />
+					<el-input ref="input" maxlength="8" v-model="code" style="margin-bottom: 20px; margin-top: 10px"
+						placeholder="请输入恢复码" @keyup.enter.native="login" v-focus />
 					<el-button type="primary" style="width: 290px" @click="login" :loading="isLoading">恢复码验证</el-button>
 
 					<p style="font-size: 13px; color: #636d74">您已请求使用恢复码登录,当您无法访问双重验证器所在的设备,输入一组恢复码来验证您的身份。</p>
@@ -33,10 +34,12 @@
 import { signInWithCode, getLoginStatus, goSignInWithCode } from '../net/api.js'
 import NProgress from 'nprogress'
 import TipLink from './TipLink.vue'
+import AppAvatar from './AppAvatar.vue'
 
 export default {
 	components: {
 		TipLink,
+		AppAvatar
 	},
 	data() {
 		return {
@@ -75,7 +78,6 @@ export default {
 	display: flex;
 	height: 100vh;
 	justify-content: center;
-	background: #f6f8fa;
 }
 
 .title {

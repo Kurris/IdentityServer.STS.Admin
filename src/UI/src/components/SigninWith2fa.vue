@@ -2,7 +2,7 @@
 	<div id="signinWith2fa">
 		<div>
 			<div class="title">
-				<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="65"></el-avatar>
+				<AppAvatar />
 				<div style="margin-top: 40px">
 					<h2>双重身份验证</h2>
 				</div>
@@ -15,15 +15,9 @@
 					</div>
 
 					<span style="font-size: 13px">验证码:</span>
-					<el-input
-						ref="input"
-						v-model="model.twoFactorCode"
-						maxlength="6"
-						style="margin-bottom: 20px; margin-top: 10px"
-						placeholder="请输入6位验证码"
-						autofocus
-						@keyup.enter.native="login"
-					/>
+					<el-input ref="input" v-model="model.twoFactorCode" maxlength="6"
+						style="margin-bottom: 20px; margin-top: 10px" placeholder="请输入6位验证码" autofocus
+						@keyup.enter.native="login" />
 
 					<el-button :loading="isLoading" style="width: 290px" type="primary" @click="login">验证</el-button>
 
@@ -45,10 +39,12 @@
 import { checkTwoFactorAuthenticationUser, siginTwoFactorAuthenticationUser, getLoginStatus } from '../net/api.js'
 import NProgress from 'nprogress'
 import TipLink from './TipLink.vue'
+import AppAvatar from './AppAvatar.vue'
 
 export default {
 	components: {
 		TipLink,
+		AppAvatar
 	},
 	data() {
 		return {
@@ -102,7 +98,6 @@ export default {
 	display: flex;
 	height: 100vh;
 	justify-content: center;
-	background: #f6f8fa;
 }
 
 .title {
