@@ -296,7 +296,7 @@ namespace IdentityServer.STS.Admin.Controllers
 
                 var content = await _emailGenerateService.GetEmailConfirmHtml(user.UserName, callbackUrl, ExpiredTime.ToString());
 
-                await _emailService.SendEmailAsync("验证邮箱用户", content, new[] {new MailboxAddress(model.UserName, model.Email)});
+                await _emailService.SendEmailAsync("验证邮箱用户", content, new[] { new MailboxAddress(model.UserName, model.Email) });
             }
             else
             {
@@ -308,6 +308,7 @@ namespace IdentityServer.STS.Admin.Controllers
         [HttpPost("validation/email")]
         public async Task ConfirmEmail()
         {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -331,8 +332,8 @@ namespace IdentityServer.STS.Admin.Controllers
                 return await RedirectHelper.Go($"{FrontendBaseUrl}/signIn");
             }
 
-            // 使用当前外部登录关联的本地用户
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+            // 使用外部登录,跳过2fa
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
             if (result.Succeeded)
             {
                 if (!string.IsNullOrEmpty(returnUrl))
@@ -341,19 +342,20 @@ namespace IdentityServer.STS.Admin.Controllers
                 }
 
                 //重定向个人空间
-                return await RedirectHelper.Go($"{FrontendBaseUrl}/zone/{await _userManager.GetUserAsync(User)}");
+                return await RedirectHelper.Go($"{FrontendBaseUrl}/zone/{_userManager.GetUserName(User)}");
             }
 
-            if (result.RequiresTwoFactor)
-            {
-                var ps = new Dictionary<string, string>
-                {
-                    ["rememberMe"] = "false",
-                    ["returnUrl"] = returnUrl
-                };
-
-                return await RedirectHelper.Go($"{FrontendBaseUrl}/signinWith2fa", ps);
-            }
+            // if (result.RequiresTwoFactor)
+            // {
+            //     var ps = new Dictionary<string, string>
+            //     {
+            //         ["rememberMe"] = "false",
+            //         ["returnUrl"] = returnUrl,
+            //         ["withExternalLogin"] = "True"
+            //     };
+            //
+            //     return await RedirectHelper.Go($"{FrontendBaseUrl}/signinWith2fa", ps);
+            // }
 
             if (result.IsLockedOut)
             {
@@ -373,7 +375,6 @@ namespace IdentityServer.STS.Admin.Controllers
             return await RedirectHelper.Go($"{FrontendBaseUrl}/externalLoginConfirmation", new Dictionary<string, string>
             {
                 ["email"] = email,
-                [""] = "true",
                 ["userName"] = userName,
                 ["returnUrl"] = returnUrl,
                 ["loginProvider"] = info.LoginProvider
@@ -454,31 +455,40 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.FindByNameAsync(input.UserName);
             if (user != null)
             {
-                var signResult = await _signInManager.PasswordSignInAsync(user.UserName, input.Password, false, true);
+                var signResult = await _signInManager.PasswordSignInAsync(user, input.Password, false, true);
                 //账号密码验证成功
                 if (signResult.Succeeded)
                 {
-                    await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
-                    var loginResult = await _userManager.AddLoginAsync(user, info);
-
-                    if (loginResult.Succeeded)
+                    if (await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey) == null)
                     {
-                        if (input.ReturnUrl.IsLocal())
-                        {
-                            return new ApiResult<object>
-                            {
-                                Route = DefineRoute.Redirect,
-                                Data = input.ReturnUrl,
-                            };
-                        }
+                        var addLoginResult = await _userManager.AddLoginAsync(user, info);
 
+                        if (addLoginResult.Succeeded)
+                        {
+                            //覆盖密码登录的idp
+                            await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+                        }
+                        else
+                        {
+                            //退出登录
+                            await _signInManager.SignOutAsync();
+                            throw new Exception(string.Join(",", addLoginResult.Errors.Select(x => x.Description)));
+                        }
+                    }
+
+                    if (input.ReturnUrl.IsLocal())
+                    {
                         return new ApiResult<object>
                         {
-                            Route = DefineRoute.HomePage
+                            Route = DefineRoute.Redirect,
+                            Data = input.ReturnUrl,
                         };
                     }
 
-                    throw new Exception("非法的重定向地址");
+                    return new ApiResult<object>
+                    {
+                        Route = DefineRoute.HomePage
+                    };
                 }
 
                 if (signResult.RequiresTwoFactor)
@@ -582,13 +592,18 @@ namespace IdentityServer.STS.Admin.Controllers
                 {
                     var info = await _signInManager.GetExternalLoginInfoAsync();
 
-                    await _userManager.RemoveLoginAsync(user, info.LoginProvider, info.ProviderKey);
-                    var loginResult = await _userManager.AddLoginAsync(user, info);
-
-                    if (!loginResult.Succeeded)
+                    if (await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey) == null)
                     {
-                        throw new Exception(string.Join(",", loginResult.Errors.Select(x => x.Description)));
+                        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                        if (!addLoginResult.Succeeded)
+                        {
+                            await _signInManager.SignOutAsync();
+                            throw new Exception(string.Join(",", addLoginResult.Errors.Select(x => x.Description)));
+                        }
                     }
+
+                    //覆盖idp
+                    await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
                 }
 
                 var route = string.IsNullOrEmpty(input.ReturnUrl)
@@ -845,28 +860,34 @@ namespace IdentityServer.STS.Admin.Controllers
             //存在登录凭证
             if (User?.Identity.IsAuthenticated == true)
             {
-                //删除本地cookie
-                await _signInManager.SignOutAsync();
+                /*
+                 * 删除本地cookie
+                 * await _signInManager.SignOutAsync();
+                 * SignOutAsync这个方法内部获取到的 signout scheme 是错误的(可能是external.Application),所以会导致无法写入post标记,所以一定要指定cookie scheme :IdentityConstants.ApplicationScheme!!!
+                 * 使用identityserver4扩展,此处会打上标记,最终会在请求中间件中post backend channal uri,如果存在相应的配置
+                 */
+
+                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
                 //唤起用户注销成功事件
                 await _eventService.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
             //检查是否需要在上游的认证中心触发注销
-            // if (output.TriggerExternalSignOut)
-            // {
-            //身份认证服务器的前端需要使用表单提交的方式请求当前路由
-            //方法返回值需要返回IActionResult才能让浏览器302重定向
-            //创建一个返回链接，在用户成功注销后这样上游的提供器会重定向到这
-            //这里处理完成的单点登出处理
-            //var url = "当前方法路由的地址";
+            if (output.TriggerExternalSignOut)
+            {
+#if DEBUG
+                _logger.LogInformation("Federated sign out, external scheme: {Scheme}", output.ExternalAuthenticationScheme);
+#endif
 
-            //触发到第三方登录来退出
-            // SignOut(new AuthenticationProperties
-            // {
-            //     RedirectUri = url
-            // }, output.ExternalAuthenticationScheme);
-            // }
+                //var url = "当前方法路由的地址";
+
+                //触发到第三方登录退出(联合退出)
+                //return SignOut(new AuthenticationProperties
+                //{
+                //    RedirectUri = url
+                //}, output.ExternalAuthenticationScheme);
+            }
 
             return new ApiResult<LoggedOutOutput>
             {

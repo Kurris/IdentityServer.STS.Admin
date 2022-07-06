@@ -72,13 +72,14 @@ export default {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	box-shadow: 10px 1px 50px 21px #d9d9d9;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	background-color: #ffffff;
 }
 
->>> .el-input__inner {
+>>>.el-input__inner {
 	width: 300px !important;
 }
+
 .el-button {
 	width: 300px;
 }

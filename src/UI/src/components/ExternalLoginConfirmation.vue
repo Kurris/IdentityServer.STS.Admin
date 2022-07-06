@@ -11,10 +11,12 @@
 					<el-input type="password" v-model="form.password" placeholder="密码" />
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" @click="externalLoginWithLocalLogin" :loading="isLoading">登录并绑定</el-button>
+					<el-button type="primary" @click="externalLoginWithLocalLogin" :loading="isLoading">登录并绑定
+					</el-button>
 				</el-form-item>
 			</el-form>
-			<span style="font-size: 14px"> 没有账号? <el-link type="primary" :underline="false" style="padding-bottom: 3px" @click="switchType">注册</el-link> </span>
+			<span style="font-size: 14px"> 没有账号? <el-link type="primary" :underline="false" style="padding-bottom: 3px"
+					@click="switchType">注册</el-link> </span>
 		</div>
 		<div v-else class="container">
 			<Connect :loginProvider="loginProvider" />
@@ -46,7 +48,8 @@
 					<el-button type="primary" @click="externalRegister()" :loading="isLoading">注册并绑定</el-button>
 				</el-form-item>
 			</el-form>
-			<span style="font-size: 14px"> 已有账号? <el-link type="primary" :underline="false" style="padding-bottom: 3px" @click="switchType()">前往登录</el-link> </span>
+			<span style="font-size: 14px"> 已有账号? <el-link type="primary" :underline="false" style="padding-bottom: 3px"
+					@click="switchType()">前往登录</el-link> </span>
 		</div>
 	</div>
 </template>
@@ -148,7 +151,6 @@ export default {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	background-image: url(https://www.rancher.cn/imgs/footer-background.svg);
 }
 
 .container {
@@ -158,9 +160,10 @@ export default {
 	align-items: center;
 	height: 500px;
 	width: 1000px;
-	box-shadow: 10px 1px 50px 21px #d9d9d9;
+	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	background-color: #ffffff;
 }
+
 .el-icon-success {
 	color: #53a258;
 }
@@ -170,7 +173,7 @@ export default {
 	align-items: center;
 }
 
->>> .el-input__inner {
+>>>.el-input__inner {
 	width: 350px !important;
 }
 

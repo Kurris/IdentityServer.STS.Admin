@@ -17,7 +17,6 @@ using IdentityServer.STS.Admin.Filters;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin
@@ -40,6 +39,8 @@ namespace IdentityServer.STS.Admin
             var frontendBaseUrl = Configuration.GetSection("FrontendBaseUrl").Value;
 
             services.AddDataProtection();
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             //跨域处理
             services.AddCors(setup =>

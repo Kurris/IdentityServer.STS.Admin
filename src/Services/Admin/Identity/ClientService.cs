@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Enums;
@@ -19,12 +20,14 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
     public class ClientService : IClientService
     {
         private readonly IdsConfigurationDbContext _idsConfigurationDbContext;
+        private readonly IMapper _mapper;
 
         private const string SharedSecret = "SharedSecret";
 
-        public ClientService(IdsConfigurationDbContext idsConfigurationDbContext)
+        public ClientService(IdsConfigurationDbContext idsConfigurationDbContext , IMapper mapper)
         {
             _idsConfigurationDbContext = idsConfigurationDbContext;
+            _mapper = mapper;
         }
 
 
@@ -216,13 +219,10 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-        private static Client PrepareClientTypeForNewClient(ClientInput input)
+        private  Client PrepareClientTypeForNewClient(ClientInput input)
         {
-            var client = new Client
-            {
-                ClientId = GenerateStringId() ,
-                AllowedGrantTypes = new List<ClientGrantType>()
-            };
+            var client = _mapper.Map<Client>(input);
+            client.ClientId = GenerateStringId();
 
             switch (input.ClientType)
             {

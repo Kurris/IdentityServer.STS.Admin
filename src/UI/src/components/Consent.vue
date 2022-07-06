@@ -192,7 +192,7 @@ export default {
 }
 
 .panel {
-	width: 600px;
+	/* width: 600px; */
 	width: 368px;
 	box-shadow: 1px 2px 4px 3px #d9d9d9;
 	border-radius: 7px;
