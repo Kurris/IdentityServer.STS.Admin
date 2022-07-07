@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -20,18 +19,20 @@ namespace IdentityServer.STS.Admin
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
                 .UseSerilog((context, configuration) =>
                 {
-                    var serilog = configuration.MinimumLevel.Debug()
+                    configuration.MinimumLevel.Debug()
                         .MinimumLevel.Override("System", LogEventLevel.Warning)
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                         .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                         .MinimumLevel.Override("IdentityServer4", LogEventLevel.Information)
                         .MinimumLevel.Override("AspNet.Security.OAuth", LogEventLevel.Information)
+#if DEBUG
+                        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+#else
+                        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command",LogEventLevel.Warning)
+#endif
                         .Enrich.FromLogContext()
                         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"
-                            , theme: SystemConsoleTheme.Literate, formatProvider: DateTimeFormatInfo.CurrentInfo);
-
-                    //生产环境仅显示warning日志
-                    serilog.MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", context.HostingEnvironment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Warning);
+                            , theme: SystemConsoleTheme.Literate);
                 });
     }
 }
