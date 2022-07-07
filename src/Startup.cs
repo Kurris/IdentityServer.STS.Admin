@@ -137,7 +137,7 @@ namespace IdentityServer.STS.Admin
                 return new DefaultCorsPolicyService(logger)
                 {
                     AllowedOrigins = new[] {Configuration.GetSection("FrontendBaseUrl").Value},
-                    AllowAll = false
+                    AllowAll = true
                 };
             });
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -27,7 +28,7 @@ namespace IdentityServer.STS.Admin
                         .MinimumLevel.Override("AspNet.Security.OAuth", LogEventLevel.Information)
                         .Enrich.FromLogContext()
                         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}"
-                            , theme: SystemConsoleTheme.Literate);
+                            , theme: SystemConsoleTheme.Literate, formatProvider: DateTimeFormatInfo.CurrentInfo);
 
                     //生产环境仅显示warning日志
                     serilog.MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", context.HostingEnvironment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Warning);
