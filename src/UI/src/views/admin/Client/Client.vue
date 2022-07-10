@@ -53,6 +53,51 @@
 									<el-avatar :src="form.logoUri"></el-avatar>
 								</p>
 							</el-form-item>
+							<el-form-item label="允许跨域来源">
+								<template v-for="item in form.allowedCorsOrigins">
+									<div :key="item.origin">
+										<el-tag closable
+											@close="form.allowedCorsOrigins = form.allowedCorsOrigins.filter(x => x.origin != item.origin)">
+											{{ item.origin }}</el-tag>
+									</div>
+								</template>
+								<el-input v-model="origin">
+									<el-button slot="append" @click="addOrigin">添加允许跨域来源</el-button>
+								</el-input>
+							</el-form-item>
+							<el-form-item label="授权后重定向Uri">
+								<template v-for="item in form.redirectUris">
+									<div :key="item.redirectUri">
+										<el-tag closable
+											@close="form.redirectUris = form.redirectUris.filter(x => x.redirectUri != item.redirectUri)">
+											{{
+													item.redirectUri
+											}}</el-tag>
+									</div>
+								</template>
+								<el-input v-model="redirectUri">
+									<el-button slot="append" @click="addRedirectUri()">
+										添加重定向Uri
+									</el-button>
+								</el-input>
+								<!-- </div> -->
+							</el-form-item>
+							<el-form-item label="注销后重定向Uri">
+								<template v-for="item in form.postLogoutRedirectUris">
+									<div :key="item.postLogoutRedirectUri">
+										<el-tag closable
+											@close="form.postLogoutRedirectUris = form.postLogoutRedirectUris.filter(x => x.postLogoutRedirectUri != item.postLogoutRedirectUri)">
+											{{ item.postLogoutRedirectUri }}
+										</el-tag>
+									</div>
+								</template>
+								<el-input v-model="postLogoutRedirectUri">
+									<el-button slot="append" type="primary" @click="addPostLogoutRedirectUri">
+										添加注销后重定向Uri
+									</el-button>
+								</el-input>
+
+							</el-form-item>
 						</el-form>
 					</el-card>
 				</template>
@@ -113,7 +158,7 @@
 									</template>
 									<el-switch v-model="form.allowAccessTokensViaBrowser"></el-switch>
 								</el-form-item>
-								<el-form-item label="授权后重定向地址">
+								<el-form-item label="授权后重定向Uri">
 									<template v-for="item in form.redirectUris">
 										<div :key="item.redirectUri">
 											<el-tag closable
@@ -123,34 +168,49 @@
 												}}</el-tag>
 										</div>
 									</template>
-									<div style="display: flex;justify-content: space-around;">
-										<el-input v-model="redirectUri"></el-input>
-										<el-button style="margin-left: 5px" type="primary" @click="addRedirectUri()">
-											添加重定向地址
+									<el-input v-model="redirectUri">
+										<el-button slot="append" @click="addRedirectUri()">
+											添加重定向Uri
+										</el-button>
+									</el-input>
+									<!-- </div> -->
+								</el-form-item>
+								<el-form-item label="允许的作用域">
+									<template v-for="item in form.allowedScopes">
+										<div :key="item.scope">
+											<el-tag closable
+												@close="form.allowedScopes = form.allowedScopes.filter(x => x.scope != item.scope)">
+												{{ item.scope }}</el-tag>
+										</div>
+									</template>
+									<div>
+										<el-select v-model="scope" v-if="scopes.length > 0 && form.allowedScopes">
+											<el-option
+												v-for="(item, index) in scopes.filter(x => form.allowedScopes.map(x => x.scope).indexOf(x) < 0)"
+												:key="index" :value="item" :label="item"> </el-option>
+
+										</el-select>
+										<el-button style="margin-left: 5px" type="primary" @click="addScope">添加作用域
 										</el-button>
 									</div>
 								</el-form-item>
-								<el-form-item label="允许的作用域">
-									<el-select v-model="scope" v-if="scopes.length > 0 && form.allowedScopes">
-										<el-option
-											v-for="(item, index) in scopes.filter(x => form.allowedScopes.map(x => x.scope).indexOf(x) < 0)"
-											:key="index" :value="item" :label="item"> </el-option>
-									</el-select>
-									<el-button style="margin-left: 5px" type="primary">添加作用域</el-button>
-									<template v-for="item in form.allowedScopes">
-										<el-tag :key="item.id">{{ item.scope }}</el-tag>
-									</template>
-								</el-form-item>
 								<el-form-item label="允许的授权类型" v-if="grantTypes.length > 0 && form.allowedGrantTypes">
-									<el-select v-model="grantType">
-										<el-option
-											v-for="(item, index) in grantTypes.filter(x => form.allowedGrantTypes.map(x => x.grantType).indexOf(x) < 0)"
-											:key="index" :value="item" :label="item"></el-option>
-									</el-select>
-									<el-button style="margin-left: 5px" type="primary">添加授权类型</el-button>
 									<template v-for="item in form.allowedGrantTypes">
-										<el-tag :key="item.id">{{ item.grantType }}</el-tag>
+										<div :key="item.grantType">
+											<el-tag closable
+												@close="form.allowedGrantTypes = form.allowedGrantTypes.filter(x => x.grantType != item.grantType)">
+												{{ item.grantType }}</el-tag>
+										</div>
 									</template>
+									<div>
+										<el-select v-model="grantType">
+											<el-option
+												v-for="(item, index) in grantTypes.filter(x => form.allowedGrantTypes.map(x => x.grantType).indexOf(x) < 0)"
+												:key="index" :value="item" :label="item"></el-option>
+										</el-select>
+										<el-button style="margin-left: 5px" type="primary" @click="addGrantType">添加授权类型
+										</el-button>
+									</div>
 								</el-form-item>
 								<el-form-item label="应用密钥">
 									<el-button type="primary">管理应用密钥</el-button>
@@ -164,42 +224,63 @@
 									<el-switch v-model="form.enableLocalLogin"></el-switch>
 								</el-form-item>
 								<el-card style="margin-top: 10px; margin-bottom: 10px" shadow="hover">
-									<el-form-item label="需要前端通道注销会话">
+									<el-form-item label="前端通道注销携带session id">
 										<el-switch v-model="form.frontChannelLogoutSessionRequired"></el-switch>
 									</el-form-item>
-									<el-form-item v-show="form.frontChannelLogoutSessionRequired" label="前端通道注销 Uri">
+									<el-form-item label="前端通道注销 Uri">
 										<el-input v-model="form.frontChannelLogoutUri"></el-input>
 									</el-form-item>
 								</el-card>
 								<el-card style="margin-top: 10px; margin-bottom: 10px" shadow="hover">
-									<el-form-item label="需要后端通道注销会话">
+									<el-form-item label="后端通道注销携带session id">
 										<el-switch v-model="form.backChannelLogoutSessionRequired"></el-switch>
 									</el-form-item>
-									<el-form-item v-show="form.backChannelLogoutSessionRequired" label="后端通道注销 Uri">
+									<el-form-item label="后端通道注销 Uri">
 										<el-input v-model="form.backChannelLogoutUri"></el-input>
 									</el-form-item>
 								</el-card>
 								<el-form-item label="注销后重定向Uri">
-									<el-input v-model="postLogoutRedirectUri">
-										<el-button slot="append" icon="el-icon-more-outline"></el-button>
-									</el-input>
 									<template v-for="item in form.postLogoutRedirectUris">
-										<el-tag :key="item.id">{{ item.postLogoutRedirectUri }}</el-tag>
+										<div :key="item.postLogoutRedirectUri">
+											<el-tag closable
+												@close="form.postLogoutRedirectUris = form.postLogoutRedirectUris.filter(x => x.postLogoutRedirectUri != item.postLogoutRedirectUri)">
+												{{ item.postLogoutRedirectUri }}
+											</el-tag>
+										</div>
 									</template>
+									<el-input v-model="postLogoutRedirectUri">
+										<el-button slot="append" type="primary" @click="addPostLogoutRedirectUri">
+											添加注销后重定向Uri
+										</el-button>
+									</el-input>
+
 								</el-form-item>
-								<el-form-item>
+								<el-form-item v-if="form.identityProviderRestrictions">
 									<template slot="label">
 										<el-tooltip class="item" effect="dark" content="设置允许的外部登录,如果为空则允许所有,默认为空"
 											placement="top">
 											<span>外部身份提供程序限制 <i class="el-icon-info"></i></span>
 										</el-tooltip>
 									</template>
-									<el-input v-model="identityProviderRestriction">
-										<el-button slot="append" icon="el-icon-more-outline"></el-button>
-									</el-input>
 									<template v-for="item in form.identityProviderRestrictions">
-										<el-tag :key="item.id">{{ item.provider }}</el-tag>
+										<div :key="item.provider">
+											<el-tag closable
+												@close="form.identityProviderRestrictions = form.identityProviderRestrictions.filter(x => x.provider != item.provider)">
+												{{ item.provider }}</el-tag>
+										</div>
 									</template>
+									<div>
+										<el-select v-model="identityProviderRestriction">
+											<el-option
+												v-for="item  in externalProviders.filter(x => form.identityProviderRestrictions.map(p => p.provider).indexOf(x.authenticationScheme) < 0)"
+												:key="item.authenticationScheme" :value="item.authenticationScheme"
+												:label="item.displayName">
+											</el-option>
+										</el-select>
+										<el-button style="margin-left: 5px" type="primary"
+											@click="addIdentityProviderRestriction">添加外部登录限制
+										</el-button>
+									</div>
 								</el-form-item>
 								<el-form-item label=" 用户SSO生命周期">
 									<template slot="label">
@@ -292,12 +373,16 @@
 									<el-switch v-model="form.includeJwtId"></el-switch>
 								</el-form-item>
 								<el-form-item label="允许跨域来源">
-									<el-input v-model="origin">
-										<el-button slot="append" icon="el-icon-more-outline"></el-button>
-									</el-input>
 									<template v-for="item in form.allowedCorsOrigins">
-										<el-tag :key="item.id">{{ item.origin }}</el-tag>
+										<div :key="item.origin">
+											<el-tag closable
+												@close="form.allowedCorsOrigins = form.allowedCorsOrigins.filter(x => x.origin != item.origin)">
+												{{ item.origin }}</el-tag>
+										</div>
 									</template>
+									<el-input v-model="origin">
+										<el-button slot="append" @click="addOrigin">添加允许跨域来源</el-button>
+									</el-input>
 								</el-form-item>
 								<el-form-item>
 									<template slot="label">
@@ -404,7 +489,7 @@
 </template>
 
 <script>
-import { getClientPage, saveClient, removeClient, getClientById, getGrantTypes, getScopes, getEnums } from '../../../net/admin.js'
+import { getClientPage, saveClient, removeClient, getClientById, getGrantTypes, getScopes, getEnums, getExternalProviders } from '../../../net/admin.js'
 import AuthorizeItem from '../../../components/AuthorizeItem.vue'
 export default {
 	components: {
@@ -436,6 +521,7 @@ export default {
 			origin: '',
 			currentId: 0,
 			enums: null,
+			externalProviders: []
 		}
 	},
 	methods: {
@@ -503,7 +589,6 @@ export default {
 				this.scopes = res.data
 			})
 
-
 			this.editLoading = false
 			this.clientDrawer = true
 		},
@@ -524,17 +609,72 @@ export default {
 			await this.getClientPage()
 		},
 		addRedirectUri() {
+			if (this.redirectUri == '') {
+				return;
+			}
+
 			this.form.redirectUris.push({
 				redirectUri: this.redirectUri
 			})
 			this.redirectUri = ''
+		},
+		addScope() {
+			if (!this.scope || this.scope == '') {
+				return;
+			}
+			this.form.allowedScopes.push({
+				scope: this.scope
+			})
+			this.scope = ''
+		},
+		addGrantType() {
+			if (!this.grantType || this.grantType == '') {
+				return
+			}
+
+			this.form.allowedGrantTypes.push({
+				grantType: this.grantType
+			})
+			this.grantType = ''
+		},
+		addPostLogoutRedirectUri() {
+			if (!this.postLogoutRedirectUri || this.postLogoutRedirectUri == '') {
+				return
+			}
+
+			this.form.postLogoutRedirectUris.push({
+				postLogoutRedirectUri: this.postLogoutRedirectUri
+			})
+			this.postLogoutRedirectUri = ''
+		},
+		addIdentityProviderRestriction() {
+			if (!this.identityProviderRestriction || this.identityProviderRestriction == '') {
+				return
+			}
+
+			this.form.identityProviderRestrictions.push({
+				provider: this.identityProviderRestriction
+			})
+			this.identityProviderRestriction = ''
+		},
+		addOrigin() {
+			if (!this.origin || this.origin == '') {
+				return
+			}
+
+			this.form.allowedCorsOrigins.push({
+				origin: this.origin
+			})
+			this.origin = ''
 		}
 	},
 	async beforeMount() {
 		await this.getClientPage()
 		let enumsRes = await getEnums()
 		this.enums = enumsRes.data
-		console.log(this.enums)
+
+		let externalProviderRes = await getExternalProviders();
+		this.externalProviders = externalProviderRes.data
 	},
 }
 </script>

@@ -1,11 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Constants;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
+using IdentityServer.STS.Admin.Models.Account;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ApiResource = IdentityServer4.EntityFramework.Entities.ApiResource;
@@ -25,18 +28,21 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         private readonly IApiResourceService _apiResourceService;
         private readonly IApiScopeService _apiScopeService;
         private readonly IClientService _clientService;
+        private readonly IAuthenticationSchemeProvider _schemeProvider;
 
         public ConfigurationController(IConfigurationService configurationService
             , IIdentityResourceService identityResourceService
             , IApiResourceService apiResourceService
             , IApiScopeService apiScopeService
-            , IClientService clientService)
+            , IClientService clientService
+            , IAuthenticationSchemeProvider schemeProvider)
         {
             _configurationService = configurationService;
             _identityResourceService = identityResourceService;
             _apiResourceService = apiResourceService;
             _apiScopeService = apiScopeService;
             _clientService = clientService;
+            _schemeProvider = schemeProvider;
         }
 
         [HttpGet("enums")]
@@ -183,5 +189,22 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
         }
 
         #endregion
+
+
+        [HttpGet("externalProviders")]
+        public async Task<IEnumerable<ExternalProvider>> GetExternalProviders()
+        {
+            var schemes = await _schemeProvider.GetAllSchemesAsync();
+
+            var providers = schemes
+                .Where(x => x.DisplayName != null)
+                .Select(x => new ExternalProvider
+                {
+                    DisplayName = x.DisplayName ?? x.Name,
+                    AuthenticationScheme = x.Name
+                });
+
+            return providers;
+        }
     }
 }

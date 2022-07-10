@@ -209,3 +209,10 @@ export const getEnums = () => {
 		method: 'get',
 	})
 }
+
+export const getExternalProviders = () => {
+	return http({
+		url: 'api/configuration/externalProviders',
+		method: 'get',
+	})
+}
