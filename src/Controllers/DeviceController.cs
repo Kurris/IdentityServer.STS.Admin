@@ -120,7 +120,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //返回标准的access_denied响应
             if (!input.Allow)
             {
-                grantedConsent = new ConsentResponse {Error = AuthorizationError.AccessDenied};
+                grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
                 await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
             }
             //验证数据
@@ -176,14 +176,14 @@ namespace IdentityServer.STS.Admin.Controllers
                 UserCode = userCode,
                 Description = input?.Description,
 
-                RememberConsent = input?.RememberConsent ?? true,
+                RememberConsent = input?.RememberConsent ?? false,
                 ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
 
                 ClientName = context.Client.ClientName ?? context.Client.ClientId,
                 ClientUrl = context.Client.ClientUri,
                 ClientLogoUrl = context.Client.LogoUri,
                 AllowRememberConsent = context.Client.AllowRememberConsent
-            };
+            }; 
 
             output.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || input == null)).ToArray();
 

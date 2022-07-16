@@ -2,9 +2,11 @@
 	<div class="consent" v-if="model != null">
 		<div class="logo">
 			<el-avatar :src="model.clientLogoUrl" :size="64"></el-avatar>
-			<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+			<div v-for="n in 7" :key="'left' + n" class="dashed"
+				style="height: 2px; width: 4px; background-color: #ced5db"></div>
 			<i class="el-icon-success" style="font-size: 32px"></i>
-			<div v-for="n in 7" :key="'right' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+			<div v-for="n in 7" :key="'right' + n" class="dashed"
+				style="height: 2px; width: 4px; background-color: #ced5db"></div>
 			<AppAvatar />
 		</div>
 
@@ -89,7 +91,8 @@
 						<span style="color: #91969b"> 许可授权将会重定向到 </span>
 						<div style="margin-top: 10px">
 							<strong>
-								<el-link type="primary" :underline="false" :href="model.clientUrl">{{ model.clientUrl }}</el-link>
+								<el-link type="primary" :underline="false" :href="model.clientUrl">{{ model.clientUrl }}
+								</el-link>
 							</strong>
 						</div>
 					</template>
@@ -111,7 +114,8 @@
 		</div>
 
 		<div class="other">
-			<el-link href="https://oauth.net/2/" :underline="false" icon="el-icon-question" target="_blank"> 了解更多关于OAuth2.0</el-link>
+			<el-link href="https://oauth.net/2/" :underline="false" icon="el-icon-question" target="_blank">
+				了解更多关于OAuth2.0</el-link>
 		</div>
 	</div>
 </template>
@@ -137,6 +141,10 @@ export default {
 	},
 	methods: {
 		async process(allow) {
+
+			let idScopes = this.model.identityScopes.filter(x => x.checked)
+			let apiScopes = this.model.apiScopes.filter(x => x.checked)
+
 			NProgress.start()
 			let url = 'http://localhost:5000/api/device'
 
@@ -145,12 +153,16 @@ export default {
 			document.write(`<input type=hidden name=rememberConsent value=${this.model.rememberConsent}></input>`)
 			document.write(`<input type=hidden name=userCode value=${this.$route.query.userCode}></input>`)
 
-			let idScopes = this.model.identityScopes.filter(x => x.checked)
-
 			let scopeNames = idScopes.map(x => x.value)
 			for (let i = 0; i < scopeNames.length; i++) {
 				const element = scopeNames[i]
 				document.write("<input type=hidden name=scopesConsented value='" + element + "'/>")
+			}
+
+			let apiScopeNames = apiScopes.map(x => x.value)
+			for (let i = 0; i < apiScopeNames.length; i++) {
+				const element = apiScopeNames[i]
+				document.write(`<input type=hidden name=scopesConsented value=${element}></input>`)
 			}
 			document.write('</form>')
 			document.form1.submit()
@@ -236,11 +248,11 @@ export default {
 	border-bottom: none;
 }
 
->>> .el-collapse-item__header {
+>>>.el-collapse-item__header {
 	border-bottom: none;
 }
 
->>> .el-collapse-item__wrap {
+>>>.el-collapse-item__wrap {
 	border-bottom: none;
 }
 
@@ -259,7 +271,7 @@ export default {
 	align-items: center;
 }
 
-div.dashed + div.dashed {
+div.dashed+div.dashed {
 	margin-left: 1px;
 }
 
