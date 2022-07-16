@@ -1,36 +1,51 @@
 <template>
-    <div class='userCodeCapture'>
-        <el-input v-model="userCode" placeholder="请输入您设备上的代码" />
-        <el-button type="primary" @click="subbmi">提交</el-button>
-    </div>
+	<div id="userCodeCapture">
+		<div class="panel">
+			<h3>设备验证</h3>
+			<el-form>
+				<el-form-item>
+					<el-input v-focus v-model="userCode" placeholder="请输入您设备上的代码" />
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="submit">提交</el-button>
+				</el-form-item>
+			</el-form>
+		</div>
+	</div>
 </template>
 
 <script>
-
 export default {
-    components: {},
-    data() {
-        return {
-            userCode: ''
-        };
-    },
-    computed: {},
-    watch: {},
-    methods: {
-        subbmi() {
-            this.$router.push({
-                path: '/userCodeConfirmation',
-                query: {
-                    userCode: this.userCode
-                }
-            })
-        }
-    },
-    //生命周期 - 创建完成（可以访问当前this实例）
-    created() {
-
-    }
+	data() {
+		return {
+			userCode: '',
+		}
+	},
+	methods: {
+		submit() {
+			this.$router.push({
+				path: '/userCodeConfirmation',
+				query: {
+					userCode: this.userCode,
+				},
+			})
+		},
+	},
 }
 </script>
 <style scoped>
+#userCodeCapture {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
+
+.panel {
+	width: 300px;
+}
+
+.el-button {
+	width: 300px;
+}
 </style>

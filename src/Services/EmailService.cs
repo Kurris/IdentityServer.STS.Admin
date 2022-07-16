@@ -1,14 +1,14 @@
-using MailKit.Net.Smtp;
-using Microsoft.Extensions.Options;
-using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MailKit.Net.Smtp;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
-namespace IdentityServer.STS.Admin.Helpers
+namespace IdentityServer.STS.Admin.Services
 {
     /// <summary>
     /// 基于MailKit的邮件帮助类
@@ -32,6 +32,8 @@ namespace IdentityServer.STS.Admin.Helpers
         /// <param name="options">发送人账号密码</param>
         public async Task SendEmailAsync(string subject, string content, IEnumerable<MailboxAddress> toAddresses, MailkitOptions options)
         {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
             await SendEmailAsync(subject, content, toAddresses, null, options);
         }
 
@@ -78,6 +80,8 @@ namespace IdentityServer.STS.Admin.Helpers
             , MailkitOptions options)
         {
             options ??= _mailkitOptions;
+
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
             using (var message = new MimeMessage())
             {

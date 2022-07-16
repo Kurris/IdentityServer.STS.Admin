@@ -16,6 +16,7 @@ using Newtonsoft.Json.Serialization;
 using IdentityServer.STS.Admin.Filters;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Resolvers;
+using IdentityServer.STS.Admin.Services;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -141,24 +142,23 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
-            services.AddTransient(typeof(IApiResult), typeof(ApiResult<object>));
-
+            services.AddSingleton(typeof(IApiResult), typeof(ApiResult<object>));
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
             services.AddSingleton<EmailGenerateService>();
-            services.AddScoped<ReferenceTokenTools>();
+            services.AddScoped<ReferenceTokenToolService>();
+            services.AddSingleton<EmailService>();
+            RedirectHelper.Initialize(frontendBaseUrl, "/successed", "/error");
 
             //admin service registered
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IRoleService, RoleService>();
-            services.AddSingleton<EmailService>();
+
             services.AddTransient<IConfigurationService, ConfigurationService>();
             services.AddTransient<IIdentityResourceService, IdentityResourceService>();
             services.AddTransient<IReturnUrlParser, CustomReturnUrlParser>();
             services.AddTransient<IApiResourceService, ApiResourceService>();
             services.AddTransient<IApiScopeService, ApiScopeService>();
             services.AddTransient<IClientService, ClientService>();
-
-            RedirectHelper.Initialize(frontendBaseUrl, "/successed", "/error");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

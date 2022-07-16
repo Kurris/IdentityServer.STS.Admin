@@ -2,7 +2,7 @@
 	<div id="successed">
 		<el-result icon="success" :title="$route.query.title" :subTitle="$route.query.subTitle">
 			<template slot="extra">
-				<a :href="$route.query.returnUrl">
+				<a :href="$route.query.returnUrl" v-if="$route.query.returnUrl">
 					<el-button type="primary" size="medium">返回</el-button>
 				</a>
 			</template>

@@ -8,7 +8,7 @@
 						<el-input v-model="form.content" placeholder="用户名/邮件" />
 					</el-form-item>
 					<el-form-item>
-						<el-button type="primary" @click="commit()">发送邮件验证</el-button>
+						<el-button type="primary" @click="commit()" :loading="loading">发送邮件验证</el-button>
 					</el-form-item>
 				</el-form>
 				<TipLink tipText="想起密码?" href="/signIn" hrefText="前往登录" />
@@ -28,6 +28,7 @@ export default {
 			form: {
 				content: '',
 			},
+			loading: false,
 		}
 	},
 	methods: {
@@ -36,8 +37,11 @@ export default {
 		},
 		async commit() {
 			try {
+				this.loading = true
 				await forgetPasswordAndSendEmail({
 					content: this.form.content,
+				}).finally(() => {
+					this.loading = false
 				})
 
 				this.$router.push({
@@ -76,7 +80,7 @@ export default {
 	background-color: #ffffff;
 }
 
->>>.el-input__inner {
+>>> .el-input__inner {
 	width: 300px !important;
 }
 

@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 
-namespace IdentityServer.STS.Admin.Helpers
+namespace IdentityServer.STS.Admin.Services
 {
     /// <summary>
     /// 邮件html生成

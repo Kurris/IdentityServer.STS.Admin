@@ -28,7 +28,7 @@ namespace IdentityServer.STS.Admin.Models.Consent
         /// <summary>
         /// 是否允许记住同意屏幕
         /// </summary>
-        public bool AllowRememberConsent { get; set; } = true;
+        public bool AllowRememberConsent { get; set; }
 
         /// <summary>
         /// 身份作用域

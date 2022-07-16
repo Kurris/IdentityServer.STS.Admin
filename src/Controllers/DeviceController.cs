@@ -69,14 +69,14 @@ namespace IdentityServer.STS.Admin.Controllers
         }
 
         /// <summary>
-        /// 设备授权回调处理
+        /// 设备授权
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="Exception"></exception>
         [HttpPost]
-        public async Task<IActionResult> Callback([FromForm] DeviceAuthorizationInput input)
+        public async Task<IActionResult> Process([FromForm] DeviceAuthorizationInput input)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
 
@@ -96,13 +96,11 @@ namespace IdentityServer.STS.Admin.Controllers
                     ["title"] = "您已经成功授权"
                 });
             }
-            else
+
+            return await RedirectHelper.Error(new Dictionary<string, string>()
             {
-                return await RedirectHelper.Error(new Dictionary<string, string>()
-                {
-                    ["error"] = "您对" + result.Client.ClientName + "的授权已拒绝"
-                });
-            }
+                ["error"] = "您对" + result.Client.ClientName + "的授权已拒绝"
+            });
         }
 
         /// <summary>
@@ -167,8 +165,8 @@ namespace IdentityServer.STS.Admin.Controllers
 
         private async Task<DeviceAuthorizationOutput> BuildOutputModelAsync(string userCode, DeviceAuthorizationInput model = null)
         {
-            var request = await _interaction.GetAuthorizationContextAsync(userCode);
-            return request != null ? CreateConsentOutput(userCode, model, request) : null;
+            var context = await _interaction.GetAuthorizationContextAsync(userCode);
+            return context != null ? CreateConsentOutput(userCode, model, context) : null;
         }
 
         private static DeviceAuthorizationOutput CreateConsentOutput(string userCode, DeviceAuthorizationInput input, DeviceFlowAuthorizationRequest context)

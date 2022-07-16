@@ -71,7 +71,7 @@
 							将会更新用户信息
 						</div>
 					</div>
-					<div style="font-size: 10px; color: #91969b; margin-top: 2px">
+					<div v-if="model.allowRememberConsent" style="font-size: 10px; color: #91969b; margin-top: 2px">
 						<el-checkbox v-model="setting.rememberConsent"> 允许记住授权操作</el-checkbox>
 					</div>
 				</div>
@@ -125,7 +125,7 @@ export default {
 	components: {
 		ScopeItem,
 		AuthorizeItem,
-		AppAvatar
+		AppAvatar,
 	},
 	data() {
 		return {
@@ -160,15 +160,6 @@ export default {
 
 			document.write('</form>')
 			document.form1.submit()
-		},
-	},
-	computed: {
-		scopeLength() {
-			if (this.setting.identityScopes && this.setting.apiScopes) {
-				let res = this.setting.identityScopes.length + this.setting.apiScopes.length
-				return res
-			}
-			return 0
 		},
 	},
 	async beforeMount() {

@@ -48,7 +48,7 @@ namespace IdentityServer.STS.Admin.Helpers
         /// <param name="url">重定向url</param>
         /// <param name="queries">url参数</param>
         /// <returns></returns>
-        public static async Task<string> Get(string url, Dictionary<string, string> queries = null)
+        public static async Task<string> GetAsync(string url, Dictionary<string, string> queries = null)
         {
             if (queries != null && queries.Any())
             {

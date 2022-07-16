@@ -10,7 +10,10 @@
 				$route.path != '/loginWithRecoveryCode' &&
 				$route.path != '/externalLoginConfirmation' &&
 				$route.path != '/register' &&
-				$route.path != '/forgotPassword'
+				$route.path != '/forgotPassword' &&
+				$route.path != '/resetPassword' &&
+				$route.path != '/userCodeCapture' &&
+				$route.path != '/userCodeConfirmation'
 			"
 		>
 			<div class="headerLeft">
@@ -46,7 +49,7 @@
 		<router-view />
 
 		<div class="home" v-if="$route.path == '/'">认证中心首页</div>
-		<div class="icp" v-if="$route.path == '/' || $route.path == '/signIn' || $route.path == '/register' || $route.path == '/forgotPassword'">
+		<div class="icp" v-if="$route.path == '/' || $route.path == '/signIn' || $route.path == '/register' || $route.path == '/forgotPassword' || $route.path == '/resetPassword'">
 			<!-- <CookieTip v-if="cookieTipShow" @confirm="confirm" /> -->
 			<span>
 				©️Copyright 2022 - {{ new Date().getFullYear().toString() == 2022 ? '至今' : new Date().getFullYear().toString() }}

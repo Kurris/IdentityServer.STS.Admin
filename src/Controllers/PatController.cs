@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using IdentityModel;
 using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models.Pat;
+using IdentityServer.STS.Admin.Services;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Stores;
@@ -20,10 +21,10 @@ namespace IdentityServer.STS.Admin.Controllers
     [ApiController]
     public class PatController : ControllerBase
     {
-        private readonly ReferenceTokenTools _referenceTokenTools;
+        private readonly ReferenceTokenToolService _referenceTokenTools;
         private readonly IPersistedGrantStore _persistedGrantStore;
 
-        public PatController(ReferenceTokenTools referenceTokenTools, IPersistedGrantStore persistedGrantStore)
+        public PatController(ReferenceTokenToolService referenceTokenTools, IPersistedGrantStore persistedGrantStore)
         {
             _referenceTokenTools = referenceTokenTools;
             _persistedGrantStore = persistedGrantStore;

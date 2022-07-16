@@ -56,7 +56,9 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 options.Password.RequireUppercase = false; //大写
                 options.Password.RequireNonAlphanumeric = false; //非数字字母
 
-                options.User.RequireUniqueEmail = false; //邮件是否唯一
+                // options.SignIn.RequireConfirmedEmail = true; //需要验证邮件
+
+                options.User.RequireUniqueEmail = true; //邮件是否唯一
             });
 
             services.AddAuthentication().AddOAuth2Authentications(configuration);

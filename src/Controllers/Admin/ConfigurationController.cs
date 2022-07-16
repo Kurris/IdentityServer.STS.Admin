@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Constants;
+using IdentityServer.STS.Admin.Enums;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer.STS.Admin.Models.Account;
 using IdentityServer.STS.Admin.Models.Admin.Identity;
+using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -53,7 +55,8 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
                 ["tokenUsage"] = EnumEx.GetEnumTypes<TokenUsage>(),
                 ["accessTokenType"] = EnumEx.GetEnumTypes<AccessTokenType>(),
                 ["clientType"] = EnumEx.GetEnumTypes<ClientType>(),
-                ["tokenExpiration"] = EnumEx.GetEnumTypes<TokenExpiration>()
+                ["tokenExpiration"] = EnumEx.GetEnumTypes<TokenExpiration>(),
+                ["hashType"] = EnumEx.GetEnumTypes<HashType>(),
             };
         }
 
@@ -176,10 +179,16 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             await _clientService.RemoveClientByIdAsync(id, userId);
         }
 
-        [HttpPost("clientSecret")]
-        public async Task AddClientSecret(ClientSecretInput input)
+        [HttpGet("clientSecrets")]
+        public async Task<IEnumerable<ClientSecret>> QueryClientSecrets(int clientId)
         {
-            await _clientService.AddSecret(input);
+            return await _clientService.QueryClientSecrets(clientId);
+        }
+
+        [HttpPost("clientSecret")]
+        public async Task<string> AddClientSecret(ClientSecretInput input)
+        {
+            return await _clientService.AddSecret(input);
         }
 
         [HttpDelete("clientSecret")]

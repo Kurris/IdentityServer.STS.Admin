@@ -24,7 +24,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         private const string SharedSecret = "SharedSecret";
 
-        public ClientService(IdsConfigurationDbContext idsConfigurationDbContext , IMapper mapper)
+        public ClientService(IdsConfigurationDbContext idsConfigurationDbContext, IMapper mapper)
         {
             _idsConfigurationDbContext = idsConfigurationDbContext;
             _mapper = mapper;
@@ -39,10 +39,12 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         {
             if (secret.Type != SharedSecret) return;
 
-            if (secret.HashType == HashType.Sha256)
-                secret.Value = secret.Value.Sha256();
-            else if (secret.HashType == HashType.Sha512)
-                secret.Value = secret.Value.Sha512();
+            secret.Value = secret.HashType switch
+            {
+                HashType.Sha256 => secret.Value.Sha256(),
+                HashType.Sha512 => secret.Value.Sha512(),
+                _ => secret.Value
+            };
         }
 
         public async Task<Pagination<Client>> QueryClientPage(ClientSearchPageIn pageIn)
@@ -188,15 +190,44 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
         }
 
-
-        public async Task AddSecret(ClientSecretInput clientSecret)
+        public async Task<IEnumerable<ClientSecret>> QueryClientSecrets(int clientId)
         {
-            HashClientSharedSecret(clientSecret);
-            var client = await _idsConfigurationDbContext.Clients.Where(x => x.Id == clientSecret.ClientId).SingleOrDefaultAsync();
-            clientSecret.Client = client;
+            var secrets = await _idsConfigurationDbContext.ClientSecrets.Where(x => x.ClientId == clientId)
+                .ToListAsync();
 
-            await _idsConfigurationDbContext.ClientSecrets.AddAsync(clientSecret);
+            //时间转换
+            secrets.ForEach(x =>
+            {
+                x.Created = x.Created.ToLocalTime();
+
+                if (!string.IsNullOrEmpty(x.Description))
+                {
+                    var start = x.Description[..3];
+                    var end = x.Description.Substring(x.Description.Length - 3, 3);
+                    //原始密码不返回
+                    x.Description = start + string.Join('*', new string[x.Description.Length - 6]) + end;
+                }
+            });
+
+            return secrets;
+        }
+
+        public async Task<string> AddSecret(ClientSecretInput input)
+        {
+            var secret = GenerateStringId();
+            input.Value = secret;
+
+            //记录原始密码
+            input.Description = secret;
+
+            HashClientSharedSecret(input);
+            var client = await _idsConfigurationDbContext.Clients.Where(x => x.Id == input.ClientId).SingleOrDefaultAsync();
+            input.Client = client;
+
+            await _idsConfigurationDbContext.ClientSecrets.AddAsync(input);
             await _idsConfigurationDbContext.SaveChangesAsync();
+
+            return secret;
         }
 
         public async Task DeleteSecretAsync(int id)
@@ -219,7 +250,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         }
 
 
-        private  Client PrepareClientTypeForNewClient(ClientInput input)
+        private Client PrepareClientTypeForNewClient(ClientInput input)
         {
             var client = _mapper.Map<Client>(input);
             client.ClientId = GenerateStringId();
@@ -250,6 +281,8 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                     client.AllowedGrantTypes.AddRange(TransferClientGrantType(GrantTypes.DeviceFlow));
                     client.RequireClientSecret = false;
                     client.AllowOfflineAccess = true;
+                    client.RequireConsent = true;
+                    client.AllowRememberConsent = false;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

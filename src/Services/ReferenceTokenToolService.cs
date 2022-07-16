@@ -5,15 +5,14 @@ using System.Threading.Tasks;
 using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
-using Microsoft.AspNetCore.Authentication;
 
-namespace IdentityServer.STS.Admin.Helpers
+namespace IdentityServer.STS.Admin.Services
 {
-    public class ReferenceTokenTools
+    public class ReferenceTokenToolService
     {
         private readonly ITokenService _tokenService;
 
-        public ReferenceTokenTools(ITokenService tokenService)
+        public ReferenceTokenToolService(ITokenService tokenService)
         {
             _tokenService = tokenService;
         }

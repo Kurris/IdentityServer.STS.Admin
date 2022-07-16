@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Claims;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -23,6 +22,7 @@ using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using System.Web;
+using IdentityServer.STS.Admin.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -295,8 +295,7 @@ namespace IdentityServer.STS.Admin.Controllers
                 });
 
                 var content = await _emailGenerateService.GetEmailConfirmHtml(user.UserName, callbackUrl, ExpiredTime.ToString());
-
-                await _emailService.SendEmailAsync("验证邮箱用户", content, new[] { new MailboxAddress(model.UserName, model.Email) });
+                await _emailService.SendEmailAsync("验证邮箱用户", content, new[] {new MailboxAddress(model.UserName, model.Email)});
             }
             else
             {
@@ -304,12 +303,6 @@ namespace IdentityServer.STS.Admin.Controllers
             }
         }
 
-
-        [HttpPost("validation/email")]
-        public async Task ConfirmEmail()
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         /// 外部登录回调
@@ -710,7 +703,7 @@ namespace IdentityServer.STS.Admin.Controllers
             if (userId == null || code == null)
             {
 #if DEBUG
-                _logger.LogInformation("userId and core mybe empty or null: userId-{UserId} code-{Code}", userId, code);
+                _logger.LogInformation("userId and core maybe empty or null: userId-{UserId} code-{Code}", userId, code);
 #endif
                 return await RedirectHelper.Error(new Dictionary<string, string>
                 {
@@ -784,6 +777,7 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            code = _timeLimitedDataProtector.Protect(code, TimeSpan.FromMinutes(ExpiredTime));
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
             //url query
@@ -793,16 +787,10 @@ namespace IdentityServer.STS.Admin.Controllers
                 ["email"] = user.Email,
             };
 
-            using (var content = new FormUrlEncodedContent(dic))
-            {
-                var queries = await content.ReadAsStringAsync();
-                //前端地址
-                var callbackUrl = $"{FrontendBaseUrl}/resetPassword?" + queries;
-                await _emailService.SendEmailAsync("密码找回", callbackUrl, new[]
-                {
-                    new MailboxAddress(user.UserName, user.Email)
-                });
-            }
+            //前端地址
+            var callbackUrl = await RedirectHelper.GetAsync($"{FrontendBaseUrl}/resetPassword", dic);
+
+            await _emailService.SendEmailAsync("密码找回", callbackUrl, new[] {new MailboxAddress(user.UserName, user.Email)});
         }
 
         /// <summary>
@@ -817,15 +805,44 @@ namespace IdentityServer.STS.Admin.Controllers
             var user = await _userManager.FindByEmailAsync(input.Email);
 
             //不能透露用户不存在,默认完成
-            if (user == null) return;
+            if (user == null || string.IsNullOrEmpty(input.Code)) return;
 
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(input.Code));
+            try
+            {
+                code = _timeLimitedDataProtector.Unprotect(code);
+            }
+            catch (Exception)
+            {
+                code = string.Empty;
+            }
+
             var result = await _userManager.ResetPasswordAsync(user, code, input.Password);
 
             if (!result.Succeeded)
                 throw new Exception(string.Join(",", result.Errors.Select(x => x.Description)));
         }
 
+        /// <summary>
+        /// 检查code是否过期
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpGet("code/validity")]
+        public bool ValidationCode(string code)
+        {
+            try
+            {
+                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+                _timeLimitedDataProtector.Unprotect(code);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// 退出
@@ -876,9 +893,7 @@ namespace IdentityServer.STS.Admin.Controllers
             //检查是否需要在上游的认证中心触发注销
             if (output.TriggerExternalSignOut)
             {
-#if DEBUG
                 _logger.LogInformation("Federated sign out, external scheme: {Scheme}", output.ExternalAuthenticationScheme);
-#endif
 
                 //var url = "当前方法路由的地址";
 

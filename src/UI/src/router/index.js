@@ -67,6 +67,9 @@ const routes = [
 			{
 				path: 'externalLogins',
 				component: externalLogins,
+				meta: {
+					title: '外部登录',
+				},
 			},
 			{
 				path: 'profile',
@@ -75,10 +78,16 @@ const routes = [
 			{
 				path: 'development',
 				component: development,
+				meta: {
+					title: '开发者设置',
+				},
 			},
 			{
 				path: 'grants',
 				component: grants,
+				meta: {
+					title: '授权应用',
+				},
 			},
 			{
 				path: 'account',
@@ -164,6 +173,13 @@ const router = new vueRouter({
 
 router.beforeEach((to, from, next) => {
 	NProgress.start()
+	next()
+})
+
+router.beforeEach((to, from, next) => {
+	/* 路由发生变化修改页面title */
+	let curr = to?.meta?.title ? ' | ' + to.meta.title : ''
+	document.title = '认证中心' + curr
 	next()
 })
 

@@ -4,13 +4,6 @@
 
 <script>
 export default {
-	components: {},
-	data() {
-		return {}
-	},
-	computed: {},
-	watch: {},
-	methods: {},
 	beforeMount() {
 		if (this.$route.query.userCode === undefined) {
 			this.$router.push('/userCodeCapture')
@@ -25,4 +18,3 @@ export default {
 	},
 }
 </script>
-<style scoped></style>

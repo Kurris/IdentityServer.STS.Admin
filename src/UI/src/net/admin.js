@@ -196,6 +196,30 @@ export const getGrantTypes = () => {
 	})
 }
 
+export const getClientSecrets = data => {
+	return http({
+		url: 'api/configuration/clientSecrets',
+		method: 'get',
+		params: data,
+	})
+}
+
+export const addClientSecret = data => {
+	return http({
+		url: 'api/configuration/clientSecret',
+		method: 'post',
+		data: data,
+	})
+}
+
+export const removeClientSecret = data => {
+	return http({
+		url: 'api/configuration/clientSecret',
+		method: 'delete',
+		params: data,
+	})
+}
+
 export const getScopes = () => {
 	return http({
 		url: 'api/configuration/scopes',
