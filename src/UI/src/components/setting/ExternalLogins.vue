@@ -5,24 +5,23 @@
 		<template v-if="model != null">
 			<template v-if="model.otherLogins.length > 0">
 				<h4>添加其他可用的外部登录</h4>
-				<template v-for="(item, index) in model.otherLogins">
-					<!-- <el-button  type="success" >{{  }}</el-button> -->
-					<AuthorizeItem divider :title="item.displayName" :key="index">
+				<template v-for="item in model.otherLogins">
+					<AuthorizeItem divider :title="item.displayName" :key="item.name">
 						<ExternalAvatar :loginProvider="item.name" :size="32" slot="img" />
-						<template slot="operation" v-if="model.ableRemove">
+						<template slot="operation">
 							<el-button type="primary" @click="linkExternalLogin(item.name)">关联账号</el-button>
 						</template>
 					</AuthorizeItem>
 				</template>
 			</template>
-
 			<template v-if="model.currentLogins.length > 0">
 				<h4>已绑定的外部登录</h4>
-				<template v-for="(item, index) in model.currentLogins">
-					<AuthorizeItem divider :title="item.providerDisplayName" :key="index">
+				<template v-for="item in model.currentLogins">
+					<AuthorizeItem divider :title="item.providerDisplayName" :key="item.name">
 						<ExternalAvatar :loginProvider="item.loginProvider" :size="32" slot="img" />
 						<template slot="operation" v-if="model.ableRemove">
-							<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)"> 解除关联</el-button>
+							<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)">
+								解除关联</el-button>
 						</template>
 					</AuthorizeItem>
 				</template>
@@ -62,14 +61,18 @@ export default {
 				loginProvider: provider,
 				providerKey: key,
 			})
+			await this.getExternalLogins()
+		},
+		async getExternalLogins() {
 			let res = await getExternalLogins()
 			this.model = res.data
-		},
+			console.log(this.model);
+		}
 	},
 	async beforeMount() {
-		let res = await getExternalLogins()
-		this.model = res.data
+		await this.getExternalLogins();
 	},
 }
 </script>
-<style scoped></style>
+<style scoped>
+</style>
