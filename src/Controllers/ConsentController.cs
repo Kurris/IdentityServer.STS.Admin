@@ -227,6 +227,8 @@ namespace IdentityServer.STS.Admin.Controllers
             if (context.ValidatedResources.Resources.OfflineAccess)
             {
                 apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || input == null));
+                output.AllowRememberConsent = false;
+                output.RememberConsent = false;
             }
 
             output.ApiScopes = apiScopes;

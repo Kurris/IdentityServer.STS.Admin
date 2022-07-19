@@ -18,6 +18,7 @@ using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Resolvers;
 using IdentityServer.STS.Admin.Services;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
+using IdentityServer4.Validation;
 using Microsoft.Extensions.Logging;
 
 namespace IdentityServer.STS.Admin
@@ -142,6 +143,9 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
+            services.AddTransient<IReturnUrlParser, CustomReturnUrlParser>();
+            services.AddTransient<IRedirectUriValidator, CustomRedirectUriValidator>();
+
             services.AddSingleton(typeof(IApiResult), typeof(ApiResult<object>));
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
             services.AddSingleton<EmailGenerateService>();
@@ -155,7 +159,7 @@ namespace IdentityServer.STS.Admin
 
             services.AddTransient<IConfigurationService, ConfigurationService>();
             services.AddTransient<IIdentityResourceService, IdentityResourceService>();
-            services.AddTransient<IReturnUrlParser, CustomReturnUrlParser>();
+
             services.AddTransient<IApiResourceService, ApiResourceService>();
             services.AddTransient<IApiScopeService, ApiScopeService>();
             services.AddTransient<IClientService, ClientService>();
@@ -170,9 +174,8 @@ namespace IdentityServer.STS.Admin
             //chrome 内核 80版本 cookie策略问题
             app.UseCookiePolicy(new CookiePolicyOptions {MinimumSameSitePolicy = SameSiteMode.Lax});
 
-            app.UseIdentityServer();
-
             app.UseRouting();
+            app.UseIdentityServer();
 
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
