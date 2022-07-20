@@ -1,10 +1,8 @@
 <template>
 	<div id="error">
-		<span> </span>
-		<template v-if="$route.query.errorId"> ErrorId: {{ $route.query.errorId }} </template>
-
 		<el-result icon="error" title="错误提示" :subTitle="subTitle">
 			<template slot="extra">
+				<!-- <template v-if="$route.query.errorId"> ErrorId: {{ $route.query.errorId }} </template> -->
 				<a :href="returnUrl">
 					<el-button type="primary" size="medium">返回</el-button>
 				</a>
@@ -32,7 +30,9 @@ export default {
 	},
 	async beforeMount() {
 		if (!this.error && !this.remoteError) {
-			this.error = await getError({ errorId: this.$route.query.errorId })
+			let errorResult = await getError({ errorId: this.$route.query.errorId })
+			this.error = errorResult.data
+			this.returnUrl = this.error.redirectUri || '/signIn'
 		}
 	},
 }
