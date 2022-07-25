@@ -10,17 +10,21 @@ namespace IdentityServer.STS.Admin.IdentityServerExtension
 {
     public class UserProfile : IProfileService
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserClaimsPrincipalFactory<User, Role> _userClaimsPrincipalFactory;
 
-        public UserProfile(UserManager<User> userManager)
+        public UserProfile(UserClaimsPrincipalFactory<User, Role> userClaimsPrincipalFactory)
         {
-            _userManager = userManager;
+            _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         }
 
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
-            var user = await _userManager.FindByIdAsync(context.Subject.GetSubjectId());
-            var claims = await _userManager.GetClaimsAsync(user);
+            var sub = context.Subject.GetSubjectId();
+            var user = await _userClaimsPrincipalFactory.UserManager.FindByIdAsync(sub);
+            var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
+
+            var claims = userClaims.Claims.ToList();
+
             var issuedClaims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type));
             context.IssuedClaims.AddRange(issuedClaims);
         }

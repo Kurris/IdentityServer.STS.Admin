@@ -20,8 +20,7 @@
 					<AuthorizeItem divider :title="item.providerDisplayName" :key="item.name">
 						<ExternalAvatar :loginProvider="item.loginProvider" :size="32" slot="img" />
 						<template slot="operation" v-if="model.ableRemove">
-							<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)">
-								解除关联</el-button>
+							<el-button type="danger" plain @click="removeLogin(item.loginProvider, item.providerKey)"> 解除关联</el-button>
 						</template>
 					</AuthorizeItem>
 				</template>
@@ -66,13 +65,11 @@ export default {
 		async getExternalLogins() {
 			let res = await getExternalLogins()
 			this.model = res.data
-			console.log(this.model);
-		}
+		},
 	},
 	async beforeMount() {
-		await this.getExternalLogins();
+		await this.getExternalLogins()
 	},
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>
