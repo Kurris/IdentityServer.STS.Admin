@@ -18,7 +18,6 @@ export default {
 		async yes() {
 			let logoutId = this.$route.query.logoutId
 
-			// res.data.postLogoutRedirectUri
 			let res = await loggedOut({ logoutId })
 			if (res.route == 10) {
 				this.$router.push({
