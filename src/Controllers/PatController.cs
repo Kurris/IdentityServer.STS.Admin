@@ -3,7 +3,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using IdentityModel;
-using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Models.Pat;
 using IdentityServer.STS.Admin.Services;
 using IdentityServer4.Extensions;
@@ -16,6 +15,9 @@ using Newtonsoft.Json;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
+    /// <summary>
+    /// 个人token控制器
+    /// </summary>
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -46,17 +48,20 @@ namespace IdentityServer.STS.Admin.Controllers
                 lifeTime = int.MaxValue;
             }
 
-            var issuer = "ligy.identity";
-            var token = await _referenceTokenTools.IssueReferenceToken((int) lifeTime, issuer, input.Description, new List<Claim>
+            var issuer = "identity.isawesome.cn";
+
+            var scopes = new List<Claim>
             {
                 new(JwtClaimTypes.Subject, User.GetSubjectId()),
                 new(JwtClaimTypes.Scope, "openid"),
                 new(JwtClaimTypes.Scope, "ref"),
                 new(JwtClaimTypes.Issuer, issuer)
-            }, new List<string>
-            {
-                "weather_api"
-            });
+            };
+
+            var otherScopes = input.Scopes.Select(x => new Claim(JwtClaimTypes.Scope, x));
+            scopes.AddRange(otherScopes);
+
+            var token = await _referenceTokenTools.IssueReferenceToken((int) lifeTime, issuer, input.Description, scopes, input.Audiences);
 
             return token;
         }
