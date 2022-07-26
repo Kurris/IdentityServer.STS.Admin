@@ -143,8 +143,8 @@ namespace IdentityServer.STS.Admin
                 };
             });
 
-            services.AddTransient<IReturnUrlParser, CustomReturnUrlParser>();
-            services.AddTransient<IRedirectUriValidator, CustomRedirectUriValidator>();
+            services.AddScoped<IReturnUrlParser, CustomReturnUrlParser>();
+            services.AddScoped<IRedirectUriValidator, CustomRedirectUriValidator>();
 
             services.AddSingleton(typeof(IApiResult), typeof(ApiResult<object>));
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
@@ -154,15 +154,15 @@ namespace IdentityServer.STS.Admin
             RedirectHelper.Initialize(frontendBaseUrl, "/successed", "/error");
 
             //admin service registered
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IRoleService, RoleService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
 
-            services.AddTransient<IConfigurationService, ConfigurationService>();
-            services.AddTransient<IIdentityResourceService, IdentityResourceService>();
+            services.AddScoped<IConfigurationService, ConfigurationService>();
+            services.AddScoped<IIdentityResourceService, IdentityResourceService>();
 
-            services.AddTransient<IApiResourceService, ApiResourceService>();
-            services.AddTransient<IApiScopeService, ApiScopeService>();
-            services.AddTransient<IClientService, ClientService>();
+            services.AddScoped<IApiResourceService, ApiResourceService>();
+            services.AddScoped<IApiScopeService, ApiScopeService>();
+            services.AddScoped<IClientService, ClientService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
