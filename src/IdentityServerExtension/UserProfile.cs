@@ -21,9 +21,10 @@ namespace IdentityServer.STS.Admin.IdentityServerExtension
         {
             var sub = context.Subject.GetSubjectId();
             var user = await _userClaimsPrincipalFactory.UserManager.FindByIdAsync(sub);
-            var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
 
-            var claims = userClaims.Claims.ToList();
+            var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
+            //userClaims附加了user和role的claims,避免重复
+            var claims = userClaims.Claims.Distinct().ToList();
 
             var issuedClaims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type));
             context.IssuedClaims.AddRange(issuedClaims);
