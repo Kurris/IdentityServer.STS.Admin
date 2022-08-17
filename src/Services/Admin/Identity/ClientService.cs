@@ -162,7 +162,6 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             }
         }
 
-
         public async Task<IEnumerable<string>> GetScopesAsync()
         {
             var identityResources = await _idsConfigurationDbContext.IdentityResources.AsNoTracking()
@@ -174,7 +173,6 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             var scopes = identityResources.Concat(apiScopes).Distinct();
             return scopes;
         }
-
 
         public async Task<Client> QueryClientById(int id)
         {
@@ -311,7 +309,10 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
         private Client PrepareClientTypeForNewClient(ClientInput input)
         {
             var client = _mapper.Map<Client>(input);
-            client.ClientId = GenerateStringId();
+            if (string.IsNullOrEmpty(client.ClientId))
+            {
+                client.ClientId = GenerateStringId();
+            }
 
             switch (input.ClientType)
             {
