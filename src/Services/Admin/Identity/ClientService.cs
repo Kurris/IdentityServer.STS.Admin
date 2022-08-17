@@ -190,6 +190,64 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<Client> QueryClientForCopy(int clientId)
+        {
+            var client = await QueryClientById(clientId);
+
+            client.Id = 0;
+            client.ClientId = GenerateStringId();
+            client.Description = string.Empty;
+            client.ClientName = string.Empty;
+            client.ClientUri = string.Empty;
+            client.LogoUri = string.Empty;
+            client.RequireConsent = false;
+
+            client.AllowedGrantTypes.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.PostLogoutRedirectUris.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.AllowedScopes.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.RedirectUris.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.IdentityProviderRestrictions.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.Claims.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+            client.AllowedCorsOrigins.ForEach(x =>
+            {
+                x.Id = 0;
+                x.ClientId = 0;
+                x.Client = null;
+            });
+
+            return client;
+        }
+
         public async Task<IEnumerable<ClientSecret>> QueryClientSecrets(int clientId)
         {
             var secrets = await _idsConfigurationDbContext.ClientSecrets.Where(x => x.ClientId == clientId)

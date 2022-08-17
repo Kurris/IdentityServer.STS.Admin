@@ -165,12 +165,19 @@ namespace IdentityServer.STS.Admin.Controllers.Admin
             return await _clientService.QueryClientById(id);
         }
 
+        [HttpGet("newClient")]
+        public async Task<Client> QueryClientForCopy(int clientId)
+        {
+            return await _clientService.QueryClientForCopy(clientId);
+        }
+
         [HttpPost("client")]
         public async Task SaveClient(ClientInput client)
         {
             var userId = int.Parse(User.Identity.GetSubjectId());
             await _clientService.SaveClient(client, userId);
         }
+
 
         [HttpDelete("client/{id:int}")]
         public async Task RemoveClientByIdAsync(int id)

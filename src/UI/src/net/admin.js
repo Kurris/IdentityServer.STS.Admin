@@ -181,6 +181,14 @@ export const getClientById = data => {
 	})
 }
 
+export const getClientByIdForCopy = data => {
+	return http({
+		method: 'get',
+		url: 'api/configuration/newClient',
+		params: data,
+	})
+}
+
 export const saveClient = data => {
 	return http({
 		method: 'post',

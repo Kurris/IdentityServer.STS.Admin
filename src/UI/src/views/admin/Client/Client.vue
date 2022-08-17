@@ -12,6 +12,7 @@
 						<el-avatar :src="item.logoUri" style="box-shadow: 1.2px 1.5px 4px 1px #e6e6e6" />
 					</template>
 					<template slot="operation" v-if="item.nonEditable == 0">
+						<el-button @click="getClientByIdForCopy(item.id)" plain>复制</el-button>
 						<el-button type="primary" @click="editClient(item.id)" plain>编辑</el-button>
 						<el-button type="danger" @click="removeClient(item.id, item.clientName)" plain>移除</el-button>
 					</template>
@@ -24,7 +25,8 @@
 			</el-pagination>
 		</template>
 
-		<el-drawer title="客户端管理" :visible.sync="clientDrawer" :with-header="true" size="800px">
+		<el-drawer :title="'客户端管理(' + (operateType == 0 ? '添加' : operateType == 2 ? '复制' : '编辑') + ')'"
+			:visible.sync="clientDrawer" :with-header="true" size="800px">
 			<el-divider></el-divider>
 			<div class="clientContainer" v-if="enums != null">
 				<el-button type="primary" @click="save" style="margin-left: 20px">保存应用配置</el-button>
@@ -405,9 +407,10 @@
 								</el-form-item>
 								<el-form-item>
 									<template slot="label">
-										<el-tooltip class="item" effect="dark" content="默认 client_" placement="top">
-											<span>客户端声明前缀,在ClientCliams定义的type在JWT都以前缀+type的方式显示(除了client_id)<i
-													class="el-icon-info"></i></span>
+										<el-tooltip class="item" effect="dark"
+											content="默认 client_,在ClientCliams定义的type在JWT都以前缀+type的方式显示(除了client_id)"
+											placement="top">
+											<span>客户端声明前缀<i class="el-icon-info"></i></span>
 										</el-tooltip>
 									</template>
 									<el-input v-model="form.clientClaimsPrefix"></el-input>
@@ -521,6 +524,7 @@ import {
 	getClientSecrets,
 	addClientSecret,
 	removeClientSecret,
+	getClientByIdForCopy
 } from '../../../net/admin.js'
 import AuthorizeItem from '../../../components/AuthorizeItem.vue'
 export default {
@@ -618,6 +622,29 @@ export default {
 				this.form = res.data
 				console.log(this.form)
 			})
+
+			await getGrantTypes().then(res => {
+				this.grantTypes = res.data
+			})
+			await getScopes().then(res => {
+				this.scopes = res.data
+			})
+
+			this.editLoading = false
+			this.clientDrawer = true
+		},
+
+		async getClientByIdForCopy(id) {
+
+
+			this.currentId = 0
+			this.operateType = 2
+
+			this.editLoading = true
+
+			await getClientByIdForCopy({ clientId: id }).then(res => {
+				this.form = res.data
+			});
 
 			await getGrantTypes().then(res => {
 				this.grantTypes = res.data

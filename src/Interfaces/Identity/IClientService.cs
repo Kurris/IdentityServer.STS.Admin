@@ -14,6 +14,8 @@ namespace IdentityServer.STS.Admin.Interfaces.Identity
 
         Task RemoveClientByIdAsync(int id, int userId);
 
+        Task<Client> QueryClientForCopy(int clientId);
+
         Task<Client> QueryClientById(int id);
 
         Task<IEnumerable<ClientSecret>> QueryClientSecrets(int clientId);
