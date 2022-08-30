@@ -33,26 +33,31 @@ namespace IdentityServer.STS.Admin.DependencyInjection
             var migrationsAssembly = "IdentityServer.STS.Admin";
 
             //aspnet core identity 用户操作
-            services.AddDbContext<TIdentityDbContext>(options =>
-            {
-                options.UseMySql(identityConnectionString, MySqlServerVersion.LatestSupportedServerVersion, builder => { builder.MigrationsAssembly(migrationsAssembly); });
-
-                // options.EnableSensitiveDataLogging();
-                // var loggerFactory = provider.GetService<ILoggerFactory>();
-                // options.UseLoggerFactory(loggerFactory);
-            });
+            services.AddDbContext<TIdentityDbContext>(options => { options.UseMySql(identityConnectionString, MySqlServerVersion.LatestSupportedServerVersion, builder => { builder.MigrationsAssembly(migrationsAssembly); }); });
 
             //ids 配置操作
             services.AddConfigurationDbContext<TConfigurationDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(configurationConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
-                builder => builder.MigrationsAssembly(migrationsAssembly)));
+                builder =>
+                {
+                    builder.MigrationsAssembly(migrationsAssembly);
+                    builder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                }));
 
             //ids 持久化授权操作
             services.AddOperationalDbContext<TPersistedGrantDbContext>(options => options.ConfigureDbContext = b => b.UseMySql(persistedGrantsConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
-                builder => builder.MigrationsAssembly(migrationsAssembly)));
+                builder =>
+                {
+                    builder.MigrationsAssembly(migrationsAssembly);
+                    builder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                }));
 
             //数据保护
             services.AddDbContext<TDataProtectionDbContext>(options => options.UseMySql(dataProtectionConnectionString, MySqlServerVersion.LatestSupportedServerVersion,
-                builder => builder.MigrationsAssembly(migrationsAssembly)));
+                builder =>
+                {
+                    builder.MigrationsAssembly(migrationsAssembly);
+                    builder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                }));
         }
     }
 }

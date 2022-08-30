@@ -56,7 +56,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
             return await _idsConfigurationDbContext.Clients
                 .Where(x => clientIds.Contains(x.Id))
-                .OrderBy(x => x.Created)
+                .OrderByDescending(x => x.Created)
                 .ToPagination(pageIn);
         }
 

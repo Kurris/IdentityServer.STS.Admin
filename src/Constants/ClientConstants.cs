@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using IdentityServer.STS.Admin.Models;
 
 namespace IdentityServer.STS.Admin.Constants
 {
@@ -53,6 +52,7 @@ namespace IdentityServer.STS.Admin.Constants
         public static IEnumerable<string> GrantTypes =>
             new List<string>
             {
+                // GrantType.ResourceOwnerPassword
                 "implicit",
                 "client_credentials",
                 "authorization_code",
