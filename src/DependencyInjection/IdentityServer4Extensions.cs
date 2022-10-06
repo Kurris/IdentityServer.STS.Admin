@@ -70,7 +70,8 @@ namespace IdentityServer.STS.Admin.DependencyInjection
                 .AddAspNetIdentity<TUserIdentity>().AddProfileService<UserProfile>() //添加aspnetcore user,用于id4管理用户
                 .AddCustomSigningCredential(configuration) //签名
                 .AddCustomValidationKey(configuration) //验签
-                .AddExtensionGrantValidator<DelegationGrantValidator>(); //自定义授权模式
+                .AddExtensionGrantValidator<DelegationGrantValidator>() //自定义授权模式
+                .AddResourceOwnerValidator<BackendPasswordValidator>();//自定义资源拥有者验证
         }
 
         /// <summary>
