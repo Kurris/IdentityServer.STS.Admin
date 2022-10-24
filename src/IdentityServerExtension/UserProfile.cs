@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer4.Extensions;
@@ -24,7 +27,7 @@ namespace IdentityServer.STS.Admin.IdentityServerExtension
 
             var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
             //userClaims附加了user和role的claims,避免重复
-            var claims = userClaims.Claims.Distinct().ToList();
+            var claims = userClaims.Claims.Distinct(new ClaimTypeComparer()).ToList();
 
             var issuedClaims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type));
             context.IssuedClaims.AddRange(issuedClaims);
@@ -41,6 +44,23 @@ namespace IdentityServer.STS.Admin.IdentityServerExtension
             //var user = await _userManager.FindByIdAsync(context.Subject.GetSubjectId());
             context.IsActive = true;
             await Task.CompletedTask;
+        }
+
+        private class ClaimTypeComparer : IEqualityComparer<Claim>
+        {
+            public bool Equals(Claim x, Claim y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.Type == y.Type;
+            }
+
+            public int GetHashCode(Claim obj)
+            {
+                return HashCode.Combine(obj.Type);
+            }
         }
     }
 }
