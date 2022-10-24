@@ -14,7 +14,7 @@
 						</div>
 					</div>
 
-					<div v-if="loginType=='password'" id="accountpassword" style="padding-top: 30px;">
+					<div v-if="loginType == 'password'" id="accountpassword" style="padding-top: 30px;">
 						<el-form>
 							<el-form-item>
 								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号"
@@ -53,12 +53,12 @@
 
 						<div style="position: relative;height: 213px;width: 213px;">
 
-							<div v-if="qrCodeResult=='Wait'" style="position: absolute; z-index: 3;">
-								<qriously v-if="qrCode!=null" :value="qrCode" :size="213" />
+							<div v-if="qrCodeResult == 'Wait'" style="position: absolute; z-index: 3;">
+								<qriously v-if="qrCode != null" :value="qrCode" :size="213" />
 							</div>
 							<div v-else-if="qrCodeResult == 'Expired'">
 								<div style="position: absolute;z-index: 2;opacity: 0.1;">
-									<qriously v-if="qrCode!=null" :value="qrCode" :size="213" />
+									<qriously v-if="qrCode != null" :value="qrCode" :size="213" />
 								</div>
 								<div style="position: absolute;z-index: 3;">
 									<div
@@ -69,9 +69,21 @@
 									</div>
 								</div>
 							</div>
-							<div v-else-if="qrCodeResult=='Success'">
+							<div v-else-if="qrCodeResult == 'WaitConfirm'">
 								<div style="position: absolute;z-index: 2;opacity: 0.1;">
-									<qriously v-if="qrCode!=null" :value="qrCode" :size="213" />
+									<qriously v-if="qrCode != null" :value="qrCode" :size="213" />
+								</div>
+								<div style="position: absolute;z-index: 3;">
+									<div
+										style="display: flex;justify-content: center;align-items: center;height: 213px;width: 213px;z-index: 10">
+										<el-link type="success" @click="createQrCode" :underline="false">等待确认登陆
+										</el-link>
+									</div>
+								</div>
+							</div>
+							<div v-else-if="qrCodeResult.indexOf('Success') == 0">
+								<div style="position: absolute;z-index: 2;opacity: 0.1;">
+									<qriously v-if="qrCode != null" :value="qrCode" :size="213" />
 								</div>
 								<div style="position: absolute;z-index: 3;">
 									<div
@@ -213,12 +225,16 @@ export default {
 		startGetQrCodeScanResult() {
 
 			setInterval(() => {
-				if (this.loginType == 'qrCode' && this.qrCodeResult == 'Wait') {
+				if (this.loginType == 'qrCode' && (this.qrCodeResult == 'Wait' || this.qrCodeResult == 'WaitConfirm')) {
 					getScanResult({
 						key: this.qrCode
 					}).then(x => {
 						this.qrCodeResult = x.data
 						console.log(this.qrCodeResult);
+						//取消,重置qrcode
+						if (this.qrCodeResult == 'Denied') {
+							this.createQrCode()
+						}
 					})
 				}
 			}, 5000)

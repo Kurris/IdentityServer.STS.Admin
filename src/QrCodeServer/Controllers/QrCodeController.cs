@@ -1,30 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using IdentityServer.STS.Admin.Enums;
+using Kurisu.Authentication.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using QrCodeServer.Enums;
+using QrCodeServer.Models;
 
-namespace IdentityServer.STS.Admin.Controllers
+namespace QrCodeServer.Controllers
 {
     /// <summary>
     /// 二维码控制器
     /// </summary>
-    [AllowAnonymous]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class QrCodeController : ControllerBase
     {
         private readonly IMemoryCache _cache;
+        private readonly ICurrentUserInfoResolver _currentUserInfoResolver;
         private readonly ILogger<QrCodeController> _logger;
         private readonly IDataProtector _dataProtector;
 
-        public QrCodeController(IMemoryCache cache, IDataProtectionProvider protectionProvider, ILogger<QrCodeController> logger)
+        public QrCodeController(IMemoryCache cache
+            , IDataProtectionProvider protectionProvider
+            , ICurrentUserInfoResolver currentUserInfoResolver
+            , ILogger<QrCodeController> logger)
         {
             _cache = cache;
+            _currentUserInfoResolver = currentUserInfoResolver;
             _logger = logger;
             _dataProtector = protectionProvider.CreateProtector("@ligy-login-qrCode");
         }
@@ -33,6 +40,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// 获取二维码key
         /// </summary>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("new")]
         public string GenerateQrGuid()
         {
@@ -49,6 +57,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("scanResult")]
         public string GetScanResult(string key)
         {
@@ -76,13 +85,12 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <summary>
         /// 扫描结果
         /// </summary>
-        /// <param name="dic"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost("scan")]
-        public string Scan(Dictionary<string, string> dic)
+        public string Scan(KeyInput input)
         {
-            string key = dic["key"];
-            string subjectId = dic["subjectId"];
+            var key = input.Key;
 
             var resultString = GetScanResult(key);
             var scanType = Enum.Parse<QrCodeScanType>(resultString);
@@ -92,11 +100,35 @@ namespace IdentityServer.STS.Admin.Controllers
                 key = key.Split(':').Last();
                 var id = _dataProtector.Unprotect(key);
 
-                _cache.Set(id, $"{QrCodeScanType.WaitConfirm.ToString()}:{subjectId}", DateTime.Now.AddSeconds(30));
+                _cache.Set(id, $"{QrCodeScanType.WaitConfirm.ToString()}", DateTime.Now.AddSeconds(30));
                 return QrCodeScanType.WaitConfirm.ToString();
             }
 
             return resultString;
+        }
+
+        /// <summary>
+        /// 处理结果
+        /// </summary>
+        [HttpPost("process")]
+        public string Process(ScanProcessInput input)
+        {
+            var key = input.Key;
+            var subjectId = _currentUserInfoResolver.GetSubjectId();
+
+            var resultString = GetScanResult(key);
+            var scanType = Enum.Parse<QrCodeScanType>(resultString);
+
+            if (scanType == QrCodeScanType.WaitConfirm && input.Allow)
+            {
+                key = key.Split(':').Last();
+                var id = _dataProtector.Unprotect(key);
+
+                _cache.Set(id, $"{QrCodeScanType.Success.ToString()}:{subjectId}", DateTime.Now.AddSeconds(30));
+                return QrCodeScanType.Success.ToString();
+            }
+
+            return QrCodeScanType.Denied.ToString();
         }
 
 

@@ -1,4 +1,4 @@
-namespace IdentityServer.STS.Admin.Enums
+namespace QrCodeServer.Enums
 {
     public enum QrCodeScanType
     {

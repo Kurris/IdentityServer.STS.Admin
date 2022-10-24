@@ -2,14 +2,16 @@ import http from './http'
 
 export const newCode = () => {
 	return http({
-		url: 'api/qrCode/new',
+		baseURL: 'http://localhost:5001',
+		url: '/api/qrCode/new',
 		method: 'get',
 	})
 }
 
 export const getScanResult = data => {
 	return http({
-		url: 'api/qrCode/scanResult',
+		baseURL: 'http://localhost:5001',
+		url: '/api/qrCode/scanResult',
 		method: 'get',
 		params: data,
 	})

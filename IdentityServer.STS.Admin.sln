@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7BAE46EA-122
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer.STS.Admin", "src\identityserver\IdentityServer.STS.Admin.csproj", "{40C2E915-121E-4C21-9DF5-CAAA7E355849}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QrCodeServer", "src\QrCodeServer\QrCodeServer.csproj", "{D4E44B50-61DE-4123-950C-F29B25E3B6E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +19,10 @@ Global
 		{40C2E915-121E-4C21-9DF5-CAAA7E355849}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40C2E915-121E-4C21-9DF5-CAAA7E355849}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40C2E915-121E-4C21-9DF5-CAAA7E355849}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E44B50-61DE-4123-950C-F29B25E3B6E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E44B50-61DE-4123-950C-F29B25E3B6E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E44B50-61DE-4123-950C-F29B25E3B6E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E44B50-61DE-4123-950C-F29B25E3B6E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -26,5 +32,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{40C2E915-121E-4C21-9DF5-CAAA7E355849} = {7BAE46EA-1228-4374-A04D-8A12B7623622}
+		{D4E44B50-61DE-4123-950C-F29B25E3B6E5} = {7BAE46EA-1228-4374-A04D-8A12B7623622}
 	EndGlobalSection
 EndGlobal
