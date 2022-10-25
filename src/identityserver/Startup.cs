@@ -20,6 +20,9 @@ using IdentityServer.STS.Admin.Services;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Logging;
+using QrCodeServer;
+using StackExchange.Redis;
+using Role = IdentityServer.STS.Admin.Entities.Role;
 
 namespace IdentityServer.STS.Admin
 {
@@ -142,6 +145,9 @@ namespace IdentityServer.STS.Admin
                     AllowAll = true
                 };
             });
+            
+            services.AddSingleton<RedisClient>();
+            services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect("isawesome.cn:6379,password=zxc111"));
 
             services.AddScoped<IReturnUrlParser, CustomReturnUrlParser>();
             services.AddScoped<IRedirectUriValidator, CustomRedirectUriValidator>();

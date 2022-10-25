@@ -20,18 +20,18 @@ namespace QrCodeServer.Controllers
     [ApiController]
     public class QrCodeController : ControllerBase
     {
-        private readonly IMemoryCache _cache;
         private readonly ICurrentUserInfoResolver _currentUserInfoResolver;
+        private readonly RedisClient _redisClient;
         private readonly ILogger<QrCodeController> _logger;
         private readonly IDataProtector _dataProtector;
 
-        public QrCodeController(IMemoryCache cache
-            , IDataProtectionProvider protectionProvider
+        public QrCodeController(IDataProtectionProvider protectionProvider
             , ICurrentUserInfoResolver currentUserInfoResolver
+            , RedisClient redisClient
             , ILogger<QrCodeController> logger)
         {
-            _cache = cache;
             _currentUserInfoResolver = currentUserInfoResolver;
+            _redisClient = redisClient;
             _logger = logger;
             _dataProtector = protectionProvider.CreateProtector("@ligy-login-qrCode");
         }
@@ -47,7 +47,7 @@ namespace QrCodeServer.Controllers
             var id = GenerateStringId();
 
             //5分钟过期
-            _cache.Set(id, QrCodeScanType.Wait.ToString(), DateTime.Now.AddMinutes(5));
+            _redisClient.Set(id, QrCodeScanType.Wait.ToString(), 5 * 60);
             var key = _dataProtector.Protect(id);
             return $"login:{key}";
         }
@@ -77,9 +77,11 @@ namespace QrCodeServer.Controllers
                 return QrCodeScanType.NotExists.ToString();
             }
 
-            return _cache.TryGetValue(id, out string value)
-                ? value
-                : QrCodeScanType.Expired.ToString();
+            var value = _redisClient.Get(id);
+
+            return string.IsNullOrEmpty(value)
+                ? QrCodeScanType.Expired.ToString()
+                : value;
         }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace QrCodeServer.Controllers
                 key = key.Split(':').Last();
                 var id = _dataProtector.Unprotect(key);
 
-                _cache.Set(id, $"{QrCodeScanType.WaitConfirm.ToString()}", DateTime.Now.AddSeconds(30));
+                _redisClient.Set(id, $"{QrCodeScanType.WaitConfirm.ToString()}", 30);
                 return QrCodeScanType.WaitConfirm.ToString();
             }
 
@@ -119,13 +121,19 @@ namespace QrCodeServer.Controllers
             var resultString = GetScanResult(key);
             var scanType = Enum.Parse<QrCodeScanType>(resultString);
 
-            if (scanType == QrCodeScanType.WaitConfirm && input.Allow)
+            if (scanType == QrCodeScanType.WaitConfirm)
             {
                 key = key.Split(':').Last();
                 var id = _dataProtector.Unprotect(key);
 
-                _cache.Set(id, $"{QrCodeScanType.Success.ToString()}:{subjectId}", DateTime.Now.AddSeconds(30));
-                return QrCodeScanType.Success.ToString();
+                if (input.Allow)
+                {
+                    _redisClient.Set(id, $"{QrCodeScanType.Success.ToString()}", 30);
+                    _redisClient.Set(input.Key, subjectId.ToString(), 30);
+                    return QrCodeScanType.Success.ToString();
+                }
+
+                _redisClient.Set(id, $"{QrCodeScanType.Denied.ToString()}", 30);
             }
 
             return QrCodeScanType.Denied.ToString();

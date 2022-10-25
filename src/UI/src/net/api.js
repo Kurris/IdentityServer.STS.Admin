@@ -9,6 +9,16 @@ export const signIn = data => {
 	})
 }
 
+
+//用户登录
+export const signInWithQrCode = data => {
+	return http({
+		url: 'api/account/loginWithQrCode',
+		data: data,
+		method: 'post',
+	})
+}
+
 export const getUserByName = data => {
 	return http({
 		url: 'api/account/user',

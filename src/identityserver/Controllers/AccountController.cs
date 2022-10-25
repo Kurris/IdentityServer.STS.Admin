@@ -28,6 +28,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Newtonsoft.Json;
+using QrCodeServer;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -46,6 +47,7 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailGenerateService _emailGenerateService;
         private readonly EmailService _emailService;
+        private readonly RedisClient _redisClient;
         private readonly ITimeLimitedDataProtector _timeLimitedDataProtector;
         private readonly ILogger<AccountController> _logger;
         private const double ExpiredTime = 30;
@@ -62,6 +64,7 @@ namespace IdentityServer.STS.Admin.Controllers
             , EmailGenerateService emailGenerateService
             , IDataProtectionProvider protectionProvider
             , EmailService emailService
+            , RedisClient redisClient
             , ILogger<AccountController> logger)
         {
             _interaction = interaction;
@@ -74,6 +77,7 @@ namespace IdentityServer.STS.Admin.Controllers
             _configuration = configuration;
             _emailGenerateService = emailGenerateService;
             _emailService = emailService;
+            _redisClient = redisClient;
             _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
             _logger = logger;
         }
@@ -142,6 +146,75 @@ namespace IdentityServer.STS.Admin.Controllers
                 Route = DefineRoute.Login,
                 Data = output
             };
+        }
+
+        /// <summary>
+        /// 扫码登陆
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [AllowAnonymous]
+        [HttpPost("loginWithQrCode")]
+        public async Task<ApiResult<object>> LoginWithQrCode(LoginWithQrCodeInput request)
+        {
+            var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
+            var tenant = context?.Tenant;
+            if (!string.IsNullOrEmpty(tenant))
+            {
+                _logger.LogInformation("current tenant is {Tenant}", tenant);
+            }
+
+            //获取redis对应的subjectId进行登陆
+            var subjectId = _redisClient.Get(request.Key);
+            if (string.IsNullOrEmpty(subjectId))
+            {
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.Login,
+                };
+            }
+
+            var user = await _userManager.FindByIdAsync(subjectId);
+            await _signInManager.SignInAsync(user, true);
+            await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
+
+            if (context != null)
+            {
+                if (context.IsNativeClient())
+                {
+                    return new ApiResult<object>
+                    {
+                        Route = DefineRoute.LoadingPage,
+                        Data = request.ReturnUrl
+                    };
+                }
+
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.Redirect,
+                    Data = request.ReturnUrl,
+                };
+            }
+
+            if (request.ReturnUrl.IsLocal())
+            {
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.Redirect,
+                    Data = request.ReturnUrl,
+                };
+            }
+
+            if (string.IsNullOrEmpty(request.ReturnUrl))
+            {
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.HomePage,
+                };
+            }
+
+            throw new Exception("非法的重定向地址");
         }
 
 

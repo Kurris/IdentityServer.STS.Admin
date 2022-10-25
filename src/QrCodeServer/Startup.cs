@@ -4,6 +4,7 @@ using Kurisu.Startup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using StackExchange.Redis;
 
 namespace QrCodeServer
 {
@@ -19,7 +20,9 @@ namespace QrCodeServer
 
             services.AddHttpContextAccessor();
             services.TryAddSingleton<ICurrentUserInfoResolver, DefaultCurrentUserInfoResolver>();
-            services.AddMemoryCache();
+
+            services.AddSingleton<RedisClient>();
+            services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect("isawesome.cn:6379,password=zxc111"));
         }
     }
 }

@@ -81,7 +81,7 @@
 									</div>
 								</div>
 							</div>
-							<div v-else-if="qrCodeResult.indexOf('Success') == 0">
+							<div v-else-if="qrCodeResult != null && qrCodeResult == 'Success'">
 								<div style="position: absolute;z-index: 2;opacity: 0.1;">
 									<qriously v-if="qrCode != null" :value="qrCode" :size="213" />
 								</div>
@@ -138,7 +138,7 @@
 
 <script>
 // getLoginStatus
-import { signIn, checkLogin, getLoginStatus } from '../net/api.js'
+import { signIn, checkLogin, getLoginStatus, signInWithQrCode } from '../net/api.js'
 import { newCode, getScanResult } from '../net/qrCode.js'
 
 import NProgress from 'nprogress'
@@ -231,8 +231,35 @@ export default {
 					}).then(x => {
 						this.qrCodeResult = x.data
 						console.log(this.qrCodeResult);
+						if (this.qrCodeResult == 'Success') {
+							const returnUrl = this.$route.query.returnUrl
+							signInWithQrCode({
+								returnUrl,
+								key: this.qrCode
+							}).then(response => {
+								if (response.route == 2) {
+									getLoginStatus().then(res => {
+										let userName = res.data.user.userName
+										this.$router.push({
+											path: '/zone/' + userName,
+										})
+									})
+
+								} else if (response.route == 1) {
+									window.location = response.data
+								} else if (response.route == 4) {
+									this.$router.push({
+										path: '/signinWith2fa',
+										query: {
+											rememberMe: response.data.rememberLogin,
+											returnUrl: response.data.returnUrl,
+										},
+									})
+								}
+							})
+						}
 						//取消,重置qrcode
-						if (this.qrCodeResult == 'Denied') {
+						else if (this.qrCodeResult == 'Denied') {
 							this.createQrCode()
 						}
 					})
@@ -244,6 +271,17 @@ export default {
 				this.qrCode = x.data
 				this.qrCodeResult = 'Wait'
 			})
+		}
+	},
+	watch: {
+		clientWidth(newVal) {
+			this.slotVisible = !(newVal < 620)
+		},
+		loginType(newValue) {
+			console.log(newValue)
+			if (newValue == 'qrCode') {
+				this.createQrCode()
+			}
 		}
 	},
 	beforeMount() {
@@ -270,18 +308,8 @@ export default {
 				}
 			}
 		})
-
-		this.createQrCode()
 		this.startGetQrCodeScanResult()
-	},
-	watch: {
-		clientWidth(newVal) {
-			this.slotVisible = !(newVal < 620)
-		},
-		loginType(newValue) {
-			console.log(newValue)
-		}
-	},
+	}
 }
 </script>
 
