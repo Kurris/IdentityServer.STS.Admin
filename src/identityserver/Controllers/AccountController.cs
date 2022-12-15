@@ -28,7 +28,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Newtonsoft.Json;
-using QrCodeServer;
 
 namespace IdentityServer.STS.Admin.Controllers
 {
@@ -47,7 +46,6 @@ namespace IdentityServer.STS.Admin.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailGenerateService _emailGenerateService;
         private readonly EmailService _emailService;
-        private readonly RedisClient _redisClient;
         private readonly ITimeLimitedDataProtector _timeLimitedDataProtector;
         private readonly ILogger<AccountController> _logger;
         private const double ExpiredTime = 30;
@@ -64,7 +62,6 @@ namespace IdentityServer.STS.Admin.Controllers
             , EmailGenerateService emailGenerateService
             , IDataProtectionProvider protectionProvider
             , EmailService emailService
-            , RedisClient redisClient
             , ILogger<AccountController> logger)
         {
             _interaction = interaction;
@@ -77,7 +74,6 @@ namespace IdentityServer.STS.Admin.Controllers
             _configuration = configuration;
             _emailGenerateService = emailGenerateService;
             _emailService = emailService;
-            _redisClient = redisClient;
             _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
             _logger = logger;
         }
@@ -132,8 +128,8 @@ namespace IdentityServer.STS.Admin.Controllers
         /// </summary>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
-        [HttpGet("loginUiSetting")]
         [AllowAnonymous]
+        [HttpGet("loginUiSetting")]
         public async Task<ApiResult<object>> CheckLoginAndGetUiSetting(string returnUrl)
         {
             var output = await BuildLoginResultAsync(returnUrl);
@@ -156,7 +152,7 @@ namespace IdentityServer.STS.Admin.Controllers
         /// <exception cref="Exception"></exception>
         [AllowAnonymous]
         [HttpPost("loginWithQrCode")]
-        public async Task<ApiResult<object>> LoginWithQrCode(LoginWithQrCodeInput request)
+        public async Task<ApiResult<object>> LoginWithQrCode(LoginWithQrCodeInput request, [FromServices] RedisClient redisClient)
         {
             var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
             var tenant = context?.Tenant;
@@ -166,7 +162,7 @@ namespace IdentityServer.STS.Admin.Controllers
             }
 
             //获取redis对应的subjectId进行登陆
-            var subjectId = _redisClient.Get(request.Key);
+            var subjectId = redisClient.Get(request.Key);
             if (string.IsNullOrEmpty(subjectId))
             {
                 return new ApiResult<object>
@@ -948,7 +944,7 @@ namespace IdentityServer.STS.Admin.Controllers
             var output = await BuildLoggedOutModelAsync(input.LogoutId);
 
             //存在登录凭证
-            if (User?.Identity.IsAuthenticated == true)
+            if (User.Identity.IsAuthenticated)
             {
                 /*
                  * 删除本地cookie
@@ -1029,11 +1025,11 @@ namespace IdentityServer.STS.Admin.Controllers
                 PostLogoutRedirectUri = context?.PostLogoutRedirectUri,
                 ClientName = string.IsNullOrEmpty(context?.ClientName) ? context?.ClientId : context.ClientName,
                 SignOutIframeUrl = context?.SignOutIFrameUrl,
-                LogoutId = logoutId
+                LogoutId = logoutId,
             };
 
             //如果已经登录
-            if (User?.Identity.IsAuthenticated == true)
+            if (User.Identity.IsAuthenticated)
             {
                 //获取登录提供器
                 var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;

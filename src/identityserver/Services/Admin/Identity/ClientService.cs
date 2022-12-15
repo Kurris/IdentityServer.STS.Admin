@@ -6,6 +6,7 @@ using AutoMapper;
 using IdentityServer.STS.Admin.DbContexts;
 using IdentityServer.STS.Admin.Entities;
 using IdentityServer.STS.Admin.Enums;
+using IdentityServer.STS.Admin.Helpers;
 using IdentityServer.STS.Admin.Interfaces;
 using IdentityServer.STS.Admin.Interfaces.Identity;
 using IdentityServer.STS.Admin.Models;
@@ -59,18 +60,6 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
                 .OrderByDescending(x => x.Created)
                 .ToPagination(pageIn);
         }
-
-        private static string GenerateStringId()
-        {
-            long i = 1;
-            foreach (byte b in Guid.NewGuid().ToByteArray())
-            {
-                i *= b + 1;
-            }
-
-            return $"{i - DateTime.Now.Ticks:x}";
-        }
-
 
         public async Task SaveClient(ClientInput input, int userId)
         {
@@ -193,7 +182,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             var client = await QueryClientById(clientId);
 
             client.Id = 0;
-            client.ClientId = GenerateStringId();
+            client.ClientId = Guid.NewGuid().GetShortId();
             client.Description = string.Empty;
             client.ClientName = string.Empty;
             client.ClientUri = string.Empty;
@@ -270,7 +259,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
 
         public async Task<string> AddSecret(ClientSecretInput input)
         {
-            var secret = GenerateStringId();
+            var secret = Guid.NewGuid().GetShortId();
             input.Value = secret;
 
             //记录原始密码
@@ -311,7 +300,7 @@ namespace IdentityServer.STS.Admin.Services.Admin.Identity
             var client = _mapper.Map<Client>(input);
             if (string.IsNullOrEmpty(client.ClientId))
             {
-                client.ClientId = GenerateStringId();
+                client.ClientId = Guid.NewGuid().GetShortId();
             }
 
             switch (input.ClientType)

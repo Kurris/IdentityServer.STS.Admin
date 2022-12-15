@@ -80,8 +80,11 @@ namespace IdentityServer.STS.Admin.Services
             , MailkitOptions options)
         {
             options ??= _mailkitOptions;
-
             if (options == null) throw new ArgumentNullException(nameof(options));
+            if (!options.Enable)
+            {
+                return;
+            }
 
             using (var message = new MimeMessage())
             {
@@ -185,6 +188,11 @@ namespace IdentityServer.STS.Admin.Services
     /// </summary>
     public class MailkitOptions
     {
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool Enable { get; set; }
+
         /// <summary>
         /// 邮件服务器Host
         /// </summary>

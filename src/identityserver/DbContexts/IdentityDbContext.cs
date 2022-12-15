@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using IdentityServer.STS.Admin.Entities;
+using IdentityServer.STS.Admin.Filters;
+using IdentityServer.STS.Admin.Seeds.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -28,6 +30,9 @@ namespace IdentityServer.STS.Admin.DbContexts
 
                 builder.Entity(entity).ToTable(table.Name);
             }
+
+            builder.ApplyConfiguration(new UserSeed());
+            builder.ApplyConfiguration(new RoleSeed());
         }
     }
 }

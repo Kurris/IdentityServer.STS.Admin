@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,6 +17,13 @@ namespace IdentityServer.STS.Admin.Interfaces
                 ? query.Where(predicate)
                 : query;
         }
+
+
+        public static bool isEmpty(this List<int> list)
+        {
+            return list != null || !list.Any();
+        }
+
 
         public static async Task<Pagination<T>> ToPaginationBy<T, TKey>(this IQueryable<T> query, Expression<Func<T, TKey>> orderBy, PageIn pageInput, bool orderByDescending = true) where T : class, new()
         {

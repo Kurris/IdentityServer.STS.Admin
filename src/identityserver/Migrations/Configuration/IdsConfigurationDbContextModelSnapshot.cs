@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace IdentityServer.STS.Admin.Migrations.Configuration
 {
     [DbContext(typeof(IdsConfigurationDbContext))]
@@ -14,8 +16,8 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.17");
+                .HasAnnotation("ProductVersion", "6.0.11")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("IdentityServer.STS.Admin.Entities.ClientOwners", b =>
                 {
@@ -32,6 +34,14 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
                     b.HasKey("Id");
 
                     b.ToTable("ClientOwners");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResource", b =>
@@ -80,7 +90,19 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ApiResources");
+                    b.ToTable("ApiResources", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3980),
+                            DisplayName = "Identity.Admin",
+                            Enabled = true,
+                            Name = "Identity.Admin",
+                            NonEditable = false,
+                            ShowInDiscoveryDocument = false
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>
@@ -101,7 +123,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceClaims");
+                    b.ToTable("ApiResourceClaims", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceProperty", b =>
@@ -127,7 +149,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceProperties");
+                    b.ToTable("ApiResourceProperties", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceScope", b =>
@@ -148,7 +170,15 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceScopes");
+                    b.ToTable("ApiResourceScopes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ApiResourceId = 1,
+                            Scope = "identity.admin.api"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceSecret", b =>
@@ -184,7 +214,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceSecrets");
+                    b.ToTable("ApiResourceSecrets", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScope", b =>
@@ -223,7 +253,19 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ApiScopes");
+                    b.ToTable("ApiScopes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DisplayName = "identity.admin.api",
+                            Emphasize = false,
+                            Enabled = true,
+                            Name = "identity.admin.api",
+                            Required = true,
+                            ShowInDiscoveryDocument = false
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeClaim", b =>
@@ -244,7 +286,21 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ScopeId");
 
-                    b.ToTable("ApiScopeClaims");
+                    b.ToTable("ApiScopeClaims", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ScopeId = 1,
+                            Type = "name"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ScopeId = 1,
+                            Type = "role"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeProperty", b =>
@@ -270,7 +326,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ScopeId");
 
-                    b.ToTable("ApiScopeProperties");
+                    b.ToTable("ApiScopeProperties", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.Client", b =>
@@ -427,7 +483,47 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
                     b.HasIndex("ClientId")
                         .IsUnique();
 
-                    b.ToTable("Clients");
+                    b.ToTable("Clients", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AbsoluteRefreshTokenLifetime = 3600,
+                            AccessTokenLifetime = 3600,
+                            AccessTokenType = 0,
+                            AllowAccessTokensViaBrowser = false,
+                            AllowOfflineAccess = true,
+                            AllowPlainTextPkce = true,
+                            AllowRememberConsent = true,
+                            AlwaysIncludeUserClaimsInIdToken = true,
+                            AlwaysSendClientClaims = false,
+                            AuthorizationCodeLifetime = 300,
+                            BackChannelLogoutSessionRequired = false,
+                            ClientClaimsPrefix = "client_",
+                            ClientId = "9512e6fec8ec15a6",
+                            ClientName = "Dashboard",
+                            ClientUri = "http://localhost:5005",
+                            ConsentLifetime = 300,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3690),
+                            Description = "Dashboard",
+                            DeviceCodeLifetime = 300,
+                            EnableLocalLogin = true,
+                            Enabled = true,
+                            FrontChannelLogoutSessionRequired = false,
+                            IdentityTokenLifetime = 300,
+                            IncludeJwtId = true,
+                            NonEditable = false,
+                            ProtocolType = "oidc",
+                            RefreshTokenExpiration = 1,
+                            RefreshTokenUsage = 1,
+                            RequireClientSecret = false,
+                            RequireConsent = true,
+                            RequirePkce = true,
+                            RequireRequestObject = false,
+                            SlidingRefreshTokenLifetime = 3600,
+                            UpdateAccessTokenClaimsOnRefresh = true
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientClaim", b =>
@@ -453,7 +549,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientClaims");
+                    b.ToTable("ClientClaims", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientCorsOrigin", b =>
@@ -474,7 +570,15 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientCorsOrigins");
+                    b.ToTable("ClientCorsOrigins", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            Origin = "http://localhost:5005"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientGrantType", b =>
@@ -495,7 +599,15 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientGrantTypes");
+                    b.ToTable("ClientGrantTypes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            GrantType = "authorization_code"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientIdPRestriction", b =>
@@ -516,7 +628,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientIdPRestrictions");
+                    b.ToTable("ClientIdPRestrictions", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientPostLogoutRedirectUri", b =>
@@ -537,7 +649,15 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientPostLogoutRedirectUris");
+                    b.ToTable("ClientPostLogoutRedirectUris", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            PostLogoutRedirectUri = "http://localhost:5005/oauth/logout"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientProperty", b =>
@@ -563,7 +683,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientProperties");
+                    b.ToTable("ClientProperties", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientRedirectUri", b =>
@@ -584,7 +704,15 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientRedirectUris");
+                    b.ToTable("ClientRedirectUris", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            RedirectUri = "http://localhost:5005/oauth/callback"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientScope", b =>
@@ -605,7 +733,21 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientScopes");
+                    b.ToTable("ClientScopes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ClientId = 1,
+                            Scope = "openid"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ClientId = 1,
+                            Scope = "profile"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientSecret", b =>
@@ -641,7 +783,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientSecrets");
+                    b.ToTable("ClientSecrets", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResource", b =>
@@ -689,7 +831,70 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("IdentityResources");
+                    b.ToTable("IdentityResources", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3740),
+                            DisplayName = "Your user identifier",
+                            Emphasize = true,
+                            Enabled = true,
+                            Name = "openid",
+                            NonEditable = false,
+                            Required = true,
+                            ShowInDiscoveryDocument = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3750),
+                            DisplayName = "Email",
+                            Emphasize = false,
+                            Enabled = true,
+                            Name = "email",
+                            NonEditable = false,
+                            Required = false,
+                            ShowInDiscoveryDocument = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3750),
+                            DisplayName = "Your address",
+                            Emphasize = false,
+                            Enabled = true,
+                            Name = "address",
+                            NonEditable = false,
+                            Required = false,
+                            ShowInDiscoveryDocument = true
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3750),
+                            DisplayName = "Roles",
+                            Emphasize = true,
+                            Enabled = true,
+                            Name = "roles",
+                            NonEditable = false,
+                            Required = true,
+                            ShowInDiscoveryDocument = true
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Created = new DateTime(2022, 12, 15, 16, 5, 33, 828, DateTimeKind.Local).AddTicks(3760),
+                            Description = "profile",
+                            DisplayName = "profile",
+                            Emphasize = true,
+                            Enabled = true,
+                            Name = "profile",
+                            NonEditable = false,
+                            Required = true,
+                            ShowInDiscoveryDocument = true
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceClaim", b =>
@@ -710,7 +915,117 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("IdentityResourceId");
 
-                    b.ToTable("IdentityResourceClaims");
+                    b.ToTable("IdentityResourceClaims", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            IdentityResourceId = 1,
+                            Type = "sub"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            IdentityResourceId = 2,
+                            Type = "email"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            IdentityResourceId = 3,
+                            Type = "address"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            IdentityResourceId = 4,
+                            Type = "role"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            IdentityResourceId = 5,
+                            Type = "name"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            IdentityResourceId = 5,
+                            Type = "family_name"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            IdentityResourceId = 5,
+                            Type = "given_name"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            IdentityResourceId = 5,
+                            Type = "middle_name"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            IdentityResourceId = 5,
+                            Type = "nickname"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            IdentityResourceId = 5,
+                            Type = "preferred_username"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            IdentityResourceId = 5,
+                            Type = "profile"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            IdentityResourceId = 5,
+                            Type = "picture"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            IdentityResourceId = 5,
+                            Type = "website"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            IdentityResourceId = 5,
+                            Type = "gender"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            IdentityResourceId = 5,
+                            Type = "birthdate"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            IdentityResourceId = 5,
+                            Type = "zoneinfo"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            IdentityResourceId = 5,
+                            Type = "locale"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            IdentityResourceId = 5,
+                            Type = "updated_at"
+                        });
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceProperty", b =>
@@ -736,7 +1051,7 @@ namespace IdentityServer.STS.Admin.Migrations.Configuration
 
                     b.HasIndex("IdentityResourceId");
 
-                    b.ToTable("IdentityResourceProperties");
+                    b.ToTable("IdentityResourceProperties", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>

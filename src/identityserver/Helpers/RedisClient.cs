@@ -1,7 +1,8 @@
 using System;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace QrCodeServer
+namespace IdentityServer.STS.Admin.Helpers
 {
     public class RedisClient
     {
@@ -10,7 +11,6 @@ namespace QrCodeServer
         /// <summary>
         /// 初始化 <see cref="RedisClient"/> 类的新实例。
         /// </summary>
-        /// <param name="connectionMultiplexer">连接多路复用器。</param>
         public RedisClient(IConnectionMultiplexer connectionMultiplexer)
         {
             if (connectionMultiplexer != null && connectionMultiplexer.IsConnected)
@@ -33,5 +33,18 @@ namespace QrCodeServer
         {
             return _database.StringGet(key);
         }
+    }
+
+    public class RedisOptions
+    {
+        public bool Enable { get; set; }
+
+        public string IP { get; set; }
+
+        public int Port { get; set; }
+
+        public int Db { get; set; }
+
+        public string Password { get; set; }
     }
 }

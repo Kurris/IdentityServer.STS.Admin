@@ -12,5 +12,7 @@ namespace IdentityServer.STS.Admin.Models.Account
         public IEnumerable<ExternalProvider> VisibleExternalProviders => ExternalProviders.Where(x => !string.IsNullOrWhiteSpace(x.DisplayName));
         public bool IsExternalLoginOnly => !EnableLocalLogin && ExternalProviders?.Count() == 1;
         public string ExternalLoginScheme => IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
+
+        public bool ShowQrCodeOption { get; set; }
     }
 }

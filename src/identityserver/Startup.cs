@@ -20,7 +20,6 @@ using IdentityServer.STS.Admin.Services;
 using IdentityServer.STS.Admin.Services.Admin.Identity;
 using IdentityServer4.Validation;
 using Microsoft.Extensions.Logging;
-using QrCodeServer;
 using StackExchange.Redis;
 using Role = IdentityServer.STS.Admin.Entities.Role;
 
@@ -145,15 +144,29 @@ namespace IdentityServer.STS.Admin
                     AllowAll = true
                 };
             });
-            
-            services.AddSingleton<RedisClient>();
-            services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect("isawesome.cn:6379,password=zxc111"));
+
+            //redis
+            var redisOptions = Configuration.GetSection(nameof(RedisOptions)).Get<RedisOptions>();
+            if (redisOptions != null && redisOptions.Enable)
+            {
+                services.Configure<RedisOptions>(Configuration.GetSection(nameof(RedisOptions)));
+                services.AddSingleton<RedisClient>();
+                services.AddSingleton<IConnectionMultiplexer>(_ =>
+                    ConnectionMultiplexer.Connect($"{redisOptions.IP}:{redisOptions.IP},defaultDatabase:{redisOptions.Db},password={redisOptions.Password}")
+                );
+                //127.0.0.1:16379,defaultDatabase=2,password=asdd8s7w5ada9t
+            }
+            else
+            {
+                services.AddSingleton<IConnectionMultiplexer>(_ => null);
+            }
 
             services.AddScoped<IReturnUrlParser, CustomReturnUrlParser>();
             services.AddScoped<IRedirectUriValidator, CustomRedirectUriValidator>();
 
             services.AddSingleton(typeof(IApiResult), typeof(ApiResult<object>));
             services.Configure<MailkitOptions>(Configuration.GetSection(nameof(MailkitOptions)));
+
             services.AddSingleton<EmailGenerateService>();
             services.AddScoped<ReferenceTokenToolService>();
             services.AddSingleton<EmailService>();

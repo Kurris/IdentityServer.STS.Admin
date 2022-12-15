@@ -1,4 +1,5 @@
 using IdentityServer.STS.Admin.Entities;
+using IdentityServer.STS.Admin.Seeds.Configuration;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.EntityFramework.Options;
@@ -14,6 +15,27 @@ namespace IdentityServer.STS.Admin.DbContexts
         public IdsConfigurationDbContext(DbContextOptions<IdsConfigurationDbContext> options, ConfigurationStoreOptions storeOptions)
             : base(options, storeOptions)
         {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            
+            modelBuilder.ApplyConfiguration(new ClientCorsOriginSeed());
+            modelBuilder.ApplyConfiguration(new ClientGrantTypeSeed());
+            modelBuilder.ApplyConfiguration(new ClientOwnerSeed());
+            modelBuilder.ApplyConfiguration(new ClientPostLogoutRedirectUriSeed());
+            modelBuilder.ApplyConfiguration(new ClientRedirectUriSeed());
+            modelBuilder.ApplyConfiguration(new ClientScopeSeed());
+            modelBuilder.ApplyConfiguration(new ClientSeed());
+            
+            modelBuilder.ApplyConfiguration(new IdentityResourceSeed());
+            modelBuilder.ApplyConfiguration(new IdentityResourceClaimSeed());
+            
+            modelBuilder.ApplyConfiguration(new ApiScopeSeed());
+            modelBuilder.ApplyConfiguration(new ApiScopeClaimSeed());
+            modelBuilder.ApplyConfiguration(new ApiResourceSeed());
+            modelBuilder.ApplyConfiguration(new ApiResourceScopeSeed());
         }
 
         public DbSet<ClientOwners> ClientOwners { get; set; }
