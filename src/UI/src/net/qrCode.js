@@ -5,6 +5,7 @@ export const newCode = () => {
 		baseURL: 'http://localhost:5001',
 		url: '/api/qrCode/new',
 		method: 'get',
+		loading: false,
 	})
 }
 
@@ -14,5 +15,6 @@ export const getScanResult = data => {
 		url: '/api/qrCode/scanResult',
 		method: 'get',
 		params: data,
+		loading: false,
 	})
 }

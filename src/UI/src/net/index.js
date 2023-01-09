@@ -5,14 +5,24 @@ import NProgress from 'nprogress'
 export default function axiosRequest(config) {
 	const instance = axios.create()
 
+	let useLoading = config.loading == undefined ? true : config.loading
+	console.log(config)
+	console.log('useLoading:', useLoading)
+
 	instance.interceptors.request.use(config => {
-		NProgress.start()
+		if (useLoading) {
+			NProgress.start()
+		}
+
 		return config
 	})
 
 	instance.interceptors.response.use(
 		result => {
-			NProgress.done()
+			if (useLoading) {
+				NProgress.done()
+			}
+
 			if (result.headers['content-type'] && result.headers['content-type'].indexOf('application/json') < 0) {
 				var a = document.createElement('a')
 				document.body.append(a)
@@ -46,7 +56,9 @@ export default function axiosRequest(config) {
 			return null
 		},
 		error => {
-			NProgress.done()
+			if (useLoading) {
+				NProgress.done()
+			}
 			if (error.message == 'Network Error') {
 				ElementUI.Notification.error('网络请求错误')
 			} else if (error.response.status != 200) {
