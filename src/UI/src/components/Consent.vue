@@ -2,9 +2,11 @@
 	<div class="consent" v-if="setting != null">
 		<div class="logo">
 			<el-avatar :src="setting.clientLogoUrl" :size="64"></el-avatar>
-			<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+			<div v-for="n in 7" :key="'left' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db">
+			</div>
 			<i class="el-icon-success" style="font-size: 32px"></i>
-			<div v-for="n in 7" :key="'right' + n" class="dashed" style="height: 2px; width: 4px; background-color: #ced5db"></div>
+			<div v-for="n in 7" :key="'right' + n" class="dashed"
+				style="height: 2px; width: 4px; background-color: #ced5db"></div>
 			<AppAvatar />
 		</div>
 
@@ -21,8 +23,7 @@
 					<template slot="img">
 						<el-avatar :src="setting.clientLogoUrl"></el-avatar>
 					</template>
-					<span
-						>来自于 <el-link type="primary">{{ setting.clientOwner.userName }}</el-link>
+					<span>来自于 <el-link type="primary">{{ setting.clientOwner.userName }}</el-link>
 					</span>
 				</AuthorizeItem>
 
@@ -87,7 +88,9 @@
 						<span style="color: #91969b"> 许可授权将会重定向到 </span>
 						<div style="margin-top: 10px">
 							<strong>
-								<el-link type="primary" :underline="false" :href="setting.clientUrl">{{ setting.clientUrl }}</el-link>
+								<el-link type="primary" :underline="false" :href="setting.clientUrl">{{
+									setting.clientUrl
+								}}</el-link>
 							</strong>
 						</div>
 					</template>
@@ -109,7 +112,8 @@
 		</div>
 
 		<div class="other">
-			<el-link href="https://oauth.net/2/" :underline="false" icon="el-icon-question" target="_blank"> 了解更多关于OAuth2.0</el-link>
+			<el-link href="https://oauth.net/2/" :underline="false" icon="el-icon-question" target="_blank">
+				了解更多关于OAuth2.0</el-link>
 		</div>
 	</div>
 </template>
@@ -228,11 +232,11 @@ export default {
 	border-bottom: none;
 }
 
->>> .el-collapse-item__header {
+>>>.el-collapse-item__header {
 	border-bottom: none;
 }
 
->>> .el-collapse-item__wrap {
+>>>.el-collapse-item__wrap {
 	border-bottom: none;
 }
 
@@ -251,7 +255,7 @@ export default {
 	align-items: center;
 }
 
-div.dashed + div.dashed {
+div.dashed+div.dashed {
 	margin-left: 1px;
 }
 
