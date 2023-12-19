@@ -28,30 +28,31 @@ public class GlobalExceptionMiddleware
         try
         {
             context.SetIdentityServerOrigin(context.RequestServices.GetService<IConfiguration>().GetSection("BackendBaseUrl").Value);
-            if (context.Request.Path.HasValue && context.Request.Path.Value.Contains(".well-known/openid-configuration"))
-            {
-                var baseUrl = context.GetIdentityServerBaseUrl();
+            //if (context.Request.Path.HasValue && context.Request.Path.Value.Contains(".well-known/openid-configuration"))
+            //{
+            //    var baseUrl = context.GetIdentityServerBaseUrl();
 
-                var issuerUri = context.GetIdentityServerIssuerUri();
+            //    var issuerUri = context.GetIdentityServerIssuerUri();
 
-                var responseGenerator = context.RequestServices.GetService<IDiscoveryResponseGenerator>();
-                var options = context.RequestServices.GetService<IdentityServerOptions>();
+            //    var responseGenerator = context.RequestServices.GetService<IDiscoveryResponseGenerator>();
+            //    var options = context.RequestServices.GetService<IdentityServerOptions>();
 
-                // generate response
-                var response = await responseGenerator.CreateDiscoveryDocumentAsync(baseUrl, issuerUri);
+            //    // generate response
+            //    var response = await responseGenerator.CreateDiscoveryDocumentAsync(baseUrl, issuerUri);
 
-                var result = new DiscoveryDocumentResult(response, options.Discovery.ResponseCacheInterval).Entries;
+            //    var result = new DiscoveryDocumentResult(response, options.Discovery.ResponseCacheInterval).Entries;
 
-                context.Response.StatusCode = 200;
-                byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
-                context.Response.ContentType = "application/json";
-                context.Response.ContentLength = content.Length;
-                await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
-            }
-            else
-            {
-                await _next(context);
-            }
+            //    context.Response.StatusCode = 200;
+            //    byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
+            //    context.Response.ContentType = "application/json";
+            //    context.Response.ContentLength = content.Length;
+            //    await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
+            //}
+            //else
+            //{
+              
+            //}
+            await _next(context);
         }
         catch (Exception ex)
         {
