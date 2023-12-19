@@ -1,8 +1,7 @@
-namespace IdentityServer.STS.Admin.Models
+namespace IdentityServer.STS.Admin.Models;
+
+public class PageIn
 {
-    public class PageIn
-    {
-        public int PageIndex { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
+    public int PageIndex { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
 }

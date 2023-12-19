@@ -48,5 +48,6 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	  <None Remove="emailTemplate.html" />
+	  <None Remove="tempkey.jwk" />
 	</ItemGroup>
 </Project>

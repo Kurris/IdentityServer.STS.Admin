@@ -1,7 +1,6 @@
-namespace IdentityServer.STS.Admin.Models.Admin.Identity
+namespace IdentityServer.STS.Admin.Models.Admin.Identity;
+
+public class RoleSearchInput : PageIn
 {
-    public class RoleSearchInput : PageIn
-    {
-        public string Content { get; set; }
-    }
+    public string Content { get; set; }
 }

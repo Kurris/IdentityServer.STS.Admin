@@ -1,6 +1,5 @@
-﻿namespace IdentityServer.STS.Admin.Models.Admin.Identity
+﻿namespace IdentityServer.STS.Admin.Models.Admin.Identity;
+
+public class ApiScopePageIn : PageIn
 {
-    public class ApiScopePageIn : PageIn
-    {
-    }
 }

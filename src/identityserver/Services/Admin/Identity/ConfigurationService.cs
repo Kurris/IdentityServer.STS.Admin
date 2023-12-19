@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using IdentityServer.STS.Admin.Constants;
-using IdentityServer.STS.Admin.Interfaces.Identity;
+using IdentityServer.STS.Admin.Configuration;
+using IdentityServer.STS.Admin.Services.Interfaces.Identity;
 
-namespace IdentityServer.STS.Admin.Services.Admin.Identity
+namespace IdentityServer.STS.Admin.Services.Admin.Identity;
+
+public class ConfigurationService : IConfigurationService
 {
-    public class ConfigurationService : IConfigurationService
+    public IEnumerable<string> GetStandardClaims()
     {
-        public IEnumerable<string> GetStandardClaims()
-        {
-            return ClientConstants.StandardClaims;
-        }
+        return ClientConstants.StandardClaims;
     }
 }

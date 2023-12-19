@@ -15,237 +15,236 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
-namespace IdentityServer.STS.Admin.Controllers
+namespace IdentityServer.STS.Admin.Controllers;
+
+/// <summary>
+/// 设备授权
+/// </summary>
+[Authorize]
+[Route("api/[controller]")]
+[ApiController]
+public class DeviceController : ControllerBase
 {
+    private readonly IDeviceFlowInteractionService _interaction;
+    private readonly IEventService _events;
+    private readonly IConfiguration _configuration;
+
+    public DeviceController(IDeviceFlowInteractionService interaction,
+        IEventService eventService
+        , IConfiguration configuration)
+    {
+        _interaction = interaction;
+        _events = eventService;
+        _configuration = configuration;
+    }
+
+    public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
+
+
+    /// <summary>
+    /// 确认设备授权码
+    /// </summary>
+    /// <param name="userCode"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    [HttpGet("confirmation")]
+    public async Task<ApiResult<DeviceAuthorizationOutput>> GetUserCodeConfirmationInfo(string userCode)
+    {
+        if (string.IsNullOrEmpty(userCode))
+        {
+            throw new Exception("用户code不能为空");
+        }
+
+        var data = await BuildOutputModelAsync(userCode);
+        if (data == null)
+        {
+            throw new Exception($"无效的用户验证码:{userCode}");
+        }
+
+        data.ConfirmUserCode = true;
+        return new ApiResult<DeviceAuthorizationOutput>
+        {
+            Data = data
+        };
+    }
+
     /// <summary>
     /// 设备授权
     /// </summary>
-    [Authorize]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DeviceController : ControllerBase
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="Exception"></exception>
+    [HttpPost]
+    public async Task<IActionResult> Process([FromForm] DeviceAuthorizationInput input)
     {
-        private readonly IDeviceFlowInteractionService _interaction;
-        private readonly IEventService _events;
-        private readonly IConfiguration _configuration;
+        if (input == null) throw new ArgumentNullException(nameof(input));
 
-        public DeviceController(IDeviceFlowInteractionService interaction,
-            IEventService eventService
-            , IConfiguration configuration)
+        var result = await ProcessConsent(input);
+        if (result.HasValidationError)
         {
-            _interaction = interaction;
-            _events = eventService;
-            _configuration = configuration;
-        }
-
-        public string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
-
-
-        /// <summary>
-        /// 确认设备授权码
-        /// </summary>
-        /// <param name="userCode"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        [HttpGet("confirmation")]
-        public async Task<ApiResult<DeviceAuthorizationOutput>> GetUserCodeConfirmationInfo(string userCode)
-        {
-            if (string.IsNullOrEmpty(userCode))
-            {
-                throw new Exception("用户code不能为空");
-            }
-
-            var data = await BuildOutputModelAsync(userCode);
-            if (data == null)
-            {
-                throw new Exception($"无效的用户验证码:{userCode}");
-            }
-
-            data.ConfirmUserCode = true;
-            return new ApiResult<DeviceAuthorizationOutput>
-            {
-                Data = data
-            };
-        }
-
-        /// <summary>
-        /// 设备授权
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="Exception"></exception>
-        [HttpPost]
-        public async Task<IActionResult> Process([FromForm] DeviceAuthorizationInput input)
-        {
-            if (input == null) throw new ArgumentNullException(nameof(input));
-
-            var result = await ProcessConsent(input);
-            if (result.HasValidationError)
-            {
-                return await RedirectHelper.Error(new Dictionary<string, string>()
-                {
-                    ["error"] = result.ValidationError
-                });
-            }
-
-            if (input.Allow)
-            {
-                return await RedirectHelper.Success(new Dictionary<string, string>()
-                {
-                    ["title"] = "您已经成功授权"
-                });
-            }
-
             return await RedirectHelper.Error(new Dictionary<string, string>()
             {
-                ["error"] = "您对" + result.Client.ClientName + "的授权已拒绝"
+                ["error"] = result.ValidationError
             });
         }
 
-        /// <summary>
-        /// 处理同意屏幕
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInput input)
+        if (input.Allow)
         {
-            var result = new ProcessConsentResult();
-
-            var context = await _interaction.GetAuthorizationContextAsync(input.UserCode);
-            if (context == null) return result;
-
-            ConsentResponse grantedConsent = null;
-
-            //返回标准的access_denied响应
-            if (!input.Allow)
+            return await RedirectHelper.Success(new Dictionary<string, string>()
             {
-                grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
-                await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
-            }
-            //验证数据
-            else if (input.Allow)
+                ["title"] = "您已经成功授权"
+            });
+        }
+
+        return await RedirectHelper.Error(new Dictionary<string, string>()
+        {
+            ["error"] = "您对" + result.Client.ClientName + "的授权已拒绝"
+        });
+    }
+
+    /// <summary>
+    /// 处理同意屏幕
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    private async Task<ProcessConsentResult> ProcessConsent(DeviceAuthorizationInput input)
+    {
+        var result = new ProcessConsentResult();
+
+        var context = await _interaction.GetAuthorizationContextAsync(input.UserCode);
+        if (context == null) return result;
+
+        ConsentResponse grantedConsent = null;
+
+        //返回标准的access_denied响应
+        if (!input.Allow)
+        {
+            grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
+            await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues));
+        }
+        //验证数据
+        else if (input.Allow)
+        {
+            // if the user consented to some scope, build the response model
+            if (input.ScopesConsented != null && input.ScopesConsented.Any())
             {
-                // if the user consented to some scope, build the response model
-                if (input.ScopesConsented != null && input.ScopesConsented.Any())
-                {
-                    var scopes = input.ScopesConsented;
+                var scopes = input.ScopesConsented;
 
-                    grantedConsent = new ConsentResponse
-                    {
-                        RememberConsent = input.RememberConsent,
-                        ScopesValuesConsented = scopes.ToArray(),
-                        Description = input.Description
-                    };
-
-                    await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
-                }
-                else
+                grantedConsent = new ConsentResponse
                 {
-                    result.ValidationError = "至少选择一个选项";
-                }
+                    RememberConsent = input.RememberConsent,
+                    ScopesValuesConsented = scopes.ToArray(),
+                    Description = input.Description
+                };
+
+                await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), context.Client.ClientId, context.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented, grantedConsent.RememberConsent));
             }
             else
             {
-                result.ValidationError = "错误的选择";
+                result.ValidationError = "至少选择一个选项";
             }
+        }
+        else
+        {
+            result.ValidationError = "错误的选择";
+        }
 
-            if (grantedConsent != null)
+        if (grantedConsent != null)
+        {
+            // 将同意结果传达回身份服务器
+            await _interaction.HandleRequestAsync(input.UserCode, grantedConsent);
+
+            //指示可以重定向回授权终结点
+            result.RedirectUri = input.ReturnUrl;
+            result.Client = context.Client;
+        }
+
+        return result;
+    }
+
+    private async Task<DeviceAuthorizationOutput> BuildOutputModelAsync(string userCode, DeviceAuthorizationInput model = null)
+    {
+        var context = await _interaction.GetAuthorizationContextAsync(userCode);
+        return context != null ? CreateConsentOutput(userCode, model, context) : null;
+    }
+
+    private static DeviceAuthorizationOutput CreateConsentOutput(string userCode, DeviceAuthorizationInput input, DeviceFlowAuthorizationRequest context)
+    {
+        var output = new DeviceAuthorizationOutput
+        {
+            UserCode = userCode,
+            Description = input?.Description,
+
+            RememberConsent = input?.RememberConsent ?? false,
+            ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
+
+            ClientName = context.Client.ClientName ?? context.Client.ClientId,
+            ClientUrl = context.Client.ClientUri,
+            ClientLogoUrl = context.Client.LogoUri,
+            AllowRememberConsent = context.Client.AllowRememberConsent
+        }; 
+
+        output.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || input == null)).ToArray();
+
+        var apiScopes = new List<ScopeOutput>();
+        foreach (var parsedScope in context.ValidatedResources.ParsedScopes)
+        {
+            var apiScope = context.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
+            if (apiScope != null)
             {
-                // 将同意结果传达回身份服务器
-                await _interaction.HandleRequestAsync(input.UserCode, grantedConsent);
-
-                //指示可以重定向回授权终结点
-                result.RedirectUri = input.ReturnUrl;
-                result.Client = context.Client;
+                var scopeVm = CreateScopeOutput(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || input == null);
+                apiScopes.Add(scopeVm);
             }
-
-            return result;
         }
 
-        private async Task<DeviceAuthorizationOutput> BuildOutputModelAsync(string userCode, DeviceAuthorizationInput model = null)
+        //添加refresh token
+        if (context.ValidatedResources.Resources.OfflineAccess)
         {
-            var context = await _interaction.GetAuthorizationContextAsync(userCode);
-            return context != null ? CreateConsentOutput(userCode, model, context) : null;
+            apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || input == null));
         }
 
-        private static DeviceAuthorizationOutput CreateConsentOutput(string userCode, DeviceAuthorizationInput input, DeviceFlowAuthorizationRequest context)
+        output.ApiScopes = apiScopes;
+
+        return output;
+    }
+
+    private static ScopeOutput CreateScope(IdentityResource identity, bool check)
+    {
+        return new ScopeOutput
         {
-            var output = new DeviceAuthorizationOutput
-            {
-                UserCode = userCode,
-                Description = input?.Description,
+            Value = identity.Name,
+            DisplayName = identity.DisplayName ?? identity.Name,
+            Description = identity.Description,
+            Emphasize = identity.Emphasize,
+            Required = identity.Required,
+            Checked = check || identity.Required
+        };
+    }
 
-                RememberConsent = input?.RememberConsent ?? false,
-                ScopesConsented = input?.ScopesConsented ?? Enumerable.Empty<string>(),
-
-                ClientName = context.Client.ClientName ?? context.Client.ClientId,
-                ClientUrl = context.Client.ClientUri,
-                ClientLogoUrl = context.Client.LogoUri,
-                AllowRememberConsent = context.Client.AllowRememberConsent
-            }; 
-
-            output.IdentityScopes = context.ValidatedResources.Resources.IdentityResources.Select(x => CreateScope(x, output.ScopesConsented.Contains(x.Name) || input == null)).ToArray();
-
-            var apiScopes = new List<ScopeOutput>();
-            foreach (var parsedScope in context.ValidatedResources.ParsedScopes)
-            {
-                var apiScope = context.ValidatedResources.Resources.FindApiScope(parsedScope.ParsedName);
-                if (apiScope != null)
-                {
-                    var scopeVm = CreateScopeOutput(parsedScope, apiScope, output.ScopesConsented.Contains(parsedScope.RawValue) || input == null);
-                    apiScopes.Add(scopeVm);
-                }
-            }
-
-            //添加refresh token
-            if (context.ValidatedResources.Resources.OfflineAccess)
-            {
-                apiScopes.Add(GetOfflineAccessScope(output.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || input == null));
-            }
-
-            output.ApiScopes = apiScopes;
-
-            return output;
-        }
-
-        private static ScopeOutput CreateScope(IdentityResource identity, bool check)
+    private static ScopeOutput CreateScopeOutput(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+    {
+        return new ScopeOutput
         {
-            return new ScopeOutput
-            {
-                Value = identity.Name,
-                DisplayName = identity.DisplayName ?? identity.Name,
-                Description = identity.Description,
-                Emphasize = identity.Emphasize,
-                Required = identity.Required,
-                Checked = check || identity.Required
-            };
-        }
+            Value = parsedScopeValue.RawValue,
+            // todo: use the parsed scope value in the display?
+            DisplayName = apiScope.DisplayName ?? apiScope.Name,
+            Description = apiScope.Description,
+            Emphasize = apiScope.Emphasize,
+            Required = apiScope.Required,
+            Checked = check || apiScope.Required
+        };
+    }
 
-        private static ScopeOutput CreateScopeOutput(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+    private static ScopeOutput GetOfflineAccessScope(bool check)
+    {
+        return new ScopeOutput
         {
-            return new ScopeOutput
-            {
-                Value = parsedScopeValue.RawValue,
-                // todo: use the parsed scope value in the display?
-                DisplayName = apiScope.DisplayName ?? apiScope.Name,
-                Description = apiScope.Description,
-                Emphasize = apiScope.Emphasize,
-                Required = apiScope.Required,
-                Checked = check || apiScope.Required
-            };
-        }
-
-        private static ScopeOutput GetOfflineAccessScope(bool check)
-        {
-            return new ScopeOutput
-            {
-                Value = IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess,
-                DisplayName = "离线访问",
-                Description = "当离线时,能够访问应用和资源",
-                Emphasize = true,
-                Checked = check
-            };
-        }
+            Value = IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess,
+            DisplayName = "离线访问",
+            Description = "当离线时,能够访问应用和资源",
+            Emphasize = true,
+            Checked = check
+        };
     }
 }

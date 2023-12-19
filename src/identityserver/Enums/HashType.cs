@@ -1,8 +1,7 @@
-﻿namespace IdentityServer.STS.Admin.Enums
+﻿namespace IdentityServer.STS.Admin.Enums;
+
+public enum HashType
 {
-	public enum HashType
-	{
-		Sha256,
-		Sha512
-	}
+    Sha256,
+    Sha512
 }

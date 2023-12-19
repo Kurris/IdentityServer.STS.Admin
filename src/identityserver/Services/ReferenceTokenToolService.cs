@@ -6,38 +6,37 @@ using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 
-namespace IdentityServer.STS.Admin.Services
+namespace IdentityServer.STS.Admin.Services;
+
+public class ReferenceTokenToolService
 {
-    public class ReferenceTokenToolService
+    private readonly ITokenService _tokenService;
+
+    public ReferenceTokenToolService(ITokenService tokenService)
     {
-        private readonly ITokenService _tokenService;
+        _tokenService = tokenService;
+    }
 
-        public ReferenceTokenToolService(ITokenService tokenService)
+    public async Task<string> IssueReferenceToken(int lifetime, string issuer, string description, IEnumerable<Claim> claims = null, ICollection<string> audiences = null)
+    {
+        if (string.IsNullOrWhiteSpace(issuer)) throw new ArgumentNullException(nameof(issuer));
+        if (claims == null) throw new ArgumentNullException(nameof(claims));
+
+        var tokenModel = new Token
         {
-            _tokenService = tokenService;
-        }
+            Audiences = audiences,
+            ClientId = "reference",
+            CreationTime = DateTime.Now,
+            Issuer = issuer,
+            Lifetime = lifetime,
+            Type = OidcConstants.TokenTypes.AccessToken,
+            AccessTokenType = AccessTokenType.Reference,
+            Claims = new HashSet<Claim>(claims, new ClaimComparer()),
+            Description = description
+        };
 
-        public async Task<string> IssueReferenceToken(int lifetime, string issuer, string description, IEnumerable<Claim> claims = null, ICollection<string> audiences = null)
-        {
-            if (string.IsNullOrWhiteSpace(issuer)) throw new ArgumentNullException(nameof(issuer));
-            if (claims == null) throw new ArgumentNullException(nameof(claims));
+        var token = await _tokenService.CreateSecurityTokenAsync(tokenModel);
 
-            var tokenModel = new Token
-            {
-                Audiences = audiences,
-                ClientId = "reference",
-                CreationTime = DateTime.Now,
-                Issuer = issuer,
-                Lifetime = lifetime,
-                Type = OidcConstants.TokenTypes.AccessToken,
-                AccessTokenType = AccessTokenType.Reference,
-                Claims = new HashSet<Claim>(claims, new ClaimComparer()),
-                Description = description
-            };
-
-            var token = await _tokenService.CreateSecurityTokenAsync(tokenModel);
-
-            return token;
-        }
+        return token;
     }
 }

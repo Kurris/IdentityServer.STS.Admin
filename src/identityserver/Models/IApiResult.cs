@@ -1,11 +1,10 @@
-namespace IdentityServer.STS.Admin.Models
+namespace IdentityServer.STS.Admin.Models;
+
+public interface IApiResult
 {
-    public interface IApiResult
-    {
-        IApiResult GetDefaultSuccessApiResult<TResult>(TResult apiResult);
+    IApiResult GetDefaultSuccessApiResult<TResult>(TResult apiResult);
 
-        IApiResult GetDefaultErrorApiResult<TResult>(TResult apiResult);
+    IApiResult GetDefaultErrorApiResult<TResult>(TResult apiResult);
 
-        IApiResult GetDefaultValidateApiResult<TResult>(TResult apiResult);
-    }
+    IApiResult GetDefaultValidateApiResult<TResult>(TResult apiResult);
 }

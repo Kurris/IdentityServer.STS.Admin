@@ -2,16 +2,15 @@
 using IdentityServer.STS.Admin.Models.Admin.Identity;
 using IdentityServer4.EntityFramework.Entities;
 
-namespace IdentityServer.STS.Admin
+namespace IdentityServer.STS.Admin;
+
+/// <summary>
+/// automapper profile
+/// </summary>
+public class MapProfile  : Profile
 {
-    /// <summary>
-    /// automapper profile
-    /// </summary>
-    public class MapProfile  : Profile
+    public MapProfile()
     {
-        public MapProfile()
-        {
-            CreateMap<ClientInput, Client>();
-        }
+        CreateMap<ClientInput, Client>();
     }
 }

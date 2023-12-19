@@ -3,53 +3,47 @@ using System.Text;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace IdentityServer.STS.Admin.Filters
+namespace IdentityServer.STS.Admin.Filters;
+
+public class GlobalExceptionMiddleware
 {
-    public class GlobalExceptionMiddleware
+    private readonly RequestDelegate _next;
+
+    public GlobalExceptionMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
+        _next = next;
+    }
 
-        public GlobalExceptionMiddleware(RequestDelegate next)
+    public async Task Invoke(HttpContext context)
+    {
+        try
         {
-            _next = next;
+            await _next(context);
         }
-
-        public async Task Invoke(HttpContext context)
+        catch (Exception ex)
         {
-            try
+            if (ex.Source != "IdentityServer4")
             {
-                await _next(context);
+                if (!context.Response.HasStarted && context.Response.StatusCode != 302)
+                {
+                    string msg = ex.GetBaseException().Message;
 
-                if (!context.User.Identity.IsAuthenticated)
-                {
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex.Source != "IdentityServer4")
-                {
-                    if (!context.Response.HasStarted && context.Response.StatusCode != 302)
+                    context.Response.StatusCode = 200;
+                    byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
                     {
-                        string msg = ex.GetBaseException().Message;
+                        Code = 500,
+                        Msg = msg
+                    }, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    }));
 
-                        context.Response.StatusCode = 200;
-                        byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ApiResult<object>()
-                        {
-                            Code = 500,
-                            Msg = msg
-                        }, new JsonSerializerSettings
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver()
-                        }));
-
-                        context.Response.ContentType = "application/json";
-                        context.Response.ContentLength = content.Length;
-                        await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
-                    }
+                    context.Response.ContentType = "application/json";
+                    context.Response.ContentLength = content.Length;
+                    await context.Response.BodyWriter.WriteAsync(new ReadOnlyMemory<byte>(content));
                 }
             }
         }

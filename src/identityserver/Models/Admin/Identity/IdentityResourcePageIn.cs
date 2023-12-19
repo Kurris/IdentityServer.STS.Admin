@@ -1,6 +1,5 @@
-namespace IdentityServer.STS.Admin.Models.Admin.Identity
+namespace IdentityServer.STS.Admin.Models.Admin.Identity;
+
+public class IdentityResourcePageIn : PageIn
 {
-    public class IdentityResourcePageIn : PageIn
-    {
-    }
 }

@@ -13,102 +13,101 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace IdentityServer.STS.Admin.Controllers
+namespace IdentityServer.STS.Admin.Controllers;
+
+/// <summary>
+/// 个人token控制器
+/// </summary>
+[Authorize]
+[Route("api/[controller]")]
+[ApiController]
+public class PatController : ControllerBase
 {
-    /// <summary>
-    /// 个人token控制器
-    /// </summary>
-    [Authorize]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PatController : ControllerBase
+    private readonly ReferenceTokenToolService _referenceTokenTools;
+    private readonly IPersistedGrantStore _persistedGrantStore;
+
+    public PatController(ReferenceTokenToolService referenceTokenTools, IPersistedGrantStore persistedGrantStore)
     {
-        private readonly ReferenceTokenToolService _referenceTokenTools;
-        private readonly IPersistedGrantStore _persistedGrantStore;
+        _referenceTokenTools = referenceTokenTools;
+        _persistedGrantStore = persistedGrantStore;
+    }
 
-        public PatController(ReferenceTokenToolService referenceTokenTools, IPersistedGrantStore persistedGrantStore)
+    /// <summary>
+    /// 创建person access token
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<string> CreatePat(PatInput input)
+    {
+        double lifeTime = input.LifeTime ?? int.MaxValue;
+
+        if (lifeTime > int.MaxValue)
         {
-            _referenceTokenTools = referenceTokenTools;
-            _persistedGrantStore = persistedGrantStore;
+            // int.MaxValue;  68years
+            lifeTime = int.MaxValue;
         }
 
-        /// <summary>
-        /// 创建person access token
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<string> CreatePat(PatInput input)
+        var issuer = "identity.isawesome.cn";
+
+        var scopes = new List<Claim>
         {
-            double lifeTime = input.LifeTime ?? int.MaxValue;
+            new(JwtClaimTypes.Subject, User.GetSubjectId()),
+            new(JwtClaimTypes.Scope, "openid"),
+            new(JwtClaimTypes.Scope, "ref"),
+            new(JwtClaimTypes.Issuer, issuer)
+        };
 
-            if (lifeTime > int.MaxValue)
+        var otherScopes = input.Scopes.Select(x => new Claim(JwtClaimTypes.Scope, x));
+        scopes.AddRange(otherScopes);
+
+        var token = await _referenceTokenTools.IssueReferenceToken((int) lifeTime, issuer, input.Description, scopes, input.Audiences);
+
+        return token;
+    }
+
+
+    /// <summary>
+    /// 获取所有
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("all")]
+    public async Task<IEnumerable<PatOutput>> GetAllItems()
+    {
+        var sub = User.GetSubjectId();
+
+        var grants = await _persistedGrantStore.GetAllAsync(new PersistedGrantFilter
+        {
+            SubjectId = sub,
+            SessionId = null,
+            ClientId = "reference",
+            Type = "reference_token"
+        });
+
+        return grants.Select(x =>
+        {
+            var token = JsonConvert.DeserializeObject<Token>(x.Data, new ClaimConverter());
+            var createTime = token.CreationTime.ToLocalTime();
+            var expiredTime = createTime.AddSeconds(token.Lifetime);
+
+            return new PatOutput
             {
-                // int.MaxValue;  68years
-                lifeTime = int.MaxValue;
-            }
-
-            var issuer = "identity.isawesome.cn";
-
-            var scopes = new List<Claim>
-            {
-                new(JwtClaimTypes.Subject, User.GetSubjectId()),
-                new(JwtClaimTypes.Scope, "openid"),
-                new(JwtClaimTypes.Scope, "ref"),
-                new(JwtClaimTypes.Issuer, issuer)
+                Key = x.Key,
+                Description = x.Description,
+                CreateTime = createTime,
+                ExpiredTime = expiredTime
             };
-
-            var otherScopes = input.Scopes.Select(x => new Claim(JwtClaimTypes.Scope, x));
-            scopes.AddRange(otherScopes);
-
-            var token = await _referenceTokenTools.IssueReferenceToken((int) lifeTime, issuer, input.Description, scopes, input.Audiences);
-
-            return token;
-        }
+        }).OrderByDescending(x => x.CreateTime);
+    }
 
 
-        /// <summary>
-        /// 获取所有
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("all")]
-        public async Task<IEnumerable<PatOutput>> GetAllItems()
-        {
-            var sub = User.GetSubjectId();
-
-            var grants = await _persistedGrantStore.GetAllAsync(new PersistedGrantFilter
-            {
-                SubjectId = sub,
-                SessionId = null,
-                ClientId = "reference",
-                Type = "reference_token"
-            });
-
-            return grants.Select(x =>
-            {
-                var token = JsonConvert.DeserializeObject<Token>(x.Data, new ClaimConverter());
-                var createTime = token.CreationTime.ToLocalTime();
-                var expiredTime = createTime.AddSeconds(token.Lifetime);
-
-                return new PatOutput
-                {
-                    Key = x.Key,
-                    Description = x.Description,
-                    CreateTime = createTime,
-                    ExpiredTime = expiredTime
-                };
-            }).OrderByDescending(x => x.CreateTime);
-        }
-
-
-        /// <summary>
-        /// 删除
-        /// </summary>
-        /// <param name="input"></param>
-        [HttpDelete]
-        public async Task Delete(PatDeleteIInput input)
-        {
-            await _persistedGrantStore.RemoveAsync(input.Key);
-        }
+    /// <summary>
+    /// 删除
+    /// </summary>
+    /// <param name="input"></param>
+    [HttpDelete]
+    public async Task Delete(PatDeleteIInput input)
+    {
+        await _persistedGrantStore.RemoveAsync(input.Key);
     }
 }

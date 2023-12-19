@@ -1,33 +1,32 @@
-namespace IdentityServer.STS.Admin.Configuration
+namespace IdentityServer.STS.Admin.Configuration;
+
+/// <summary>
+/// 证书配置
+/// </summary>
+public class CertificateOption
 {
-    /// <summary>
-    /// 证书配置
-    /// </summary>
-    public class CertificateOption
-    {
-        public bool UseTemporarySigningKeyForDevelopment { get; set; }
+    public bool UseTemporarySigningKeyForDevelopment { get; set; }
 
-        // public string CertificateStoreLocation { get; set; }
-        // public bool CertificateValidOnly { get; set; }
+    // public string CertificateStoreLocation { get; set; }
+    // public bool CertificateValidOnly { get; set; }
 
-        // public bool UseSigningCertificateThumbprint { get; set; }
+    // public bool UseSigningCertificateThumbprint { get; set; }
 
-        // public string SigningCertificateThumbprint { get; set; }
+    // public string SigningCertificateThumbprint { get; set; }
 
-        public bool UseSigningCertificatePfxFile { get; set; }
+    public bool UseSigningCertificatePfxFile { get; set; }
 
-        public string SigningCertificatePfxFilePath { get; set; }
+    public string SigningCertificatePfxFilePath { get; set; }
 
-        public string SigningCertificatePfxFilePassword { get; set; }
+    public string SigningCertificatePfxFilePassword { get; set; }
 
-        // public bool UseValidationCertificateThumbprint { get; set; }
+    // public bool UseValidationCertificateThumbprint { get; set; }
 
-        // public string ValidationCertificateThumbprint { get; set; }
+    // public string ValidationCertificateThumbprint { get; set; }
 
-        public bool UseValidationCertificatePfxFile { get; set; }
+    public bool UseValidationCertificatePfxFile { get; set; }
 
-        public string ValidationCertificatePfxFilePath { get; set; }
+    public string ValidationCertificatePfxFilePath { get; set; }
 
-        public string ValidationCertificatePfxFilePassword { get; set; } 
-    }
+    public string ValidationCertificatePfxFilePassword { get; set; }
 }

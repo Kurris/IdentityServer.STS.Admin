@@ -1,7 +1,6 @@
-﻿namespace IdentityServer.STS.Admin.Models.Admin.Identity
+﻿namespace IdentityServer.STS.Admin.Models.Admin.Identity;
+
+public class ClientSearchPageIn : PageIn
 {
-    public class ClientSearchPageIn : PageIn
-    {
-        public int UserId { get; set; }
-    }
+    public int UserId { get; set; }
 }

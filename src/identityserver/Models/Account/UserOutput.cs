@@ -1,7 +1,6 @@
-namespace IdentityServer.STS.Admin.Models.Account
+namespace IdentityServer.STS.Admin.Models.Account;
+
+public class UserOutput
 {
-    public class UserOutput
-    {
-        public string UserName { get; set; }
-    }
+    public string UserName { get; set; }
 }

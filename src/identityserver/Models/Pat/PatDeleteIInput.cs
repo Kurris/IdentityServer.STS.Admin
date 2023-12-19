@@ -1,7 +1,6 @@
-namespace IdentityServer.STS.Admin.Models.Pat
+namespace IdentityServer.STS.Admin.Models.Pat;
+
+public class PatDeleteIInput
 {
-    public class PatDeleteIInput
-    {
-        public string Key { get; set; }
-    }
+    public string Key { get; set; }
 }

@@ -9,58 +9,57 @@ using IdentityServer4.Models;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Identity;
 
-namespace IdentityServer.STS.Admin.IdentityServerExtension
+namespace IdentityServer.STS.Admin.IdentityServerExtension;
+
+public class UserProfile : IProfileService
 {
-    public class UserProfile : IProfileService
+    private readonly UserClaimsPrincipalFactory<User, Role> _userClaimsPrincipalFactory;
+
+    public UserProfile(UserClaimsPrincipalFactory<User, Role> userClaimsPrincipalFactory)
     {
-        private readonly UserClaimsPrincipalFactory<User, Role> _userClaimsPrincipalFactory;
+        _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+    }
 
-        public UserProfile(UserClaimsPrincipalFactory<User, Role> userClaimsPrincipalFactory)
+    public async Task GetProfileDataAsync(ProfileDataRequestContext context)
+    {
+        var sub = context.Subject.GetSubjectId();
+        var user = await _userClaimsPrincipalFactory.UserManager.FindByIdAsync(sub);
+
+        var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
+        //userClaims附加了user和role的claims,避免重复
+        var claims = userClaims.Claims.Distinct(new ClaimTypeComparer()).ToList();
+
+        var issuedClaims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type));
+        context.IssuedClaims.AddRange(issuedClaims);
+    }
+
+    /// <summary>
+    /// 设置subject是否在当前client中可获取token
+    /// </summary>
+    /// <param name="context"></param>
+    public async Task IsActiveAsync(IsActiveContext context)
+    {
+        //可以做黑名单处理
+
+        //var user = await _userManager.FindByIdAsync(context.Subject.GetSubjectId());
+        context.IsActive = true;
+        await Task.CompletedTask;
+    }
+
+    private class ClaimTypeComparer : IEqualityComparer<Claim>
+    {
+        public bool Equals(Claim x, Claim y)
         {
-            _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            if (x.GetType() != y.GetType()) return false;
+            return x.Type == y.Type;
         }
 
-        public async Task GetProfileDataAsync(ProfileDataRequestContext context)
+        public int GetHashCode(Claim obj)
         {
-            var sub = context.Subject.GetSubjectId();
-            var user = await _userClaimsPrincipalFactory.UserManager.FindByIdAsync(sub);
-
-            var userClaims = await _userClaimsPrincipalFactory.CreateAsync(user);
-            //userClaims附加了user和role的claims,避免重复
-            var claims = userClaims.Claims.Distinct(new ClaimTypeComparer()).ToList();
-
-            var issuedClaims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type));
-            context.IssuedClaims.AddRange(issuedClaims);
-        }
-
-        /// <summary>
-        /// 设置subject是否在当前client中可获取token
-        /// </summary>
-        /// <param name="context"></param>
-        public async Task IsActiveAsync(IsActiveContext context)
-        {
-            //可以做黑名单处理
-
-            //var user = await _userManager.FindByIdAsync(context.Subject.GetSubjectId());
-            context.IsActive = true;
-            await Task.CompletedTask;
-        }
-
-        private class ClaimTypeComparer : IEqualityComparer<Claim>
-        {
-            public bool Equals(Claim x, Claim y)
-            {
-                if (ReferenceEquals(x, y)) return true;
-                if (ReferenceEquals(x, null)) return false;
-                if (ReferenceEquals(y, null)) return false;
-                if (x.GetType() != y.GetType()) return false;
-                return x.Type == y.Type;
-            }
-
-            public int GetHashCode(Claim obj)
-            {
-                return HashCode.Combine(obj.Type);
-            }
+            return HashCode.Combine(obj.Type);
         }
     }
 }

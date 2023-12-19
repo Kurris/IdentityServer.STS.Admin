@@ -1,27 +1,26 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IdentityServer.STS.Admin.Models.Account
+namespace IdentityServer.STS.Admin.Models.Account;
+
+/// <summary>
+/// 恢复码登录入参
+/// </summary>
+public class LoginWithRecoveryCodeInput
 {
     /// <summary>
-    /// 恢复码登录入参
+    /// 恢复码
     /// </summary>
-    public class LoginWithRecoveryCodeInput
-    {
-        /// <summary>
-        /// 恢复码
-        /// </summary>
-        [Required(ErrorMessage = "恢复码不能为空")]
-        public string RecoveryCode { get; set; }
+    [Required(ErrorMessage = "恢复码不能为空")]
+    public string RecoveryCode { get; set; }
 
-        /// <summary>
-        /// 重定向地址
-        /// </summary>
-        public string ReturnUrl { get; set; }
+    /// <summary>
+    /// 重定向地址
+    /// </summary>
+    public string ReturnUrl { get; set; }
 
 
-        /// <summary>
-        /// 是否关联外部登录
-        /// </summary>
-        public bool WithExternalLogin { get; set; }
-    }
+    /// <summary>
+    /// 是否关联外部登录
+    /// </summary>
+    public bool WithExternalLogin { get; set; }
 }

@@ -1,8 +1,7 @@
-namespace IdentityServer.STS.Admin.Models.Account
+namespace IdentityServer.STS.Admin.Models.Account;
+
+public class ExternalProvider
 {
-    public class ExternalProvider
-    {
-        public string DisplayName { get; set; }
-        public string AuthenticationScheme { get; set; }
-    }
+    public string DisplayName { get; set; }
+    public string AuthenticationScheme { get; set; }
 }

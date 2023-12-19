@@ -5,155 +5,104 @@ using IdentityServer4.Models;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace IdentityServer.STS.Admin
+namespace IdentityServer.STS.Admin;
+
+public static class Extensions
 {
-    public static class Extensions
+    /// <summary>
+    /// 授权url后缀
+    /// </summary>
+    private const string Authorize = "connect/authorize";
+
+    /// <summary>
+    /// 授权回调url后缀
+    /// </summary>
+    private const string AuthorizeCallback = Authorize + "/callback";
+
+
+    /// <summary>
+    /// 检查重定向地址是否为本地客户端
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public static bool IsNativeClient(this AuthorizationRequest context)
     {
-        /// <summary>
-        /// 授权url后缀
-        /// </summary>
-        private const string Authorize = "connect/authorize";
+        return !context.RedirectUri.StartsWith("https", StringComparison.Ordinal)
+               && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
+    }
 
-        /// <summary>
-        /// 授权回调url后缀
-        /// </summary>
-        private const string AuthorizeCallback = Authorize + "/callback";
-
-
-        /// <summary>
-        /// 检查重定向地址是否为本地客户端
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static bool IsNativeClient(this AuthorizationRequest context)
+    /// <summary>
+    /// 是否为本地路径
+    /// </summary>
+    /// <param name="returnUrl"></param>
+    /// <param name="content"></param>
+    /// <returns></returns>
+    public static bool IsLocal(this string returnUrl, string content = "")
+    {
+        if (string.IsNullOrEmpty(returnUrl))
         {
-            return !context.RedirectUri.StartsWith("https", StringComparison.Ordinal)
-                   && !context.RedirectUri.StartsWith("http", StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// 是否为本地路径
-        /// </summary>
-        /// <param name="returnUrl"></param>
-        /// <param name="content"></param>
-        /// <returns></returns>
-        public static bool IsLocal(this string returnUrl, string content = "")
-        {
-            if (string.IsNullOrEmpty(returnUrl))
-            {
-                return false;
-            }
-
-            return returnUrl.Contains(content, StringComparison.OrdinalIgnoreCase)
-                   || returnUrl.Contains(Authorize, StringComparison.OrdinalIgnoreCase)
-                   || returnUrl.Contains(AuthorizeCallback, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// 时间转换成本地文化格式
-        /// </summary>
-        /// <param name="dateTime"></param>
-        /// <returns></returns>
-        public static DateTime? ToLocalDateTime(this DateTimeOffset? dateTime)
-        {
-            return dateTime != null
-                ? dateTime.Value.DateTime.Kind == DateTimeKind.Utc
-                    ? dateTime.Value.DateTime.ToLocalTime()
-                    : dateTime.Value.DateTime
-                : default;
-        }
-
-        /// <summary>
-        /// 获取url的query参数
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public static NameValueCollection ReadQueryStringAsNameValueCollection(this string url)
-        {
-            if (url != null)
-            {
-                var idx = url.IndexOf('?');
-                if (idx >= 0)
-                {
-                    url = url[(idx + 1)..];
-                }
-
-                var query = QueryHelpers.ParseNullableQuery(url);
-                if (query != null)
-                {
-                    return query.AsNameValueCollection();
-                }
-            }
-
-            return new NameValueCollection();
-        }
-
-        /// <summary>
-        /// 是否为本地地址， 例如： "/" 和"～/"  
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public static bool IsMvcLocalUrl(this string url)
-        {
-            if (string.IsNullOrEmpty(url))
-            {
-                return false;
-            }
-
-            // Allows "/" or "/foo" but not "//" or "/\".
-            if (url[0] == '/')
-            {
-                // url is exactly "/"
-                if (url.Length == 1)
-                {
-                    return true;
-                }
-
-                // url doesn't start with "//" or "/\"
-                return url[1] != '/' && url[1] != '\\';
-            }
-
-            // Allows "~/" or "~/foo" but not "~//" or "~/\".
-            if (url[0] == '~' && url.Length > 1 && url[1] == '/')
-            {
-                // url is exactly "~/"
-                if (url.Length == 2)
-                {
-                    return true;
-                }
-
-                // url doesn't start with "~//" or "~/\"
-                if (url[2] != '/' && url[2] != '\\')
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
             return false;
         }
 
+        return returnUrl.Contains(content, StringComparison.OrdinalIgnoreCase)
+               || returnUrl.Contains(Authorize, StringComparison.OrdinalIgnoreCase)
+               || returnUrl.Contains(AuthorizeCallback, StringComparison.OrdinalIgnoreCase);
+    }
 
-        internal static AuthorizationRequest ToAuthorizationRequest(this ValidatedAuthorizeRequest request)
+    /// <summary>
+    /// 时间转换成本地文化格式
+    /// </summary>
+    /// <param name="dateTime"></param>
+    /// <returns></returns>
+    public static DateTime? ToLocalDateTime(this DateTimeOffset? dateTime)
+    {
+        return dateTime != null
+            ? dateTime.Value.DateTime.Kind == DateTimeKind.Utc
+                ? dateTime.Value.DateTime.ToLocalTime()
+                : dateTime.Value.DateTime
+            : default;
+    }
+
+    /// <summary>
+    /// 获取url的query参数
+    /// </summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    public static NameValueCollection ReadQueryStringAsNameValueCollection(this string url)
+    {
+        if (string.IsNullOrEmpty(url))
         {
-            var authRequest = new AuthorizationRequest
-            {
-                Client = request.Client,
-                DisplayMode = request.DisplayMode,
-                RedirectUri = request.RedirectUri,
-                UiLocales = request.UiLocales,
-                IdP = request.GetIdP(),
-                Tenant = request.GetTenant(),
-                LoginHint = request.LoginHint,
-                PromptModes = request.PromptModes,
-                AcrValues = request.GetAcrValues(),
-                ValidatedResources = request.ValidatedResources
-            };
-
-            authRequest.Parameters.Add(request.Raw);
-
-            return authRequest;
+            return new NameValueCollection();
         }
+
+        var idx = url.IndexOf('?');
+        if (idx >= 0)
+        {
+            url = url[(idx + 1)..];
+        }
+
+        var query = QueryHelpers.ParseNullableQuery(url);
+        return query.AsNameValueCollection();
+    }
+
+    internal static AuthorizationRequest ToAuthorizationRequest(this ValidatedAuthorizeRequest request)
+    {
+        var authRequest = new AuthorizationRequest
+        {
+            Client = request.Client,
+            DisplayMode = request.DisplayMode,
+            RedirectUri = request.RedirectUri,
+            UiLocales = request.UiLocales,
+            IdP = request.GetIdP(),
+            Tenant = request.GetTenant(),
+            LoginHint = request.LoginHint,
+            PromptModes = request.PromptModes,
+            AcrValues = request.GetAcrValues(),
+            ValidatedResources = request.ValidatedResources
+        };
+
+        authRequest.Parameters.Add(request.Raw);
+
+        return authRequest;
     }
 }

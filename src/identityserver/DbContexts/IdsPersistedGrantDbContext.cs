@@ -2,16 +2,15 @@ using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityServer.STS.Admin.DbContexts
+namespace IdentityServer.STS.Admin.DbContexts;
+
+/// <summary>
+/// IdentityServer4's persisted grant dbcontext
+/// </summary>
+public class Id4PersistedGrantDbContext : PersistedGrantDbContext<Id4PersistedGrantDbContext>
 {
-    /// <summary>
-    /// IdentityServer4's persisted grant dbcontext
-    /// </summary>
-    public class IdsPersistedGrantDbContext : PersistedGrantDbContext<IdsPersistedGrantDbContext>
+    public Id4PersistedGrantDbContext(DbContextOptions<Id4PersistedGrantDbContext> options, OperationalStoreOptions storeOptions)
+        : base(options, storeOptions)
     {
-        public IdsPersistedGrantDbContext(DbContextOptions<IdsPersistedGrantDbContext> options, OperationalStoreOptions storeOptions)
-            : base(options, storeOptions)
-        {
-        }
     }
 }
