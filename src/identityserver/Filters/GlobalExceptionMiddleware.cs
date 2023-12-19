@@ -27,9 +27,9 @@ public class GlobalExceptionMiddleware
     {
         try
         {
+            context.SetIdentityServerOrigin(context.RequestServices.GetService<IConfiguration>().GetSection("BackendBaseUrl").Value);
             if (context.Request.Path.HasValue && context.Request.Path.Value.Contains(".well-known/openid-configuration"))
             {
-                context.SetIdentityServerOrigin(context.RequestServices.GetService<IConfiguration>().GetSection("BackendBaseUrl").Value);
                 var baseUrl = context.GetIdentityServerBaseUrl();
 
                 var issuerUri = context.GetIdentityServerIssuerUri();
