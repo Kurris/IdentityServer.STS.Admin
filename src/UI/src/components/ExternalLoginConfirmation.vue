@@ -120,7 +120,13 @@ export default {
 
 			if (res.route == 1) {
 				window.location.href = res.data
-			} else if (res.route == 4) {
+			}
+			else if (res.route == 2) {
+				this.$router.push({
+					path: '/signin'
+				})
+			}
+			else if (res.route == 4) {
 				this.$router.push({
 					path: '/signinWith2fa',
 					query: {

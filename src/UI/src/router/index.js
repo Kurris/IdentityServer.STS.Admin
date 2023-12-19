@@ -34,10 +34,10 @@ const security = () => import('../components/setting/Security.vue')
 vue.use(vueRouter)
 
 const routes = [
-	// {
-	// 	path: '/',
-	// 	redirect: '/zone',
-	// },
+	{
+		path: '/',
+		redirect: '/signIn',
+	},
 	...adminRouters,
 	{
 		name: 'signIn',
