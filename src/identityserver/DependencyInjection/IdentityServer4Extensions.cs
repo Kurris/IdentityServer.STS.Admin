@@ -71,7 +71,7 @@ public static class IdentityServer4Extensions
         .AddCustomSigningCredential(configuration) //签名
         .AddCustomValidationKey(configuration) //验签
         .AddExtensionGrantValidator<DelegationGrantValidator>()//自定义授权模式
-        .AddConfigurationStoreCache()
+        //.AddConfigurationStoreCache(); 配置缓存
         ;
     }
 
