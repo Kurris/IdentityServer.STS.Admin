@@ -50,6 +50,8 @@ public class AccountController : ControllerBase
     private readonly ILogger<AccountController> _logger;
     private const double ExpiredTime = 30;
 
+    private readonly string FrontendBaseUrl;
+    private readonly string BackendBaseUrl;
 
     public AccountController(IIdentityServerInteractionService interaction,
         IWebHostEnvironment environment
@@ -76,10 +78,12 @@ public class AccountController : ControllerBase
         _emailService = emailService;
         _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
         _logger = logger;
+
+        FrontendBaseUrl = _configuration.GetSection(nameof(FrontendBaseUrl)).Value;
+        BackendBaseUrl = _configuration.GetSection(nameof(BackendBaseUrl)).Value;
     }
 
-    private string FrontendBaseUrl => _configuration.GetSection("FrontendBaseUrl").Value;
-    private string BackendBaseUrl => this.Request.Scheme + "://" + this.Request.Host;
+
 
 
     /// <summary>
