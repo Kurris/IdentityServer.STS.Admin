@@ -49,7 +49,7 @@ export default {
 	watch: {},
 	methods: {
 		linkExternalLogin(provider) {
-			let url = 'http://localhost:5000/api/manager/linkLogin'
+			let url = 'https://yikatong.isawesome.cn/oauth-api/manager/linkLogin'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")

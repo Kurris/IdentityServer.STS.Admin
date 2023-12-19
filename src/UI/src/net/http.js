@@ -4,7 +4,7 @@ export default async function http(config) {
 	config.timeout = 60 * 1000 * 2 //30sec
 	config.withCredentials = true
 	if (config.baseURL == undefined) {
-		config.baseURL = 'http://localhost:5000'
+		config.baseURL = 'https://yikatong.isawesome.cn/oauth-api'
 	}
 
 	return new Promise((resolve, reject) =>

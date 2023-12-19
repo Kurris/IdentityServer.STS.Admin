@@ -145,7 +145,7 @@ export default {
 			let apiScopes = this.model.apiScopes.filter(x => x.checked)
 
 			NProgress.start()
-			let url = 'http://localhost:5000/api/device'
+			let url = 'https://yikatong.isawesome.cn/oauth-api/device'
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)
