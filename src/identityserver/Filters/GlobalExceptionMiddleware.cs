@@ -2,10 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
-using IdentityServer4.Configuration;
-using IdentityServer4.Endpoints.Results;
 using IdentityServer4.Extensions;
-using IdentityServer4.ResponseHandling;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +24,16 @@ public class GlobalExceptionMiddleware
     {
         try
         {
-            context.SetIdentityServerOrigin(context.RequestServices.GetService<IConfiguration>().GetSection("BackendBaseUrl").Value);
+            if (!context.Request.Headers.ContainsKey("X-Requested-Internal"))
+            {
+                var baseUrl = context.GetIdentityServerOrigin();
+                var proxyPath = context.RequestServices.GetService<IConfiguration>().GetSection("ProxyPath").Value;
+                if (!string.IsNullOrEmpty(proxyPath))
+                {
+                    baseUrl = baseUrl + "/" + proxyPath.TrimStart('/');
+                }
+                context.SetIdentityServerOrigin(baseUrl);
+            }
             //if (context.Request.Path.HasValue && context.Request.Path.Value.Contains(".well-known/openid-configuration"))
             //{
             //    var baseUrl = context.GetIdentityServerBaseUrl();
@@ -50,7 +56,7 @@ public class GlobalExceptionMiddleware
             //}
             //else
             //{
-              
+
             //}
             await _next(context);
         }
