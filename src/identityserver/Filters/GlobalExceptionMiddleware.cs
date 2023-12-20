@@ -3,9 +3,11 @@ using System.Text;
 using System.Threading.Tasks;
 using IdentityServer.STS.Admin.Models;
 using IdentityServer4.Extensions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -26,13 +28,18 @@ public class GlobalExceptionMiddleware
         {
             if (!context.Request.Headers.ContainsKey("X-Requested-Internal"))
             {
-                var baseUrl = context.GetIdentityServerOrigin();
-                var proxyPath = context.RequestServices.GetService<IConfiguration>().GetSection("ProxyPath").Value;
-                if (!string.IsNullOrEmpty(proxyPath))
+                var sp = context.RequestServices;
+                if (sp.GetService<IWebHostEnvironment>().IsProduction())
                 {
-                    baseUrl = baseUrl + "/" + proxyPath.TrimStart('/');
+                    context.Request.Scheme = "https";
+                    var baseUrl = context.GetIdentityServerOrigin();
+                    var proxyPath = sp.GetService<IConfiguration>().GetSection("ProxyPath").Value;
+                    if (!string.IsNullOrEmpty(proxyPath))
+                    {
+                        baseUrl = baseUrl + "/" + proxyPath.TrimStart('/');
+                    }
+                    context.SetIdentityServerOrigin(baseUrl);
                 }
-                context.SetIdentityServerOrigin(baseUrl);
             }
             //if (context.Request.Path.HasValue && context.Request.Path.Value.Contains(".well-known/openid-configuration"))
             //{
