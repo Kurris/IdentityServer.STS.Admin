@@ -34,7 +34,7 @@ public static class IdentityServer4Extensions
 
         services.AddIdentityServer(options =>
         {
-            options.IssuerUri = "identity.isawesome.cn";
+            //options.IssuerUri = "identity.isawesome.cn";
             options.Events.RaiseErrorEvents = true;
             options.Events.RaiseInformationEvents = true;
             options.Events.RaiseFailureEvents = true;

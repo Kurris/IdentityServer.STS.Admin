@@ -26,4 +26,9 @@ public class LoginInput
     /// 跳转链接
     /// </summary>
     public string ReturnUrl { get; set; }
+
+    /// <summary>
+    /// 传入登陆租户
+    /// </summary>
+    public string Tenant { get; set; }
 }

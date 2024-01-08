@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace IdentityServer.STS.Admin.Helpers;

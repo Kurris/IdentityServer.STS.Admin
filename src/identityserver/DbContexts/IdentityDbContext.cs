@@ -17,6 +17,9 @@ public class IdentityDbContext : IdentityDbContext<User, Role, int, UserClaim, U
     {
     }
 
+    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<UserTenant> UserTenants { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

@@ -28,6 +28,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Newtonsoft.Json;
+using IdentityServer.STS.Admin.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityServer.STS.Admin.Controllers;
 
@@ -48,6 +50,7 @@ public class AccountController : ControllerBase
     private readonly EmailService _emailService;
     private readonly ITimeLimitedDataProtector _timeLimitedDataProtector;
     private readonly ILogger<AccountController> _logger;
+    private readonly IdentityDbContext _identityDbContext;
     private const double ExpiredTime = 30;
 
     private readonly string FrontendBaseUrl;
@@ -64,7 +67,8 @@ public class AccountController : ControllerBase
         , EmailGenerateService emailGenerateService
         , IDataProtectionProvider protectionProvider
         , EmailService emailService
-        , ILogger<AccountController> logger)
+        , ILogger<AccountController> logger
+         , IdentityDbContext identityDbContext)
     {
         _interaction = interaction;
         _environment = environment;
@@ -78,9 +82,10 @@ public class AccountController : ControllerBase
         _emailService = emailService;
         _timeLimitedDataProtector = protectionProvider.CreateProtector("email").ToTimeLimitedDataProtector();
         _logger = logger;
-
         FrontendBaseUrl = _configuration.GetSection(nameof(FrontendBaseUrl)).Value;
         BackendBaseUrl = _configuration.GetSection(nameof(BackendBaseUrl)).Value;
+
+        _identityDbContext = identityDbContext;
     }
 
 
@@ -216,6 +221,35 @@ public class AccountController : ControllerBase
         throw new Exception("非法的重定向地址");
     }
 
+    /// <summary>
+    /// 预登陆
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost("preLogin")]
+    public async Task<ApiResult<object>> PreLogin(PreLoginInput request)
+    {
+        _identityDbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+        var user = await _userManager.FindByNameAsync(request.UserName) ?? await _userManager.FindByEmailAsync(request.UserName);
+        var userTenants = await _identityDbContext.UserTenants.Where(x => x.UserId == user.Id).ToListAsync();
+        var userTenantCodes = userTenants.Select(x => x.TenantCode).ToList();
+        if (!userTenantCodes.Any())
+        {
+            return new ApiResult<object>
+            {
+                Data = await _identityDbContext.Tenants.ToListAsync()
+            };
+        }
+        else
+        {
+            return new ApiResult<object>
+            {
+                Data = await _identityDbContext.Tenants.Where(x => userTenantCodes.Contains(x.Code)).ToListAsync()
+            };
+        }
+    }
 
     /// <summary>
     /// 登录
@@ -228,90 +262,129 @@ public class AccountController : ControllerBase
     public async Task<ApiResult<object>> Login(LoginInput request)
     {
         var context = await _interaction.GetAuthorizationContextAsync(request.ReturnUrl);
-        var tenant = context?.Tenant;
+        var tenant = context?.Tenant ?? request.Tenant;
         if (!string.IsNullOrEmpty(tenant))
         {
             _logger.LogInformation("current tenant is {Tenant}", tenant);
         }
 
         var user = await _userManager.FindByNameAsync(request.UserName) ?? await _userManager.FindByEmailAsync(request.UserName);
-        if (user != null)
+        if (user == null)
         {
-            var signResult = await _signInManager.PasswordSignInAsync(
-                user.UserName
-                , request.Password
-                , request.RememberLogin
-                , true);
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "账号登录失败", clientId: context?.Client.ClientId));
+            throw new Exception("账号或者密码错误");
+        }
 
-            //账号密码验证成功
-            if (signResult.Succeeded)
+        var myTenants = await _identityDbContext.UserTenants.Where(x => x.UserId == user.Id).ToListAsync();
+        if (myTenants.Any() && !myTenants.Any(x => x.TenantCode == tenant))
+        {
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "用户不属于该租户", clientId: context?.Client.ClientId));
+            throw new Exception("用户不属于该租户");
+        }
+
+
+        var signResult = await _signInManager.PasswordSignInAsync(
+            user.UserName
+            , request.Password
+            , request.RememberLogin
+            , true);
+
+        //账号密码验证成功
+        if (signResult.Succeeded)
+        {
+            await UpdateCurrentTenantAsync(user.Id, tenant);
+            await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
+
+            if (context != null)
             {
-                await _eventService.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
-
-                if (context != null)
-                {
-                    if (context.IsNativeClient())
-                    {
-                        return new ApiResult<object>
-                        {
-                            Route = DefineRoute.LoadingPage,
-                            Data = request.ReturnUrl
-                        };
-                    }
-
-                    return new ApiResult<object>
-                    {
-                        Route = DefineRoute.Redirect,
-                        Data = request.ReturnUrl,
-                    };
-                }
-
-                if (request.ReturnUrl.IsLocal())
+                if (context.IsNativeClient())
                 {
                     return new ApiResult<object>
                     {
-                        Route = DefineRoute.Redirect,
-                        Data = request.ReturnUrl,
+                        Route = DefineRoute.LoadingPage,
+                        Data = request.ReturnUrl
                     };
                 }
 
-                if (string.IsNullOrEmpty(request.ReturnUrl))
-                {
-                    return new ApiResult<object>
-                    {
-                        Route = DefineRoute.HomePage,
-                    };
-                }
-
-                throw new Exception("非法的重定向地址");
-            }
-
-            if (signResult.RequiresTwoFactor)
-            {
                 return new ApiResult<object>
                 {
-                    Route = DefineRoute.LoginWith2Fa,
-                    Data = new
-                    {
-                        rememberLogin = request.RememberLogin,
-                        returnUrl = request.ReturnUrl,
-                    }
+                    Route = DefineRoute.Redirect,
+                    Data = request.ReturnUrl,
                 };
             }
 
-            if (signResult.IsLockedOut)
+            if (request.ReturnUrl.IsLocal())
             {
-                throw new Exception("账号已被锁定");
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.Redirect,
+                    Data = request.ReturnUrl,
+                };
             }
 
-            if (signResult.IsNotAllowed)
+            if (string.IsNullOrEmpty(request.ReturnUrl))
             {
-                throw new Exception("账号不允许登录");
+                return new ApiResult<object>
+                {
+                    Route = DefineRoute.HomePage,
+                };
             }
+
+            throw new Exception("非法的重定向地址");
         }
+
+        if (signResult.RequiresTwoFactor)
+        {
+            return new ApiResult<object>
+            {
+                Route = DefineRoute.LoginWith2Fa,
+                Data = new
+                {
+                    rememberLogin = request.RememberLogin,
+                    returnUrl = request.ReturnUrl,
+                }
+            };
+        }
+
+        if (signResult.IsLockedOut)
+        {
+            throw new Exception("账号已被锁定");
+        }
+
+        if (signResult.IsNotAllowed)
+        {
+            throw new Exception("账号不允许登录");
+        }
+
 
         await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "账号登录失败", clientId: context?.Client.ClientId));
         throw new Exception("账号或者密码错误");
+    }
+
+    private async Task UpdateCurrentTenantAsync(int userId, string tenant)
+    {
+        if (string.IsNullOrEmpty(tenant))
+        {
+            return;
+        }
+
+        var tenantKey = "tenant";
+        var claim = _identityDbContext.UserClaims.Where(x => x.UserId == userId).Where(x => x.ClaimType == tenantKey).FirstOrDefault();
+        if (claim != null)
+        {
+            claim.ClaimValue = tenant;
+        }
+        else
+        {
+            await _identityDbContext.UserClaims.AddAsync(new UserClaim
+            {
+                UserId = userId,
+                ClaimType = tenantKey,
+                ClaimValue = tenant
+            });
+        }
+
+        await _identityDbContext.SaveChangesAsync();
     }
 
 

@@ -19,7 +19,7 @@ public static class QueryableExtensions
     }
 
 
-    public static bool isEmpty(this List<int> list)
+    public static bool IsEmpty(this List<int> list)
     {
         return list != null || !list.Any();
     }
