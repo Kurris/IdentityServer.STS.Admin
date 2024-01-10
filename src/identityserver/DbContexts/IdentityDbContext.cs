@@ -35,5 +35,6 @@ public class IdentityDbContext : IdentityDbContext<User, Role, int, UserClaim, U
 
         builder.ApplyConfiguration(new UserSeed());
         builder.ApplyConfiguration(new RoleSeed());
+        builder.ApplyConfiguration(new UserRoleSeed());
     }
 }

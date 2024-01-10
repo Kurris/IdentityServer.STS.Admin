@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using IdentityServer.STS.Admin.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +12,14 @@ public class UserSeed : IEntityTypeConfiguration<User>
     {
         builder.HasData(new List<User>
         {
-            new()
+            new User
             {
                 Id = 1,
                 UserName = "admin",
                 NormalizedUserName = "ADMIN",
                 Email = "Ligy.97@foxmail.com",
                 NormalizedEmail = "LIGY.97@FOXMAIL.COM",
-                EmailConfirmed = false,
+                EmailConfirmed = true,
                 PasswordHash = "AQAAAAEAACcQAAAAELpqgKMsKnyQhcGwsW0Tj5O0FQlrrpzJM7i3jvO+JNa+qMXothnApZsMrpm9hBX4+A==", //@p123456
                 SecurityStamp = "6INQFJT2SDQEWLJWAJ4ARINXIY7MZ4SW",
                 ConcurrencyStamp = "b8890833-d206-4d86-ba1b-3180d3b43e93",
@@ -26,7 +27,7 @@ public class UserSeed : IEntityTypeConfiguration<User>
                 PhoneNumberConfirmed = false,
                 TwoFactorEnabled = false,
                 LockoutEnd = null,
-                LockoutEnabled = true,
+                LockoutEnabled = false,
                 AccessFailedCount = 0
             }
         });

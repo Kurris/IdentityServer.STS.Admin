@@ -80,7 +80,8 @@ public class GlobalExceptionMiddleware
                     {
                         Code = 500,
                         Msg = msg
-                    }, new JsonSerializerSettings
+                    },
+                    new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver()
                     }));

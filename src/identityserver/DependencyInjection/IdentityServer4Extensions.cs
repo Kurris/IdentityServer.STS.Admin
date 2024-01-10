@@ -31,10 +31,15 @@ public static class IdentityServer4Extensions
         where TUserIdentity : class
     {
         var frontBaseUrl = configuration.GetSection("FrontendBaseUrl").Value;
+        var issuerUri = configuration.GetSection("IssuerUri").Value;
 
         services.AddIdentityServer(options =>
         {
-            //options.IssuerUri = "identity.isawesome.cn";
+            if (!string.IsNullOrEmpty(issuerUri))
+            {
+                options.IssuerUri = issuerUri;
+            }
+            
             options.Events.RaiseErrorEvents = true;
             options.Events.RaiseInformationEvents = true;
             options.Events.RaiseFailureEvents = true;

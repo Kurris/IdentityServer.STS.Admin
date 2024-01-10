@@ -81,10 +81,7 @@ public class EmailService
     {
         options ??= _mailkitOptions;
         if (options == null) throw new ArgumentNullException(nameof(options));
-        if (!options.Enable)
-        {
-            return;
-        }
+
 
         using (var message = new MimeMessage())
         {
@@ -97,9 +94,6 @@ public class EmailService
             {
                 HtmlBody = content
             };
-
-            message.Body = builder.ToMessageBody();
-            message.Date = DateTime.Now;
 
             if (attachments?.Any() == true)
             {
@@ -117,6 +111,9 @@ public class EmailService
                     builder.Attachments.Add(attachment);
                 }
             }
+
+            message.Body = builder.ToMessageBody();
+            message.Date = DateTime.Now;
 
             using (var client = new SmtpClient())
             {
@@ -188,11 +185,6 @@ public class AttachmentInfo : IDisposable
 /// </summary>
 public class MailkitOptions
 {
-    /// <summary>
-    /// 是否启用
-    /// </summary>
-    public bool Enable { get; set; }
-
     /// <summary>
     /// 邮件服务器Host
     /// </summary>
