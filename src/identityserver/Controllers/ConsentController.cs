@@ -172,7 +172,7 @@ public class ConsentController : ControllerBase
             return await CreateConsentModel(model, returnUrl, context);
         }
 
-        _logger.LogError($"No consent request matching request: {returnUrl}");
+        _logger.LogError("No consent request matching request:{returnUrl}", returnUrl);
 
         return null;
     }

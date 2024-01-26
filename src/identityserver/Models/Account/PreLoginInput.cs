@@ -9,4 +9,10 @@ public class PreLoginInput
     /// </summary>
     [Required(ErrorMessage = "用户账号不能为空")]
     public string UserName { get; set; }
+
+    /// <summary>
+    /// 密码
+    /// </summary>
+    [Required(ErrorMessage = "用户密码不能为空")]
+    public string Password { get; set; }
 }

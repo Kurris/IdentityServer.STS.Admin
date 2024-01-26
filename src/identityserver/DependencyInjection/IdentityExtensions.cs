@@ -73,7 +73,7 @@ public static class IdentityExtensions
             options.AddPolicy("Admin", policy =>
             {
                 policy.RequireRole("Admin")
-                    .RequireAuthenticatedUser();
+                      .RequireAuthenticatedUser();
             });
         });
 
@@ -110,6 +110,15 @@ public static class IdentityExtensions
             {
                 options.SetDefaultSetting(configuration, "Weibo");
                 options.Scope.Remove("email");
+            });
+        }
+
+
+        if (AbleIntegrate(configuration, "Jinko"))
+        {
+            builder.AddJinko(options =>
+            {
+                options.SetDefaultSetting(configuration, "Jinko");
             });
         }
 

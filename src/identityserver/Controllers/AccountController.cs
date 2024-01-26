@@ -233,6 +233,14 @@ public class AccountController : ControllerBase
         _identityDbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
         var user = await _userManager.FindByNameAsync(request.UserName) ?? await _userManager.FindByEmailAsync(request.UserName);
+        if (user == null)
+        {
+            await _eventService.RaiseAsync(new UserLoginFailureEvent(request.UserName, "账号登录失败"));
+            throw new Exception("账号或者密码错误");
+        }
+        var isValidate = await _userManager.CheckPasswordAsync(user, request.Password);
+
+
         var userTenants = await _identityDbContext.UserTenants.Where(x => x.UserId == user.Id).ToListAsync();
         var userTenantCodes = userTenants.Select(x => x.TenantCode).ToList();
         if (!userTenantCodes.Any())

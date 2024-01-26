@@ -88,7 +88,7 @@ public class GrantsController : ControllerBase
                     Created = grant.CreationTime.ToLocalTime(),
                     Expires = grant.Expiration?.ToLocalTime() ?? default,
                     IdentityGrantNames = resources.IdentityResources.Select(x => x.DisplayName ?? x.Name),
-                    ApiGrantNames = resources.ApiScopes.Select(x => resources.ApiResources.FirstOrDefault(resource => resource.Scopes.Contains(x.Name)).DisplayName + ":" + x.DisplayName)
+                    ApiGrantNames = resources.ApiScopes.Select(x => resources.ApiResources.FirstOrDefault(resource => resource.Scopes != null && resource.Scopes.Contains(x.Name))?.DisplayName + ":" + x.DisplayName)
                 };
 
                 list.Add(item);
