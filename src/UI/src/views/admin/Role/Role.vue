@@ -69,7 +69,6 @@ export default {
         getRolePage() {
             getRolePage(this.pagination).then(res => {
                 this.pagination = res.data
-                console.log(this.pagination);
             })
         },
         addRole() {

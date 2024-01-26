@@ -1,10 +1,44 @@
 <template>
 	<div id="zone" v-if="show">
+
+		<div id="header">
+			<div class="headerLeft">
+				<!-- <a href="http://docs.identityserver.io/en/latest/" title="跳转到identityserver4 document">
+					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
+				</a> -->
+				<el-link style="color: white; margin-left: 10px" @click="$router.push('/')">首页</el-link>
+				<el-link style="color: white; margin-left: 10px"
+					href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
+				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
+			</div>
+			<div class="headerRight">
+				<template v-if="status.isLogin">
+					<el-dropdown trigger="click" @command="handleCommand" style="margin-left: 30px">
+						<span class="el-dropdown-link">
+							<!-- <el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="20" /> -->
+							<i class="el-icon-caret-bottom" style="color: white"></i>
+						</span>
+						<el-dropdown-menu slot="dropdown">
+							<el-dropdown-item>
+								登录为: <strong>{{ status.user.userName }}</strong>
+							</el-dropdown-item>
+							<el-dropdown-item command="setting">设置</el-dropdown-item>
+							<el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+						</el-dropdown-menu>
+					</el-dropdown>
+				</template>
+				<template v-else>
+					<el-link style="color: white" @click="$router.push('/signIn')">登录</el-link>
+					<el-link style="color: white; margin-left: 20px">注册</el-link>
+				</template>
+			</div>
+		</div>
+
 		<template v-if="user == null"> 404 USER </template>
 		<template v-else>
 			<template v-if="isCurrentUser">
 				<div class="container">
-					<h1>{{ user.userName }}的个人空间</h1>
+					<!-- <h1>{{ user.userName }}的个人空间</h1> -->
 				</div>
 			</template>
 		</template>
@@ -58,20 +92,46 @@
 </template>
 
 <script>
-import { getUserByName } from './../net/api.js'
+import { getUserByName, getLoginStatus, logout } from './../net/api.js'
 
 export default {
 	data() {
 		return {
 			show: false,
-			status: null,
+			status: {},
 			user: null,
 			userName: this.$route.params.userName,
 			isCurrentUser: this.$route.params.userName != undefined,
 		}
 	},
 	components: {},
-	methods: {},
+	methods: {
+		getDocument() {
+			this.$router.push('/discoveryDocument')
+		},
+		handleCommand(cmd) {
+			if (cmd == 'logout') {
+				this.logout()
+			} else if (cmd == 'setting') {
+				this.$router.push({
+					path: '/setting',
+				})
+			} else if (cmd == 'profile') {
+				this.$router.push({
+					path: '/zone/' + this.status.user.userName,
+				})
+			}
+		},
+		async logout() {
+			var res = await logout()
+			if (res.route == 9) {
+				this.$router.push({
+					path: '/logout',
+					query: res.data,
+				})
+			}
+		},
+	},
 	async beforeMount() {
 		if (this.isCurrentUser) {
 			let userRes = await getUserByName({
@@ -82,6 +142,10 @@ export default {
 		}
 
 		this.show = true
+
+		getLoginStatus().then(res => {
+			this.status = res.data
+		})
 	},
 }
 </script>

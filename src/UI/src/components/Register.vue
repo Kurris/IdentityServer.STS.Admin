@@ -2,7 +2,8 @@
 	<div id="register">
 		<div class="panel">
 			<div class="container">
-				<el-alert v-if="errorVisible" :title="errorTitle" type="error" show-icon style="width: 300px" :closable="false"> </el-alert>
+				<el-alert v-if="errorVisible" :title="errorTitle" type="error" show-icon style="width: 300px"
+					:closable="false"> </el-alert>
 				<h4>注册一个新账户。</h4>
 				<el-form ref="form" :model="form">
 					<el-form-item>
@@ -12,10 +13,12 @@
 						<el-input type="email" v-model="form.email" autocomplete="off" placeholder="邮件" name="email" />
 					</el-form-item>
 					<el-form-item>
-						<el-input type="password" v-model="form.password" autocomplete="off" placeholder="密码" name="password" />
+						<el-input type="password" v-model="form.password" autocomplete="off" placeholder="密码"
+							name="password" />
 					</el-form-item>
 					<el-form-item>
-						<el-input type="password" v-model="form.confirmPassword" autocomplete="off" placeholder="确认密码" name="confirmPassword" />
+						<el-input type="password" v-model="form.confirmPassword" autocomplete="off" placeholder="确认密码"
+							name="confirmPassword" />
 					</el-form-item>
 					<el-form-item>
 						<el-button type="primary" @click="register" :loading="registerLoading">注册新用户</el-button>
@@ -101,10 +104,10 @@ export default {
 	background-color: #ffffff;
 }
 
->>> .el-input__inner {
+>>>.el-input__inner {
 	width: 300px !important;
 }
+
 .el-button {
 	width: 300px;
-}
-</style>
+}</style>

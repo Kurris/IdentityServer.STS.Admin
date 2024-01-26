@@ -145,7 +145,6 @@ export default {
 	},
 	async beforeMount() {
 		await checkExternalRegister()
-		console.log(this.$route.query)
 	},
 }
 </script>

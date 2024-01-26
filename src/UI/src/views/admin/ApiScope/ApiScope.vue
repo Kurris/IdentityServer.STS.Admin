@@ -91,7 +91,6 @@ export default {
         getApiScopePage() {
             getApiScopePage(this.pagination).then(res => {
                 this.pagination = res.data
-                console.log(this.pagination);
             })
         },
         editIdentityResource(id) {

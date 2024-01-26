@@ -30,6 +30,7 @@ const successed = () => import('../components/Successed.vue')
 const setting = () => import('../components/Setting.vue')
 const development = () => import('../components/setting/Development.vue')
 const security = () => import('../components/setting/Security.vue')
+const notfound = () => import('../views/404.vue')
 
 vue.use(vueRouter)
 
@@ -164,11 +165,17 @@ const routes = [
 		path: '/successed',
 		component: successed,
 	},
+	{
+		path: '*', //会匹配所有路径
+		name: '404',
+		component: notfound,
+	},
 ]
 
 const router = new vueRouter({
 	routes,
 	mode: 'history',
+	base: '/identity/',
 })
 
 router.beforeEach((to, from, next) => {

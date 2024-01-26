@@ -6,10 +6,37 @@
 				<div class="slot" v-if="slotVisible">
 					<img src="../assets/login_left.svg" alt="" srcset="" />
 				</div>
-				<div class="signin">
+
+				<div v-if="isPre" class="tenantSelect">
+					<div class="title">
+						<h1>选择你的基地</h1>
+						<div style="color: #a6a7a8;cursor: pointer;" @click="() => isPre = false">
+							<i class="el-icon-arrow-left"></i>
+							返回
+						</div>
+					</div>
+
+					<div>
+						<el-form>
+							<el-scrollbar style="height: 300px;">
+								<div v-for="item in tenants" :key="item.id">
+									<el-form-item class="tenant">
+										<div style="font-size: 13.6px;color: #171a1d; background-color: #f2f2f6; display: flex;justify-content: space-between;align-items: center;border-radius: 5%;
+	padding: 10px;" @click="login(item.code)">
+											{{ item.name }}
+											<i class="el-icon-right"></i>
+										</div>
+									</el-form-item>
+								</div>
+							</el-scrollbar>
+						</el-form>
+					</div>
+				</div>
+				<div v-else class="signin">
 					<div class="title">
 						<h1>登录</h1>
-						<div>没有帐号？<el-link type="primary" @click="$router.push('/register')" :underline="false">点此注册
+						<!-- @click="$router.push('/register')" -->
+						<div>没有帐号？<el-link type="primary" :underline="false">点此注册
 							</el-link>
 						</div>
 					</div>
@@ -18,23 +45,22 @@
 						<el-form>
 							<el-form-item>
 								<el-input v-focus type="text" v-model="form.userName" placeholder="用户名/账号"
-									@keyup.enter.native="login" prefix-icon="el-icon-user" />
+									@keyup.enter.native="login(null)" prefix-icon="el-icon-user" />
 							</el-form-item>
 							<el-form-item>
 								<el-input type="password" v-model="form.password" placeholder="密码"
-									@keyup.enter.native="login" show-password prefix-icon="el-icon-key" />
+									@keyup.enter.native="login(null)" show-password prefix-icon="el-icon-key" />
 							</el-form-item>
 							<el-form-item>
 								<el-checkbox label="记住我" v-model="form.remember" name="type"></el-checkbox>
-								<el-link type="primary" style="float: right" @click="$router.push('/forgotPassword')"
-									:underline="false">忘记密码?</el-link>
+								<!-- @click="$router.push('/forgotPassword')" -->
+								<el-link type="primary" style="float: right" :underline="false">忘记密码?</el-link>
 							</el-form-item>
 							<el-form-item>
-								<!-- <div style="display: flex;align-items: center;"> -->
-								<el-button style="width: 90%" type="primary" @click="login" :loading="loginLoading">
+								<el-button style="width: 100%" type="primary" @click="login(null)" :loading="loginLoading">
 									登录
 								</el-button>
-								<div style="float: right;margin-top: 4px;" @click="changeLoginType()">
+								<!-- <div style="float: right;margin-top: 4px;" @click="changeLoginType()">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 										class="bi bi-qr-code" viewBox="0 0 16 16">
 										<path d="M2 2h2v2H2V2Z" />
@@ -44,8 +70,7 @@
 											d="M10 0v6h6V0h-6Zm5 1v4h-4V1h4ZM8 1V0h1v2H8v2H7V1h1Zm0 5V4h1v2H8ZM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8H6Zm0 0v1H2V8H1v1H0V7h3v1h3Zm10 1h-1V7h1v2Zm-1 0h-1v2h2v-1h-1V9Zm-4 0h2v1h-1v1h-1V9Zm2 3v-1h-1v1h-1v1H9v1h3v-2h1Zm0 0h3v1h-2v1h-1v-2Zm-4-1v1h1v-2H7v1h2Z" />
 										<path d="M7 12h1v3h4v1H7v-4Zm9 2v2h-3v-1h2v-1h1Z" />
 									</svg>
-								</div>
-								<!-- </div> -->
+								</div> -->
 							</el-form-item>
 						</el-form>
 					</div>
@@ -100,7 +125,7 @@
 
 
 					<div v-if="setting.externalProviders != null && setting.externalProviders.length > 0">
-						<el-divider content-position="center"><span style="color: #8d92a2">其他登录</span></el-divider>
+						<el-divider content-position="center"><span style="color: #8d92a2">其他外部登录</span></el-divider>
 						<div class="externalLogins">
 							<template v-for="(item, i) in setting.externalProviders">
 								<template v-if="item.displayName == 'Alipay'">
@@ -127,6 +152,12 @@
 											@click="externalLogin(item.authenticationScheme)" title="使用discord登录" />
 									</div>
 								</template>
+								<template v-else-if="item.displayName == 'Jinko'">
+									<div :key="i">
+										<img class="externalProvider" src="../assets/auth2logo/JInko.png"
+											@click="externalLogin(item.authenticationScheme)" title="使用晶彩登录" />
+									</div>
+								</template>
 							</template>
 						</div>
 					</div>
@@ -137,10 +168,10 @@
 </template>
 
 <script>
-// getLoginStatus
-import { signIn, checkLogin, getLoginStatus, signInWithQrCode } from '../net/api.js'
-import { newCode, getScanResult } from '../net/qrCode.js'
 
+import { signIn, checkLogin, getLoginStatus, signInWithQrCode, preLogin } from '../net/api.js'
+import { newCode, getScanResult } from '../net/qrCode.js'
+import { baseURL } from '../utils/apiUrlHelper'
 import NProgress from 'nprogress'
 
 export default {
@@ -153,56 +184,74 @@ export default {
 				password: '',
 				remember: false,
 			},
+			isPre: false,
 			setting: null,
 			show: false,
 			loginLoading: false,
 			clientWidth: document.body.clientWidth,
 			slotVisible: false,
 			qrCode: null,
-			qrCodeResult: null
+			qrCodeResult: null,
+			tenants: []
 		}
 	},
 	methods: {
-		async login() {
-			const returnUrl = this.$route.query.returnUrl
+		async login(tenant) {
+			let returnUrl = this.$route.query.returnUrl
 			const userName = this.form.userName
 			const password = this.form.password
 
-			this.loginLoading = true
-			let response = await signIn({
-				userName,
-				password,
-				returnUrl,
-				rememberLogin: this.form.remember,
-				requestType: 'login',
-			}).finally(() => {
-				this.loginLoading = false
+			let preLoginResult = await preLogin({
+				userName, password
 			})
 
-			if (response.route == 2) {
-				let res = await getLoginStatus()
-				let userName = res.data.user.userName
+			this.tenants = preLoginResult.data
+			if (this.tenants != null && this.tenants.length > 0 && !tenant) {
+				this.isPre = true
+			} else {
+				this.loginLoading = true
+				let response = await signIn({
+					userName,
+					password,
+					returnUrl,
+					rememberLogin: this.form.remember,
+					requestType: 'login',
+					tenant
+				}).finally(() => {
+					this.loginLoading = false
+				})
 
-				this.$router.push({
-					path: '/zone/' + userName,
-				})
-			} else if (response.route == 1) {
-				window.location = response.data
-			} else if (response.route == 4) {
-				this.$router.push({
-					path: '/signinWith2fa',
-					query: {
-						rememberMe: response.data.rememberLogin,
-						returnUrl: response.data.returnUrl,
-					},
-				})
+				if (userName != 'admin' && (returnUrl == '' || returnUrl == undefined)) {
+					this.$router.push({
+						path: '/404',
+					})
+				} else {
+					if (response.route == 2) {
+						let res = await getLoginStatus()
+						let userName = res.data.user.userName
+
+						this.$router.push({
+							path: '/zone/' + userName,
+						})
+					} else if (response.route == 1) {
+						window.location = response.data
+					} else if (response.route == 4) {
+						this.$router.push({
+							path: '/signinWith2fa',
+							query: {
+								rememberMe: response.data.rememberLogin,
+								returnUrl: response.data.returnUrl,
+							},
+						})
+					}
+				}
 			}
 		},
 		async externalLogin(provider) {
 			let returnUrl = this.$route.query.returnUrl || ''
 
 			NProgress.start()
-			let url = 'https://yikatong.isawesome.cn/oauth-api/account/externalLogin'
+			let url = `${baseURL}/api/account/externalLogin`
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")
@@ -230,7 +279,6 @@ export default {
 						key: this.qrCode
 					}).then(x => {
 						this.qrCodeResult = x.data
-						console.log(this.qrCodeResult);
 						if (this.qrCodeResult == 'Success') {
 							const returnUrl = this.$route.query.returnUrl
 							signInWithQrCode({
@@ -278,13 +326,12 @@ export default {
 			this.slotVisible = !(newVal < 620)
 		},
 		loginType(newValue) {
-			console.log(newValue)
 			if (newValue == 'qrCode') {
 				this.createQrCode()
 			}
 		}
 	},
-	beforeMount() {
+	async beforeMount() {
 		let that = this
 		window.onresize = () => {
 			return (() => {
@@ -353,7 +400,12 @@ export default {
 	height: 400px;
 }
 
-.signin .title {
+.tenantSelect {
+	width: 300px;
+	height: 400px;
+}
+
+.title {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -389,5 +441,32 @@ img.bg {
 	z-index: -1;
 	left: 0;
 	bottom: 0;
+}
+
+.tenant {
+	/* background-color: #f5ecec */
+}
+
+>>>.el-form-item__content.tenant {
+	/* background-color: #f2f2f6; */
+	border-radius: 5%;
+	padding: 10px;
+}
+
+>>>.tenant .el-form-item__content {
+	transition: all 0.3s ease-in-out;
+
+}
+
+
+>>>.tenant .el-form-item__content:hover {
+	cursor: pointer;
+	padding-left: 5px;
+	margin-right: -5px;
+	/* background-color: #9aeec5 */
+}
+
+>>>.el-scrollbar__wrap {
+	overflow-x: hidden;
 }
 </style>

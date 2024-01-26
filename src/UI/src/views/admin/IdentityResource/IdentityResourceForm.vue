@@ -76,7 +76,6 @@ export default {
             this.currentId = id
             getIdentityResourceById({ id: this.currentId }).then(res => {
                 this.form = res.data
-                console.log(this.form);
             })
         },
         async save() {
@@ -113,7 +112,7 @@ export default {
                     });
                 }
             }
-            console.log(this.newClaims);
+            
             this.newClaimsVisible = false;
             this.newClaimsValue = '';
         },
@@ -128,11 +127,11 @@ export default {
             if (type == 1) {
                 let claim = this.newClaims.find(x => x.type == typeName);
                 this.newClaims.splice(this.newClaims.indexOf(claim), 1);
-                console.log(this.newClaims);
+             
             } else if (type == 0) {
                 let claim = this.form.userClaims.find(x => x.type == typeName);
                 this.form.userClaims.splice(this.form.userClaims.indexOf(claim), 1);
-                console.log(this.form.userClaims);
+             
             }
         }
     }

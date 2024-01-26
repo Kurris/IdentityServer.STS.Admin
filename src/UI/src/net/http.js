@@ -1,10 +1,11 @@
 import axiosRequest from './index'
+import { baseURL } from '../utils/apiUrlHelper'
 
 export default async function http(config) {
-	config.timeout = 60 * 1000 * 2 //30sec
+	config.timeout = 60 * 1000 * 2
 	config.withCredentials = true
 	if (config.baseURL == undefined) {
-		config.baseURL = 'https://yikatong.isawesome.cn/oauth-api'
+		config.baseURL = baseURL
 	}
 
 	return new Promise((resolve, reject) =>

@@ -1,63 +1,22 @@
 <template>
 	<div id="app" v-if="status != null">
-		<div
-			id="header"
-			v-if="
-				status != null &&
-				$route.path != '/signIn' &&
-				$route.path != '/signinWith2fa' &&
-				$route.path != '/consent' &&
-				$route.path != '/loginWithRecoveryCode' &&
-				$route.path != '/externalLoginConfirmation' &&
-				$route.path != '/register' &&
-				$route.path != '/forgotPassword' &&
-				$route.path != '/resetPassword' &&
-				$route.path != '/userCodeCapture' &&
-				$route.path != '/userCodeConfirmation'
-			"
-		>
-			<div class="headerLeft">
-				<a href="http://docs.identityserver.io/en/latest/" title="跳转到identityserver4 document">
-					<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="32" />
-				</a>
-				<el-link style="color: white; margin-left: 10px" @click="$router.push('/')">首页</el-link>
-				<el-link style="color: white; margin-left: 10px" href="https://github.com/Kurris/IdentityServer.STS.Admin">Github</el-link>
-				<el-link style="color: white; margin-left: 10px" @click="getDocument()">发现文档</el-link>
-			</div>
-			<div class="headerRight">
-				<template v-if="status.isLogin">
-					<el-dropdown trigger="click" @command="handleCommand" style="margin-left: 30px">
-						<span class="el-dropdown-link">
-							<el-avatar src="http://docs.identityserver.io/en/latest/_images/logo.png" :size="20" />
-							<i class="el-icon-caret-bottom" style="color: white"></i>
-						</span>
-						<el-dropdown-menu slot="dropdown">
-							<el-dropdown-item>
-								登录为: <strong>{{ status.user.userName }}</strong>
-							</el-dropdown-item>
-							<el-dropdown-item command="setting">设置</el-dropdown-item>
-							<el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
-						</el-dropdown-menu>
-					</el-dropdown>
-				</template>
-				<template v-else>
-					<el-link style="color: white" @click="$router.push('/signIn')">登录</el-link>
-					<el-link style="color: white; margin-left: 20px">注册</el-link>
-				</template>
-			</div>
-		</div>
+
 		<router-view />
 
 		<div class="home" v-if="$route.path == '/'">认证中心首页</div>
-		<div class="icp" v-if="$route.path == '/' || $route.path == '/signIn' || $route.path == '/register' || $route.path == '/forgotPassword' || $route.path == '/resetPassword'">
-			<!-- <CookieTip v-if="cookieTipShow" @confirm="confirm" /> -->
+		<!-- <div class="icp"
+			v-if="$route.path == '/' || $route.path == '/signIn' || $route.path == '/register' || $route.path == '/forgotPassword' || $route.path == '/resetPassword'">
+			<CookieTip v-if="cookieTipShow" @confirm="confirm" />
 			<span>
-				©️Copyright 2022 - {{ new Date().getFullYear().toString() == 2022 ? '至今' : new Date().getFullYear().toString() }}
-				<el-link style="font-size: 12px; bottom: 1.5px" type="info" :underline="false" @click="goBeian()">粤ICP备2022078329号</el-link>
+				©️Copyright 2022 - {{ new Date().getFullYear().toString() == 2022 ? '至今' : new
+					Date().getFullYear().toString() }}
+				<el-link style="font-size: 12px; bottom: 1.5px" type="info" :underline="false"
+					@click="goBeian()">粤ICP备2022078329号</el-link>
 			</span>
 
-			<el-link type="info" href="mailto:ligy.97@foxmail.com?subject=identityserver问题&body=我遇到问题" :underline="false">联系我们</el-link>
-		</div>
+			<el-link type="info" href="mailto:ligy.97@foxmail.com?subject=identityserver问题&body=我遇到问题"
+				:underline="false">联系我们</el-link>
+		</div> -->
 	</div>
 </template>
 

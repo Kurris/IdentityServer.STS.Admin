@@ -42,7 +42,6 @@ export default {
         load(id) {
             getApiResourceById({ id }).then(res => {
                 this.form = res.data
-                console.log(this.form);
             })
         },
         async save() {

@@ -126,6 +126,7 @@ import ScopeItem from './ScopeItem.vue'
 import AuthorizeItem from './AuthorizeItem.vue'
 import NProgress from 'nprogress'
 import AppAvatar from './AppAvatar.vue'
+import { baseURL } from '../utils/apiUrlHelper'
 
 export default {
 	components: {
@@ -145,7 +146,7 @@ export default {
 			let apiScopes = this.model.apiScopes.filter(x => x.checked)
 
 			NProgress.start()
-			let url = 'https://yikatong.isawesome.cn/oauth-api/device'
+			let url = `${baseURL}/api/device`
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write(`<input type=hidden name=allow value=${allow}></input>`)

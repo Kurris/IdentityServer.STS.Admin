@@ -92,7 +92,6 @@ export default {
         getApiResourcePage() {
             getApiResourcePage(this.pagination).then(res => {
                 this.pagination = res.data
-                console.log(this.pagination);
             })
         },
         editApiResource(id) {

@@ -9,6 +9,14 @@ export const signIn = data => {
 	})
 }
 
+export const preLogin = data => {
+	return http({
+		url: 'api/account/preLogin',
+		data: data,
+		method: 'post',
+		loading: false,
+	})
+}
 
 //用户登录
 export const signInWithQrCode = data => {

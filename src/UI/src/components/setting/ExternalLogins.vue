@@ -34,6 +34,7 @@
 import { getExternalLogins, deleteExternalLogin } from '../../net/api.js'
 import AuthorizeItem from '../AuthorizeItem.vue'
 import ExternalAvatar from '../ExternalAvatar.vue'
+import { baseURL } from '../../utils/apiUrlHelper'
 
 export default {
 	components: {
@@ -49,7 +50,7 @@ export default {
 	watch: {},
 	methods: {
 		linkExternalLogin(provider) {
-			let url = 'https://yikatong.isawesome.cn/oauth-api/manager/linkLogin'
+			let url = `${baseURL}/api/manager/linkLogin`
 
 			document.write('<form action=' + url + " method=post name=form1 style='display:none'>")
 			document.write("<input type=hidden name=provider value='" + provider + "'/>")

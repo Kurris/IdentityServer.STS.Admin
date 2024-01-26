@@ -80,7 +80,7 @@ export default {
 	background-color: #ffffff;
 }
 
->>> .el-input__inner {
+>>>.el-input__inner {
 	width: 300px !important;
 }
 

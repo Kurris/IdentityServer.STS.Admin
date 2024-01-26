@@ -20,7 +20,7 @@ export default {
 
 			let res = await loggedOut({ logoutId })
 			if (res.route == 10) {
-				this.$router.push({
+				this.$router.replace({
 					path: '/loggedOut',
 					query: {
 						postLogoutRedirectUri: res.data.postLogoutRedirectUri,

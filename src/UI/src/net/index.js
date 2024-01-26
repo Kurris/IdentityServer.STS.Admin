@@ -6,9 +6,6 @@ export default function axiosRequest(config) {
 	const instance = axios.create()
 
 	let useLoading = config.loading == undefined ? true : config.loading
-	console.log(config)
-	console.log('useLoading:', useLoading)
-
 	instance.interceptors.request.use(config => {
 		if (useLoading) {
 			NProgress.start()

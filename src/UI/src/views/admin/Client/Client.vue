@@ -620,7 +620,6 @@ export default {
 
 			await getClientById({ id }).then(res => {
 				this.form = res.data
-				console.log(this.form)
 			})
 
 			await getGrantTypes().then(res => {
@@ -748,7 +747,6 @@ export default {
 				this.secretLoading = false
 			})
 			this.clientSecrets = clientSecretsRes.data
-			console.log(this.clientSecrets)
 		},
 		async removeClientSecret(id) {
 			await removeClientSecret({
